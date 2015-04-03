@@ -1,0 +1,3 @@
+version  = "0.8.1"
+source   = "http://gcc.igor.onlinedirect.bg/infrastructure/mpc-"..version..".tar.gz"
+use("autotools")
