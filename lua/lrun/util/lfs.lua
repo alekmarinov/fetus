@@ -481,7 +481,7 @@ function execout(command, outf, ...)
 		if not fd then
 			return false, "Error executing `"..command.."' -> `"..(err or "").."'"
 		end
-		while true do 
+		while true do
 			line = lfs.pread(fd)
 			if not line then break end
 			outf(line)
