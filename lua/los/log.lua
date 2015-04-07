@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------
 --                                                                   --
--- Copyright (C) 2012,  AVIQ Systems AG                              --
+-- Copyright (C) 2003-2015, Intelibo Ltd                             --
 --                                                                   --
 -- Project:       LOS                                                --
 -- Filename:      log.lua                                            --

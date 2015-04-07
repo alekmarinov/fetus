@@ -1,3 +1,13 @@
+-----------------------------------------------------------------------
+--                                                                   --
+-- Copyright (C) 2003-2015, Intelibo Ltd                             --
+--                                                                   --
+-- Project:       LOS                                                --
+-- Filename:      autotools.lua                                      --
+-- Description:   make api with autotools                            --
+--                                                                   --
+-----------------------------------------------------------------------
+
 function configure(dirname)
 	
 end

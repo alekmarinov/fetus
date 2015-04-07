@@ -1,4 +1,4 @@
 @ECHO OFF
-SET LOS_HOME=%LRUN_SRC_HOME%\apps\los
+SET LOS_HOME=D:\Projects\AVIQ\LRun\app\los
 SET LUA_PATH=%LOS_HOME%\lua\?.lua
-%LRUN_SRC_HOME%\config\lrun.cmd "%LRUN_SRC_HOME%\modules\lua\lrun\start.lua" los.main -c "%LOS_HOME%/etc/los.conf" %*
+lua51 "%LOS_HOME%\lua\start.lua" los.main -c "%LOS_HOME%/etc/los.conf" %*

@@ -1,3 +1,13 @@
+-----------------------------------------------------------------------
+--                                                                   --
+-- Copyright (C) 2003-2015, Intelibo Ltd                             --
+--                                                                   --
+-- Project:       LOS                                                --
+-- Filename:      api.lua                                            --
+-- Description:   exported api to lospec                             --
+--                                                                   --
+-----------------------------------------------------------------------
+
 local config  = require "lrun.util.config"
 local dw      = require "lrun.net.www.download.luasocket"
 local lfs     = require "lrun.util.lfs"
