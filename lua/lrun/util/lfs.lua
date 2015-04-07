@@ -264,9 +264,9 @@ function dir(dirname, mode)
 	assert(type(dirname) == "string" and dirname:len() > 0)
 
 	dirname = rmpathsep(dirname)
-	local diriter = assert(lfs.dir(dirname))
+	local diriter,meta = assert(lfs.dir(dirname))
 	return function ()
-		local entry = diriter()
+		local entry = diriter(meta)
 		while entry do
 			if entry:sub(1, 1) ~= "." then
 				local attr = stat(concatfilenames(dirname, entry))
@@ -274,7 +274,7 @@ function dir(dirname, mode)
 					return entry, attr
 				end
 			end
-			entry = diriter()
+			entry = diriter(meta)
 		end
 	end
 end
