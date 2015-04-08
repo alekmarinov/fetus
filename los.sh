@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export PATH=""
+pathmunge PATH=""
 export LOS_HOME=$(pwd)
 export LUA_PATH="$LOS_HOME/lua/?.lua"
 export LUA_CPATH="$LOS_HOME/bin/lua/5.1/?.so;$LOS_HOME/bin/lua/5.1/?/?.so;$LOS_HOME/bin/lua/5.1/?/core.so;"
