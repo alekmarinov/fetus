@@ -37,6 +37,8 @@ function build()
 	local cmakegen = config.get(_conf, "cmake.generator")
 	if cmakegen then
 		cmakegen = "-G \""..cmakegen.."\" "
+	else
+		cmakegen = ""
 	end
 
 	lfs.execute("cd "..lfs.Q(dirbuild).." && cmake "..cmakegen.."-DCMAKE_INSTALL_PREFIX="..lfs.Q(installprefix), lfs.path(dirname))
