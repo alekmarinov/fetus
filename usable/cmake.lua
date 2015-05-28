@@ -33,7 +33,13 @@ function build()
 	lfs.mkdir(dirbuild)
 	print("building in "..dirbuild.." with cmake")
 	local installprefix = lfs.path(config.get(_conf, "dir.install"))
-	lfs.execute("cd "..lfs.Q(dirbuild).." && cmake -G \"MinGW Makefiles\" -DCMAKE_INSTALL_PREFIX="..lfs.Q(installprefix), lfs.path(dirname))
+
+	local cmakegen = config.get(_conf, "cmake.generator")
+	if cmakegen then
+		cmakegen = "-G \""..cmakegen.."\" "
+	end
+
+	lfs.execute("cd "..lfs.Q(dirbuild).." && cmake "..cmakegen.."-DCMAKE_INSTALL_PREFIX="..lfs.Q(installprefix), lfs.path(dirname))
 	local ok, err = make(dirbuild)
 	if not ok then
 		return nil, err
