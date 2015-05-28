@@ -1,26 +1,25 @@
------------------------------------------------------------------------
---                                                                   --
--- Copyright (C) 2003-2015, Intelibo Ltd                             --
---                                                                   --
--- Project:       LOS                                                --
--- Filename:      main.lua                                           --
--- Description:   Main interface to LOS tool                         --
---                                                                   --
------------------------------------------------------------------------
+------------------------------------------------------------------
+--																--
+-- Copyright (C) 2003-2015, Intelibo Ltd						--
+--																--
+-- Project:       los											--
+-- Filename:      init.lua										--
+-- Description:   Main interface to los							--
+--																--
+------------------------------------------------------------------
 
 local lfs         = require "lrun.util.lfs"
 local config      = require "lrun.util.config"
-local log         = require "los.log"
 local env         = require "los.env"
 
-module ("los.main", package.seeall)
+module ("los", package.seeall)
 
-_NAME = "LOS"
+_NAME = "los"
 _VERSION = "0.1"
-_DESCRIPTION = "LOS is Lua OS environment building tool"
+_DESCRIPTION = "los is command line tool providing lua powered development and runtime environment"
 
-local defaultconf="los.conf"
-local appwelcome = _NAME.." ".._VERSION.." Copyright (C) 2006-2012 AVIQ Bulgaria Ltd"
+local defaultconf = "conf/los.conf"
+local appwelcome = _NAME.." ".._VERSION.." Copyright (C) 2003-2015 Intelibo Ltd"
 local usagetext = "Usage: ".._NAME.." [OPTION]... COMMAND [ARGS]..."
 local usagetexthelp = "Try ".._NAME.." --help' for more options."
 local errortext = _NAME..": %s"
@@ -93,19 +92,6 @@ local function parseoptions(...)
 		end
 		i = i + 1
 	end
-	if not opts.command then
-		usage("Missing parameter COMMAND")
-	end
-
-	--- set program defaults
-	opts.config = opts.config or defaultconf
-	if not lfs.isfile(opts.config) then
-		exiterror("Config file `"..opts.config.."' is missing")
-	end
-	opts.conf, err = config.load(opts.config)
-	if not opts.conf then
-		exiterror(err)
-	end	
 	return opts
 end
 
@@ -113,19 +99,33 @@ end
 -- Entry Point --------------------------------------------------------
 -----------------------------------------------------------------------
 
-function main(...)
+function main(losdir, ...)
 	local args = {...}
 
 	-- parse program options
 	local opts = parseoptions(...)
 
-	log.setverbosity(opts.quiet, opts.verbose)
+	--- load configuration
+	opts.config = opts.config or lfs.concatfilenames(losdir, defaultconf)
+	if not lfs.isfile(opts.config) then
+		exiterror("Config file `"..opts.config.."' is missing")
+	end
+	opts.conf, err = config.load(opts.config)
+	if not opts.conf then
+		exiterror(err)
+	end	
+	config.set(opts.conf, "dir.lospec", lfs.concatfilenames(losdir, "lospec"))
+	config.set(opts.conf, "dir.usable", lfs.concatfilenames(losdir, "usable"))
+
+	if not opts.command then
+		usage("Missing parameter COMMAND")
+	end
 
 	-- register configuration globaly
 	_G._conf = opts.conf
 
 	local cmdname = table.remove(opts.command, 1):lower()
-	log.info(_NAME.." started with command "..cmdname:lower().." "..table.concat(opts.command, " "))
+	print(_NAME.." started with command "..cmdname:lower().." "..table.concat(opts.command, " "))
 
 	local ok, err
 	if cmdname == "install" then

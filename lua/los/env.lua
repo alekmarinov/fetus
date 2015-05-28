@@ -12,7 +12,6 @@ local lfs        = require "lrun.util.lfs"
 local config     = require "lrun.util.config"
 local string     = require "lrun.util.string"
 local table      = require "lrun.util.table"
-local log        = require "los.log"
 
 module ("los.env", package.seeall)
 
@@ -98,7 +97,7 @@ function requires(pckname, version)
 		end
 	end
 	env.use = function (usable)
-		local filename = lfs.concatfilenames(config.get(_conf, "dir.lua.usable"), usable..".lua")
+		local filename = lfs.concatfilenames(config.get(_conf, "dir.usable"), usable..".lua")
 		print("Using "..usable.." from "..filename)
 		local f, err = loadfile(filename)
 		if not f then

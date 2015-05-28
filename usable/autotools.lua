@@ -40,3 +40,4 @@ function make(target)
 	-- lfs.execute("make "..target)
 	print("make "..(target or ""))
 end
+

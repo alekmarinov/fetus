@@ -1,0 +1,16 @@
+#!/usr/bin/env lua
+------------------------------------------------------------------
+--																--
+-- Copyright (C) 2003-2015, Intelibo Ltd						--
+--																--
+-- Project:       los											--
+-- Filename:      los											--
+-- Description:   los launcher									--
+--																--
+------------------------------------------------------------------
+
+local los = require "los"
+local lfs = require "lrun.util.lfs"
+
+local losdir = lfs.dirname(lfs.dirname(lfs.path(arg[0])))
+los.main(losdir, unpack(arg))
