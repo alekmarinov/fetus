@@ -1,0 +1,3 @@
+from jenkins do
+clone: ssh-agent bash -c 'ssh-add /var/lib/jenkins/.ssh/id_rsa; git clone git@git.intelibo.com:intelibo/los.git'
+push: ssh-agent bash -c 'ssh-add /var/lib/jenkins/.ssh/id_rsa; git push' 
