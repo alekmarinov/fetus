@@ -132,6 +132,7 @@ function download(url, filename, opts)
 	if tonumber(code) ~= 200 then
 		if file then
 			file:close()
+			lfs.delete(filename)
 		end
 		return nil, err or code
 	end

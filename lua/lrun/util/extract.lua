@@ -109,6 +109,7 @@ function unarch(archive, dir)
 	else
 		return nil, "Unknown archive in "..lfs.Q(archive)
 	end
+	print(cmd)
 	if os.execute(cmd) ~= 0 then
 		return nil, "Error unarchiving file "..lfs.Q(archive)
 	end

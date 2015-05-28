@@ -445,6 +445,7 @@ function packargs(command, ...)
 		assert(type(arg) == "string")
 		command = command .. " " .. Q(arg)
 	end
+	print(command)
 	return command
 end
 

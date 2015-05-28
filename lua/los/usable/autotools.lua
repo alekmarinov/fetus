@@ -4,7 +4,7 @@
 --                                                                   --
 -- Project:       LOS                                                --
 -- Filename:      autotools.lua                                      --
--- Description:   make api with autotools                            --
+-- Description:   build implementation with autotools                --
 --                                                                   --
 -----------------------------------------------------------------------
 

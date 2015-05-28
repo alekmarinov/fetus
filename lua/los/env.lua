@@ -18,6 +18,7 @@ module ("los.env", package.seeall)
 
 local API =
 {
+	"os", -- temp
 	"getfenv",
 	"setfenv",
 	"package",
@@ -25,10 +26,10 @@ local API =
 	"print",
 	"pairs",
 	"ipairs",
-	"string",
-	"table",
-	"lfs",
-	"config",
+	["string"] = string,
+	["table"] = table,
+	["lfs"] = lfs,
+	["config"] = config,
 	"_conf",
 	"type",
 	"loadfile"
@@ -90,6 +91,11 @@ function requires(pckname, version)
 	local env = {}
 	for _, f in ipairs(API) do
 		env[f] = _G[f]
+	end
+	for i, f in pairs(API) do
+		if type(i) == "string" then
+			env[i] = f
+		end
 	end
 	env.use = function (usable)
 		local filename = lfs.concatfilenames(config.get(_conf, "dir.lua.usable"), usable..".lua")

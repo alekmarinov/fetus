@@ -42,7 +42,8 @@ function extract(packname)
 	end
 	local srcdir = config.get(_conf, "dir.src")
 	if not lfs.isdir(targetdir) then
+		print("unarch -> ", packname, srcdir)
 		return unarch(packname, srcdir)
 	end
-	return true
+	return targetdir
 end
