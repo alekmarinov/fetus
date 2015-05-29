@@ -8,6 +8,10 @@
 --                                                                   --
 -----------------------------------------------------------------------
 
+local function builddirfromurl(url)
+	return srcdirfromurl(url).."-build"
+end
+
 local function make(srcdir, target)
 	local cmd = "mingw32-make"
 	if target then
@@ -28,9 +32,18 @@ function build()
 	if not packname then
 		return nil, err
 	end
-	local dirname = extract(packname)
-	local dirbuild = dirname.."-build"
-	lfs.mkdir(dirbuild)
+	local dirname, err = extract(packname)
+	print("extract", dirname, err)
+	if not dirname then
+		return nil, err
+	end
+	assert(dirname == srcdirfromurl(source), srcdirfromurl(source).." expected, got "..dirname)
+	local dirbuild = builddirfromurl(source)
+	print("mkdir", dirbuild)
+	local ok, err = lfs.mkdir(dirbuild)
+	if not ok then
+		return nil, err
+	end
 	print("building in "..dirbuild.." with cmake")
 	local installprefix = lfs.path(config.get(_conf, "dir.install"))
 
@@ -41,8 +54,11 @@ function build()
 		cmakegen = ""
 	end
 
-	lfs.execute("cd "..lfs.Q(dirbuild).." && cmake "..cmakegen.."-DCMAKE_INSTALL_PREFIX="..lfs.Q(installprefix), lfs.path(dirname))
-	local ok, err = make(dirbuild)
+	ok, err = lfs.execute("cd "..lfs.Q(dirbuild).." && cmake "..cmakegen.."-DCMAKE_INSTALL_PREFIX="..lfs.Q(installprefix), lfs.path(dirname))
+	if not ok then
+		return nil, err
+	end
+	ok, err = make(dirbuild)
 	if not ok then
 		return nil, err
 	end
@@ -51,9 +67,9 @@ end
 
 function install()
 	print("install")
-	local dirbuild, err = build()
-	if not dirbuild then
-		return nil, err
-	end
-	return make(dirbuild, "install")
+	return make(builddirfromurl(source), "install")
+end
+
+function clean()
+	return lfs.delete(builddirfromurl(source))
 end

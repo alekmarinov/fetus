@@ -136,7 +136,6 @@ function los.main(losdir, ...)
 		print(los._NAME.." configuration")
 		print("-------------")
 		for _, key in ipairs(table.values(config.keys(opts.conf), true)) do
-			print(key)
 			print(key.." = "..config.get(opts.conf, key))
 		end
 		print()
@@ -152,27 +151,25 @@ function los.main(losdir, ...)
 	local cmdname = table.remove(opts.command, 1):lower()
 	print(los._NAME.." started with command "..cmdname:lower().." "..table.concat(opts.command, " "))
 
-	local ok, err
-	if cmdname == "install" then
-		if #opts.command == 0 then
-			err = "install requires 1 or more arguments, try install --help"
-		else
-			local mod, err = requires(unpack(opts.command))
-			if not mod then
-				exiterror(err)
-			end
-			ok, err = mod.install()
-			if not ok then
-				exiterror(err)
-			end
-		end
-	else
-		exiterror("Unknown command "..cmdname)
+	if #opts.command == 0 then
+		exiterror("package [version] argument is missing")
 	end
 
+	local mod, err = requires(unpack(opts.command))
+	if not mod then
+		exiterror(err)
+	end
+
+	if type(mod[cmdname]) ~= "function" then
+		exiterror("command "..cmdname.." is not supported by "..opts.command[1])
+	end
+
+	local ok, err = mod[cmdname](mod)
 	if not ok then
 		exiterror(err)
 	end
+
+	return true
 end
 
 return los

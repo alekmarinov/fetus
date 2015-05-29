@@ -11,19 +11,30 @@
 local config  = require "lrun.util.config"
 local dw      = require "lrun.net.www.download.luasocket"
 local lfs     = require "lrun.util.lfs"
-local unarch  = require "lrun.util.extract".unarch
+local lextract = require "lrun.util.extract"
+
+function localfilefromurl(url)
+	local srcdir = config.get(_conf, "dir.src")
+	local filename = lfs.basename(url)
+	return lfs.concatfilenames(srcdir, filename)
+end
+
+function srcdirfromurl(url)
+	local localfile = localfilefromurl(url)
+	local _, srcdir = lextract.unarchcmd(localfile)
+	return srcdir
+end
 
 function download(source)
-	print("api:download "..(source or "nil"))
-	local srcdir = config.get(_conf, "dir.src")
-	local ok, err = lfs.mkdir(srcdir)
-	if not ok then
-		print("mkdir "..srcdir.." failed. "..err)
-		return nil, err
-	end
-	local filename = lfs.basename(source)
-	local outfile = lfs.concatfilenames(srcdir, filename)
+	assert(type(source) == "string")
+
+	print("api:download "..source)
+	local outfile = localfilefromurl(source)
 	if not lfs.isfile(outfile) then
+		local ok, err = lfs.mkdir(lfs.dirname(outfile))
+		if not ok then
+			return nil, err
+		end
 		ok, err = dw.download(source, outfile)
 		if not ok then
 			return nil, err
@@ -33,17 +44,9 @@ function download(source)
 end
 
 function extract(packname)
+	assert(type(packname) == "string")
+
 	print("api:extract "..packname)
-	local ext = lfs.ext(packname)
-	local subpackname = lfs.stripext(packname)
-	local targetdir = subpackname
-	if (ext == ".gz" or ext == ".bz2") and lfs.ext(subpackname) == ".tar" then
-		targetdir = lfs.stripext(subpackname)
-	end
 	local srcdir = config.get(_conf, "dir.src")
-	if not lfs.isdir(targetdir) then
-		print("unarch -> ", packname, srcdir)
-		return unarch(packname, srcdir)
-	end
-	return targetdir
+	return lextract.unarch(packname, srcdir)
 end

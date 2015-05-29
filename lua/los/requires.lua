@@ -3,8 +3,8 @@
 -- Copyright (C) 2003-2015, Intelibo Ltd                             --
 --                                                                   --
 -- Project:       LOS                                                --
--- Filename:      env.lua                                            --
--- Description:   Creates lua environment for .lospec execution      --
+-- Filename:      requies.lua                                        --
+-- Description:   Finds and load lospec                              --
 --                                                                   --
 -----------------------------------------------------------------------
 
@@ -12,6 +12,7 @@ local lfs        = require "lrun.util.lfs"
 local config     = require "lrun.util.config"
 local string     = require "lrun.util.string"
 local table      = require "lrun.util.table"
+local lospec     = require "los.lospec"
 
 local API =
 {
@@ -29,18 +30,19 @@ local API =
 	["config"] = config,
 	"_conf",
 	"type",
+	"assert",
 	"loadfile"
 }
 
-local function loader(env, lospec)
-	local f, err = loadfile(lospec)
+local function loader(env, lospecfile)
+	local f, err = loadfile(lospecfile)
 	if not f then
 		return nil, err
 	end
 	setfenv(f, env)
 	setfenv(1, env)
 	use "api"
-	print("loading "..lospec)
+	print("loading "..lospecfile)
 	f()
 end
 
@@ -49,34 +51,14 @@ local requirestack = {}
 function requires(pckname, version)
 	print("requires "..pckname.." "..(version or ""))
 
-	local lospecdir = lfs.concatfilenames(config.get(_conf, "dir.lospec"), pckname)
-	if not lfs.isdir(lospecdir) then
-		return nil, lospecdir.." doesn't exists"
+	-- locates lospec file definition
+	local lospecfile, versionorerr = lospec.findfile(pckname, version)
+	if not lospecfile then
+		return nil, err
 	end
-	local lospec
-	if not version then
-		local lospecs = {}
-		for file in lfs.dir(lospecdir) do
-			if lfs.ext(file) == ".lospec" and string.starts(file, pckname.."-", 1) then
-				table.insert(lospecs, file)
-			end
-		end
-		if #lospecs == 0 then
-			return nil, "No .lospecs found for `"..pckname.."'"
-		end
-		table.sort(lospecs)
-		lospec = lospecs[#lospecs]
-		string.gsub(lospec, "[^%-]*%-(.-)%.lospec", function (v)
-			version = v
-		end)
-		lospec = lfs.concatfilenames(lospecdir, lospec)
-	else
-		lospec = lfs.concatfilenames(lospecdir, pckname.."-"..version..".lospec")
-	end
-	if not lfs.isfile(lospec) then
-		return nil, lospec.." not found"
-	end
+	version = versionorerr
 
+	-- avoid require loop
 	for _, pck in ipairs(requirestack) do
 		if pck[1] == pckname then
 			return nil, "Requires loop error on `"..pckname.."'"
@@ -86,12 +68,11 @@ function requires(pckname, version)
 
 	-- prepare environment
 	local env = {}
-	for _, f in ipairs(API) do
-		env[f] = _G[f]
-	end
 	for i, f in pairs(API) do
 		if type(i) == "string" then
 			env[i] = f
+		else
+			env[f] = _G[f]
 		end
 	end
 	env.use = function (usable)
@@ -107,7 +88,7 @@ function requires(pckname, version)
 	env.requires = function (...)
 		return assert(requires(...))
 	end
-	loader(env, lospec)
+	loader(env, lospecfile)
 	package.lospec = package.lospec or {}
 	package.lospec[pckname] = package.lospec[pckname] or {}
 	package.lospec[pckname][version] = env

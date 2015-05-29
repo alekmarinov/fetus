@@ -26,6 +26,7 @@ build = {
    copy_directories = { "lospec", "usable" },
    modules = {
       ["los.requires"] = "lua/los/requires.lua",
-      ["los.init"] = "lua/los/init.lua"
+      ["los.init"] = "lua/los/init.lua",
+      ["los.lospec"] = "lua/los/lospec.lua"
    }
 }
