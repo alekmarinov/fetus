@@ -13,8 +13,6 @@ local config     = require "lrun.util.config"
 local string     = require "lrun.util.string"
 local table      = require "lrun.util.table"
 
-module ("los.env", package.seeall)
-
 local API =
 {
 	"os", -- temp
@@ -117,4 +115,4 @@ function requires(pckname, version)
 	return env
 end
 
-return _M
+return requires

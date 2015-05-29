@@ -150,7 +150,7 @@ function los.main(losdir, ...)
 	_G._conf = opts.conf
 
 	local cmdname = table.remove(opts.command, 1):lower()
-	print(_NAME.." started with command "..cmdname:lower().." "..table.concat(opts.command, " "))
+	print(los._NAME.." started with command "..cmdname:lower().." "..table.concat(opts.command, " "))
 
 	local ok, err
 	if cmdname == "install" then
