@@ -17,6 +17,7 @@ local function make(srcdir, target)
 	if target then
 		cmd = cmd.." "..target
 	end
+	print("making ", target)
 	return lfs.execute("cd "..lfs.Q(srcdir).." && "..cmd)
 end
 

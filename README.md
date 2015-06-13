@@ -23,7 +23,7 @@ Installation is composed by the following steps:
 
   * install required packages
 
-    gcc, lua, lua-devel, curl, tar, zzlib
+    gcc, lua, lua-devel, curl, tar, zzlib, unzip
 
   * bootstraping
 

@@ -13,10 +13,12 @@
 URL_REPO_BASE="http://${LOS_REPO_USER}:${LOS_REPO_PASS}@storage.intelibo.com"
 URL_REPO_OPENSOURCE=$URL_REPO_BASE/opensource
 URL_REPO_ROCKS=$URL_REPO_BASE/rocks
+URL_REPO_LOS=$URL_REPO_BASE/los
 
 LUAROCKS_VERSION="2.2.2"
 LUAROCKS_NAME="luarocks-$LUAROCKS_VERSION"
 LUAROCKS_PACKAGE="$LUAROCKS_NAME.tar.gz"
+LUAROCKS_CONFIGURE_DIFF="$LUAROCKS_NAME-configure.diff"
 
 SCRIPT_PATH_NAME=$(readlink -f $0)
 INSTALL_ROOT=$(dirname $SCRIPT_PATH_NAME)
@@ -91,6 +93,11 @@ check_program tar
 tar --help > /dev/null
 check_status "tar execution test failed"
 
+# locate and test patch
+check_program patch
+patch --help > /dev/null
+check_status "patch execution test failed"
+
 # cleanup installation dir
 rm -rf $INSTALL_ROOT/{$LUAROCKS_PACKAGE,$LUAROCKS_NAME,bin,etc,share,var}
 mkdir -p $INSTALL_ROOT
@@ -98,7 +105,7 @@ check_status "creating directory $INSTALL_ROOT"
 
 # download luarocks
 info "download $URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE"
-curl -s $URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE > $INSTALL_ROOT/$LUAROCKS_PACKAGE
+curl -f -s $URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE > $INSTALL_ROOT/$LUAROCKS_PACKAGE
 check_status "downloading $URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE"
 
 # extract luarocks
@@ -106,6 +113,12 @@ info "extract $INSTALL_ROOT/$LUAROCKS_PACKAGE"
 tar xfz $INSTALL_ROOT/$LUAROCKS_PACKAGE -C $INSTALL_ROOT
 check_status "extracting $INSTALL_ROOT/$LUAROCKS_PACKAGE"
 rm -f $INSTALL_ROOT/$LUAROCKS_PACKAGE
+
+# fix luarocks configure issue in case LUA_DIR is found in / which makes invaild paths like $LUA_DIR/include -> //include
+info "patching $INSTALL_ROOT/$LUAROCKS_NAME/configure"
+curl -f -s $URL_REPO_LOS/$LUAROCKS_CONFIGURE_DIFF > $INSTALL_ROOT/$LUAROCKS_NAME/$LUAROCKS_CONFIGURE_DIFF
+check_status "downloading $URL_REPO_LOS/$LUAROCKS_CONFIGURE_DIFF"
+patch $INSTALL_ROOT/$LUAROCKS_NAME/configure $INSTALL_ROOT/$LUAROCKS_NAME/$LUAROCKS_CONFIGURE_DIFF
 
 # configure luarocks
 info "configure $INSTALL_ROOT/$LUAROCKS_NAME"
