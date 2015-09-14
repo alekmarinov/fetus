@@ -23,7 +23,7 @@ Installation is composed by the following steps:
 
   * install required packages
 
-    gcc, lua, lua-devel, curl, tar, zzlib, unzip
+      gcc, lua, lua-devel, curl, tar, unzip, zzlib, zziplib, zziplib-devel
 
   * bootstraping
 
@@ -50,4 +50,4 @@ License
 
 Copyright (c) 2015 Intelibo Ltd.
 
-MIT licensed. See LICENSE for details.  
+MIT licensed. See LICENSE for details.

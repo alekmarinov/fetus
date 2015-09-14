@@ -49,12 +49,18 @@ info()
 	echo "$(script_name): $1"
 }
 
-# log command and execute it
+# log command and execute it (for debug purposes only)
 execute()
 {
-	echo "$*"
-	shift
+	echo "$(script_name) executing: $*"
 	$*
+}
+
+# log command and execute it without echo (for debug purposes only)
+execute_silent()
+{
+	echo "$(script_name) executing: $*"
+	$* > /dev/null
 }
 
 # checks last command status and exits on failure with error
@@ -131,7 +137,7 @@ patch $INSTALL_ROOT/$LUAROCKS_NAME/configure $INSTALL_ROOT/$LUAROCKS_NAME/$LUARO
 # configure luarocks
 info "configure $INSTALL_ROOT/$LUAROCKS_NAME"
 cd $INSTALL_ROOT/$LUAROCKS_NAME
-execute ./configure --prefix=$INSTALL_ROOT --rocks-tree=$LUAROCKS_TREE_DIR --with-downloader=curl > /dev/null
+./configure --prefix=$INSTALL_ROOT --rocks-tree=$LUAROCKS_TREE_DIR --with-downloader=curl > /dev/null
 check_status "configuring $INSTALL_ROOT/$LUAROCKS_NAME"
 
 # make luarocks
