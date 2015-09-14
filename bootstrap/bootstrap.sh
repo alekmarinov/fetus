@@ -49,6 +49,14 @@ info()
 	echo "$(script_name): $1"
 }
 
+# log command and execute it
+execute()
+{
+	echo "$*"
+	shift
+	$*
+}
+
 # checks last command status and exits on failure with error
 check_status()
 {
@@ -66,7 +74,7 @@ check_program()
 }
 
 # file exists or die
-expect_file() 
+expect_file()
 {
 	[ -f "$1" ] || die "File $1 is expected, but missing!";
 }
@@ -123,7 +131,7 @@ patch $INSTALL_ROOT/$LUAROCKS_NAME/configure $INSTALL_ROOT/$LUAROCKS_NAME/$LUARO
 # configure luarocks
 info "configure $INSTALL_ROOT/$LUAROCKS_NAME"
 cd $INSTALL_ROOT/$LUAROCKS_NAME
-./configure --prefix=$INSTALL_ROOT --rocks-tree=$LUAROCKS_TREE_DIR --with-downloader=curl > /dev/null
+execute ./configure --prefix=$INSTALL_ROOT --rocks-tree=$LUAROCKS_TREE_DIR --with-downloader=curl > /dev/null
 check_status "configuring $INSTALL_ROOT/$LUAROCKS_NAME"
 
 # make luarocks

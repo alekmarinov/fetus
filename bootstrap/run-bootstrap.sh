@@ -10,9 +10,9 @@
 ##################################################################
 
 ## configure variables
-TARGET_DIR="$HOME/los"
-LOS_REPO_USER=alek
-LOS_REPO_PASS=aviqa2
+[ -z "$TARGET_DIR" ] && TARGET_DIR="$HOME/los"
+[ -z "$LOS_REPO_USER" ] && LOS_REPO_USER=alek
+[ -z "$LOS_REPO_PASS" ] && LOS_REPO_PASS=aviqa2
 
 # bootstrap los cleanly
 rm -rf $TARGET_DIR
