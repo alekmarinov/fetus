@@ -27,9 +27,13 @@ else
 	LOS_REPO_USER=$LOS_REPO_USER LOS_REPO_PASS=$LOS_REPO_PASS sh $TARGET_DIR/bootstrap.sh
 fi
 
+die() { echo -e "error: $*" ; exit 1 ; }
 # autorun lua rocks
 export PATH=$PATH:$TARGET_DIR/bin
 export LUA_PATH=$TARGET_DIR/share/lua/5.1/?.lua
-luarocks install los
+luarocks install los || die "luarocks install failed."
+
+chmod 0755 $TARGET_DIR/var/lib/rocks/bin/los
 ln -sf $TARGET_DIR/var/lib/rocks/bin/los $TARGET_DIR/bin/los
+echo -e "\n\n==========================================="
 echo -e "Add the following vars to your environment:\nPATH=\$PATH:$TARGET_DIR/bin"
