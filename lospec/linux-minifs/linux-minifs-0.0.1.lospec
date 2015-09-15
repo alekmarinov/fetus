@@ -1,0 +1,3 @@
+version  = "0.0.1"
+source   = "http://alek:aviqa2@storage.intelibo.com/repositories/prebuilt-toolchains/linux-minifs.tar.bz2"
+use "prebuilt"
