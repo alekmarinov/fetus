@@ -20,7 +20,7 @@ mkdir -p $TARGET_DIR
 
 # downloads the bootstrap script and start it
 if [ -z "$BOOTSTRAP_SCRIPT" ]; then
-	wget -q -O $TARGET_DIR/bootstrap.sh http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap.sh && \
+	wget -q -O $TARGET_DIR/bootstrap.sh http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh && \
 	LOS_REPO_USER=$LOS_REPO_USER LOS_REPO_PASS=$LOS_REPO_PASS sh $TARGET_DIR/bootstrap.sh
 else
 	cp -f $BOOTSTRAP_SCRIPT $TARGET_DIR/bootstrap.sh && \
