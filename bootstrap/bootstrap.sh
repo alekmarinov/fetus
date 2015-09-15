@@ -157,6 +157,6 @@ expect_file $LUAROCKS_CONFIG_LUA
 
 # configure luarocks repository
 info "set luarocks server to $URL_REPO_ROCKS"
-echo "rocks_servers = { \"$URL_REPO_ROCKS\" }" >> $LUAROCKS_CONFIG_LUA
+echo "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n }" >> $LUAROCKS_CONFIG_LUA
 
 echo -e "luarocks installation finished.\nAdd the following vars to your environment:\nPATH=\$PATH:$INSTALL_ROOT/bin\nLUA_PATH=$INSTALL_ROOT/share/lua/5.1/?.lua"
