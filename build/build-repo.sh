@@ -48,11 +48,11 @@ usage()
 REPO_DIR=$1
 [[ -z $REPO_DIR ]] && usage "<repo dir>"
 
-REPO_LOS_DIR=$REPO_DIR/los
 BOOTSTRAP_LOCAL_DIR=$(root_dir)/bootstrap
+BOOTSTRAP_REPO_DIR="$REPO_DIR/bootstrap"
 
 # FIXME: just simple for now
 
 # copy los bootstrap files
 mkdir -p "$REPO_DIR"
-cp -vf "$BOOTSTRAP_LOCAL_DIR/"* "$REPO_LOS_DIR"
+cp -vf "$BOOTSTRAP_LOCAL_DIR/"* "$BOOTSTRAP_REPO_DIR"
