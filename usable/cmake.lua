@@ -9,7 +9,7 @@
 -----------------------------------------------------------------------
 
 local function builddirfromurl(url)
-	return srcdirfromurl(url).."-build"
+	return srcdirfromurl(url, archdir).."-build"
 end
 
 local function make(srcdir, target)
@@ -18,7 +18,7 @@ local function make(srcdir, target)
 		cmd = cmd.." "..target
 	end
 	print("making ", target)
-	return lfs.execute("cd "..lfs.Q(srcdir).." && "..cmd)
+	return lfs.executein(srcdir, cmd)
 end
 
 function build()
@@ -33,12 +33,11 @@ function build()
 	if not packname then
 		return nil, err
 	end
-	local dirname, err = extract(packname)
-	print("extract", dirname, err)
-	if not dirname then
+	local ok, err = extract(packname)
+	if not ok then
 		return nil, err
 	end
-	assert(dirname == srcdirfromurl(source), srcdirfromurl(source).." expected, got "..dirname)
+	local dirname = assert(srcdirfromurl(source, archdir))
 	local dirbuild = builddirfromurl(source)
 	print("mkdir", dirbuild)
 	local ok, err = lfs.mkdir(dirbuild)
@@ -68,6 +67,10 @@ end
 
 function install()
 	print("install")
+	local ok, err = build()
+	if not ok then
+		return nil, err
+	end
 	return make(builddirfromurl(source), "install")
 end
 

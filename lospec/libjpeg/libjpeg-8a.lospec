@@ -1,0 +1,4 @@
+version  = "8a"
+source   = "http://alek:aviqa2@storage.intelibo.com/opensource/jpegsr8a.zip"
+archdir = "jpeg-8a"
+use "autotools"

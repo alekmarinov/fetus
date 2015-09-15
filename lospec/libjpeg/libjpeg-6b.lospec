@@ -1,3 +1,0 @@
-version  = "6b"
-source   = "http://alek:aviqa2@storage.intelibo.com/opensource/jpegsr6.zip"
-use "autotools"

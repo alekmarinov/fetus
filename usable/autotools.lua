@@ -14,12 +14,12 @@ local function make(srcdir, target)
 		cmd = cmd.." "..target
 	end
 	print("making ", target)
-	return lfs.execute("cd "..lfs.Q(srcdir).." && "..cmd)
+	return lfs.executein(srcdir, cmd)
 end
 
 function configure(dirname)
 	print("configure in "..dirname)
-	return lfs.execute("cd "..lfs.Q(dirname).." && ./configure")
+	return lfs.executein(dirname, "sh configure --prefix="..installdir().." \"INSTALL=install -c\"")
 end
 
 function build()
@@ -34,11 +34,12 @@ function build()
 	if not packname then
 		return nil, err
 	end
-	local dirname, err = extract(packname)
-	if not dirname then
+	local ok, err = extract(packname)
+	if not ok then
 		return nil, err
 	end
-	local ok, err = configure(dirname)
+	local dirname = assert(srcdirfromurl(source, archdir))
+	ok, err = configure(dirname)
 	if not ok then
 		return nil, err
 	end
@@ -54,8 +55,20 @@ function build()
 	return true
 end
 
-function install()
-	print("install")
-	return make(srcdirfromurl(source), "install")
+function createinstalldirs()
+	local instdir = installdir()
+	lfs.mkdir(lfs.concatfilenames(instdir, "bin"))
+	lfs.mkdir(lfs.concatfilenames(instdir, "lib"))
+	lfs.mkdir(lfs.concatfilenames(instdir, "include"))
+	lfs.mkdir(lfs.concatfilenames(instdir, "man/man1"))
 end
 
+function install()
+	print("install")
+	local ok, err = build()
+	if not ok then
+		return nil, err
+	end
+	createinstalldirs()
+	return make(assert(srcdirfromurl(source, archdir)), "install")
+end

@@ -13,16 +13,20 @@ local dw      = require "lrun.net.www.download.luasocket"
 local lfs     = require "lrun.util.lfs"
 local lextract = require "lrun.util.extract"
 
+function installdir()
+	return lfs.path(config.get(_conf, "dir.install"))
+end
+
 function localfilefromurl(url)
 	local srcdir = config.get(_conf, "dir.src")
 	local filename = lfs.basename(url)
 	return lfs.concatfilenames(srcdir, filename)
 end
 
-function srcdirfromurl(url)
+function srcdirfromurl(url, archdir)
 	local localfile = localfilefromurl(url)
-	local _, srcdir = lextract.unarchcmd(localfile)
-	return srcdir
+	print("srcdirfromurl: ", localfile, archdir, "->", lextract.unarchdir(localfile, lfs.dirname(localfile), archdir))
+	return lextract.unarchdir(localfile, lfs.dirname(localfile), archdir)
 end
 
 function download(source)
@@ -46,7 +50,7 @@ end
 function extract(packname)
 	assert(type(packname) == "string")
 
-	print("api:extract "..packname)
+	print("api:unpack "..packname)
 	local srcdir = config.get(_conf, "dir.src")
 	return lextract.unarch(packname, srcdir)
 end
