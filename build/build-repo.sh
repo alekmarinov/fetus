@@ -6,7 +6,7 @@
 ## Project:       los											##
 ## Filename:      build-repo.sh									##
 ## Description:   Builds bootstrap and luarocks repository		##
-## Arguments:     1. <repo dir>									##
+## Arguments:     1. <repo_bootstrap_dir>						##
 ##																##
 ##################################################################
 
@@ -45,14 +45,13 @@ usage()
 }
 
 # process script arguments
-REPO_DIR=$1
-[[ -z $REPO_DIR ]] && usage "<repo dir>"
+REPO_BOOTSTRAP_DIR=$1
+[[ -z $REPO_BOOTSTRAP_DIR ]] && usage "<repo_bootstrap_dir>"
 
 BOOTSTRAP_LOCAL_DIR=$(root_dir)/bootstrap
-BOOTSTRAP_REPO_DIR="$REPO_DIR/bootstrap"
 
 # FIXME: just simple for now
 
 # copy los bootstrap files
-mkdir -p "$REPO_DIR"
-cp -vf "$BOOTSTRAP_LOCAL_DIR/"* "$BOOTSTRAP_REPO_DIR"
+mkdir -p "$REPO_BOOTSTRAP_DIR"
+cp -vf "$BOOTSTRAP_LOCAL_DIR/"* "$REPO_BOOTSTRAP_DIR"
