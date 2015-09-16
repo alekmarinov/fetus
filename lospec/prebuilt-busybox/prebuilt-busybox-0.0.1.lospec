@@ -1,0 +1,13 @@
+requires("linux-minifs", "0.0.1"):install()
+
+version	= "0.0.1"
+source	= "http://www.busybox.net/downloads/binaries/latest/busybox-binaries.tar.bz2"
+
+function installafter()
+	local src = makepath(sourcedir(),"busybox-"..hardware())
+	local dst = makepath(installdir(),"bin","busybox")
+	copy(src,dst)
+	return true
+end
+
+use "prebuilt"

@@ -17,6 +17,10 @@ function installdir()
 	return lfs.path(config.get(_conf, "dir.install"))
 end
 
+function sourcedir()
+	return lfs.path(config.get(_conf, "dir.src"))
+end
+
 function localfilefromurl(url)
 	local srcdir = config.get(_conf, "dir.src")
 	local filename = lfs.basename(url)
@@ -53,4 +57,63 @@ function extract(packname)
 	print("api:unpack "..packname)
 	local srcdir = config.get(_conf, "dir.src")
 	return lextract.unarch(packname, srcdir)
+end
+
+function makepath(...)
+	return lfs.concatfilenames(...)
+end
+
+function makepathdir(...)
+	return lfs.addpathsep(makepath(...))
+end
+
+--
+-- NOTE: iss hacked functions :)
+--
+function copy(src,dst)
+	print("copying: "..src.." -> "..dst)
+	local os = require "os"
+	return lfs.copy(src,dst)
+end
+
+function copydir(src,dst)
+	assert(type(src) == "string")
+	assert(type(dst) == "string")
+
+	print("copying: "..src.." -> "..dst)
+	lfs.mkdir(lfs.ospath(dst))
+	if lfs.isunixlike() then
+		return lfs.execute("cp -arfP "..lfs.ospath(src).."* "..lfs.ospath(dst))
+	else
+		return lfs.execute("xcopy /H /R /Q /E /I "..lfs.ospath(src).."*.* "..lfs.ospath(dst))
+	end
+end
+
+function catfile(file,text)
+	lfs.execute("echo '"..text.."' > "..file)
+end
+
+-- FIXME: to be moved to lfs... or not?
+lfs.hardware = function()
+	if not lfs.isunixlike() then
+		return nil, "arch is not unixlike"
+	end
+	local io = require "io"
+	local os = require "os"
+
+	local retval = io.popen("uname -m")
+	local ret = nil
+	if retval then
+		ret = retval:read "*a"
+		retval:close()
+	end
+	return ret:gsub("\n",""):gsub("\r","")
+end
+
+function system()
+	return lfs.osname()
+end
+
+function hardware()
+	return lfs.hardware()
 end

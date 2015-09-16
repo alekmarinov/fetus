@@ -1,3 +1,11 @@
 version  = "0.0.1"
 source   = "http://alek:aviqa2@storage.intelibo.com/los/prebuilt-toolchains/linux-minifs.tar.bz2"
+
+function installafter()
+	local src = makepathdir(sourcedir(),"linux-minifs")
+	local dst = makepathdir(installdir())
+	copydir(src,dst)
+	return true
+end
+
 use "prebuilt"

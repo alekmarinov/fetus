@@ -1,0 +1,16 @@
+requires("prebuilt-busybox", "0.0.1"):install()
+requires("prebuilt-libdep", "0.0.1"):install()
+
+version  = "0.0.1"
+srcname  = "mingw64-"..system().."-"..hardware()
+source   = "http://alek:aviqa2@storage.intelibo.com/los/prebuilt-toolchains/prebuilt-"..srcname..".tar.bz2"
+
+function installafter()
+	local src = makepathdir(sourcedir(),hardware().."-mingw64")
+	local dst = makepathdir(installdir(),"usr",hardware().."-mingw64")
+	copydir(src,dst)
+	catfile(makepath(installdir(),"etc","profile.d",hardware().."-mingw64.ash"),"pathmunge /usr/"..hardware().."-mingw64/bin after")
+	return true
+end
+
+use "prebuilt"

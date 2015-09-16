@@ -1,0 +1,14 @@
+requires("prebuilt-busybox", "0.0.1"):install()
+
+version  = "0.0.1"
+srcname  = "libdep-"..system().."-"..hardware()
+source   = "http://alek:aviqa2@storage.intelibo.com/los/prebuilt-toolchains/prebuilt-"..srcname..".tar.bz2"
+
+function installafter()
+	local src = makepathdir(sourcedir(),hardware().."-libdep")
+	local dst = makepathdir(installdir())
+	copydir(src,dst)
+	return true
+end
+
+use "prebuilt"

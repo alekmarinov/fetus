@@ -3,8 +3,8 @@
 -- Copyright (C) 2003-2015, Intelibo Ltd                             --
 --                                                                   --
 -- Project:       LOS                                                --
--- Filename:      autotools.lua                                      --
--- Description:   build implementation with autotools                --
+-- Filename:      prebuilt.lua                                       --
+-- Description:   installs prebuilt binaries                         --
 --                                                                   --
 -----------------------------------------------------------------------
 
@@ -35,16 +35,17 @@ function build()
 end
 
 function install()
-	print("install")
 	local ret,err = build()
 	if not ret then
-		return nit, err
+		return nil, err
 	end
-	make "install"
+	print("install")
+	if type(installafter) == "function" then
+		installafter()
+	end
+	return true
 end
 
 function make(target)
-	-- lfs.execute("make "..target)
-	print("make "..(target or ""))
-end
 
+end
