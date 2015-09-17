@@ -3,10 +3,10 @@
 -- Copyright (C) 2003-2015, Intelibo Ltd                             --
 --                                                                   --
 -- Project:       LOS                                                --
--- Filename:      package.lua                                        --
--- Description:   parses lospec package format                       --
---                version parsing functions are gracefully           --
---                "borrowed" from luarock.deps                       --
+-- Filename:      version.lua                                        --
+-- Description:   parses lospec dependency, constraints and          --
+--                version formats. The parsing functions are         --
+--                gracefully "borrowed" from luarock.deps            --
 --                                                                   --
 -----------------------------------------------------------------------
 

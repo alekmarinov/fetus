@@ -12,12 +12,74 @@ local lfs        = require "lrun.util.lfs"
 local config     = require "lrun.util.config"
 local string     = require "lrun.util.string"
 local table      = require "lrun.util.table"
+local extract    = require "lrun.util.extract"
+local dw         = require "lrun.net.www.download.luasocket"
 local version    = require "los.lospec.format.version"
+local package    = require "los.lospec.format.package"
 
-local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, print =
-	  _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, print
+local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget =
+	  _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget
+
+-- debug
+local print = print
 
 module "los.lospec"
+
+local lomod_mt = 
+{
+	__newindex = function(t, name, value)
+		if name == "package" then
+			value = package.parse(value)
+		end
+		rawset(t, name, value)
+	end,
+	__index = function(t, name)
+		-- access to los configuration
+		if name == "conf" then
+			return setmetatable({}, {__index = function (t1, k) 
+				return config.get(_G._conf, k)
+			end})
+		-- logging
+		elseif name == "log" then
+			return setmetatable({}, {__index = function(t1, level)
+				local logger
+				if level == "d" then
+					logger = _G._log.debug
+				elseif level == "i" then
+					logger = _G._log.info
+				elseif level == "w" then
+					logger = _G._log.warn
+				elseif level == "e" then
+					logger = _G._log.error
+				end
+				if logger then
+					return function(...)
+						return logger(_G._log, t._NAME..": "..table.concat({...}, " "))
+					end
+				else
+					error("logger "..level.." is undefined")
+				end
+			end})
+		-- paths
+		elseif name == "path" then
+			return setmetatable({}, {__index = function(t1, name)
+				if name == "src" then
+					local basename = lfs.basename(t.package.source)
+					local srcdir = lfs.path(t.conf["dir.src"])
+					local src = {}
+					src.dir = extract.unarchdir(basename, srcdir, t.package.archdir)
+					src.file = lfs.concatfilenames(srcdir, lfs.basename(t.package.source))
+					src.url = t.package.source
+					return src
+				elseif name == "install" then
+					local install = {}
+					install.dir = lfs.path(t.conf["dir.install"])
+					return install
+				end
+			end})
+		end
+	end
+}
 
 -- declares imported definitions to be accessible from lospec
 local importapi =
@@ -25,13 +87,14 @@ local importapi =
 	"print", -- debug
 	"getfenv",
 	"setfenv",
-	"package",
 	"require",
 	"pairs",
 	"ipairs",
 	["string"] = string,
 	["table"] = table,
 	["lfs"] = lfs,
+	["extract"] = extract,
+	["dw"] = dw,
 	["config"] = config,
 	["_conf"] = _G._conf,
 	"_log",
@@ -48,14 +111,14 @@ local extapi =
 		local usemod = require ("los.use."..usable)
 
 		-- import usable api with environment set to this los module environment
-		local env = getfenv()
+		local lomod = getfenv()
 		for i, v in pairs(usemod) do
 			if type(v) == "function" then
-				setfenv(v, env)
+				setfenv(v, lomod)
 			end
-			env[i] = v
+			lomod[i] = v
 		end
-		env[usable] = usemod
+		lomod[usable] = usemod
 	end
 }
 
@@ -93,7 +156,7 @@ function findfile(dep)
 
 	local lospecveridx = version.bestindexof(lospecvers, dep.constraints)
 	if not lospecveridx then
-		return nil, "can't find los module matching "..depstring
+		return nil, "can't find los module matching "..dep.name
 	end
 	return lfs.concatfilenames(lospecdir, lospecfiles[lospecveridx]) , lospecvers[lospecveridx]
 end
@@ -103,19 +166,19 @@ function load(lospecfile)
 	_G._log:info(_NAME..": .load: "..lospecfile)
 
 	-- prepare environment
-	local env = {}
+	local lomod = {}
 
 	local function importfunc(name, func)
-		env[name] = func
-		setfenv(func, env)
+		lomod[name] = func
+		setfenv(func, lomod)
 	end
 
 	-- import base api
 	for i, f in pairs(importapi) do
 		if type(i) == "string" then
-			env[i] = f
+			lomod[i] = f
 		else
-			env[f] = _G[f]
+			lomod[f] = _G[f]
 		end
 	end
 
@@ -124,19 +187,24 @@ function load(lospecfile)
 		importfunc(i, f)
 	end
 
-	local f, err = _G.loadfile(lospecfile)
-	if not f then
+	local err
+	lomod._init, err = _G.loadfile(lospecfile)
+	if not lomod._init then
 		return nil, err
 	end
-	setfenv(f, env)
-	setfenv(1, env)
+
+	setfenv(lomod._init, lomod)
+	setfenv(1, lomod)
 	use "api"
-	return f, env
+
+	setmetatable(lomod, lomod_mt)
+
+	return lomod
 end
 
 -- executes los module
 function exec(lomod)
-	local ok, err = pcall(lomod)
+	local ok, err = pcall(lomod._init)
 	if not ok then
 		return nil, err
 	end

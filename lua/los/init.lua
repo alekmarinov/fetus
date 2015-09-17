@@ -132,21 +132,16 @@ function los.main(losdir, ...)
 		exiterror("package [version] argument is missing")
 	end
 
-	local mod, envorerr = requires(unpack(args))
+	local mod, err = requires(unpack(args))
 	if not mod then
-		exiterror(envorerr)
+		exiterror(err)
 	end
 
-	print("....")
-	for i, v in pairs(envorerr) do
-		print(i,v)
-	end
-
-	if type(envorerr[command]) ~= "function" then
+	if type(mod[command]) ~= "function" then
 		exiterror("command "..command.." is not supported by "..args[1])
 	end
 
-	local ok, err = envorerr[command](mod)
+	local ok, err = mod[command](mod)
 	if not ok then
 		exiterror(err)
 	end

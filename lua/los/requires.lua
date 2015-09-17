@@ -28,16 +28,19 @@ local requirestack = {}
 -- loads los module specified by dependency description
 -- returns the loaded module as a table and its environment
 -- @param depstring: string representation of dependency, e.g. "foo >= 1.2, foo < 2"
-local requires = function (depstring)
+local requires
+requires = function (depstring)
 	_G._log:info(_NAME..": "..depstring)
 	local dep, err = version.parsedep(depstring)
 	if not dep then
+		_G._log:error(_NAME..": "..(err or "can't parse "..depstring))
 		return nil, err
 	end
 
 	-- locates lospec file definition by required dependency description
 	local lospecfile, versionorerr = lospec.findfile(dep)
 	if not lospecfile then
+		_G._log:error(_NAME..": "..(err or "can't find lospec for "..depstring))
 		return nil, err
 	end
 	local ver = versionorerr
@@ -52,13 +55,13 @@ local requires = function (depstring)
 	table.insert(requirestack, dep)
 
 	-- loads lospec as module
-	local lomod, envorerr = lospec.load(lospecfile)
+	local lomod, err = lospec.load(lospecfile)
 	if not lomod then
-		return nil, envorerr
+		return nil, err
 	end
 
 	-- register requires function to los module environment
-	envorerr.requires = requires
+	lomod.requires = requires
 
 	-- executes los module
 	local ok, err = lospec.exec(lomod)
@@ -69,7 +72,7 @@ local requires = function (depstring)
 	-- remove from require stack
 	table.remove(requirestack)
 
-	return lomod, envorerr
+	return lomod
 end
 
 return requires

@@ -12,46 +12,36 @@
 
 module "los.use.cmake"
 
-local function builddirfromurl(url)
-	return srcdirfromurl(url, archdir).."-build"
-end
-
-local function make(srcdir, target)
+function make(srcdir, target)
 	local cmd = "mingw32-make"
 	if target then
 		cmd = cmd.." "..target
 	end
-	print("making ", target)
+	log.i("making ", target)
 	return lfs.executein(srcdir, cmd)
 end
 
 function build()
-	print("build")
-	if __dependencies then
-		print("install dependencies")
-		for _, pck in ipairs(__dependencies) do
-			pck:install()
-		end
-	end
-	local packname, err = download(source)
+	log.i("build ")
+	local packname, err = download(path.src.url)
 	if not packname then
 		return nil, err
 	end
-	local ok, err = extract(packname)
+	local ok, err = unarch(packname)
 	if not ok then
 		return nil, err
 	end
-	local dirname = assert(srcdirfromurl(source, archdir))
-	local dirbuild = builddirfromurl(source)
-	print("mkdir", dirbuild)
+	local dirname = path.src.dir
+	local dirbuild = path.src.dir.."-build"
+	log.d("mkdir", dirbuild)
 	local ok, err = lfs.mkdir(dirbuild)
 	if not ok then
 		return nil, err
 	end
-	print("building in "..dirbuild.." with cmake")
-	local installprefix = lfs.path(config.get(_conf, "dir.install"))
+	log.i("building in "..dirbuild.." with cmake")
+	local installprefix = path.install.dir
 
-	local cmakegen = config.get(_conf, "cmake.generator")
+	local cmakegen = conf["cmake.generator"]
 	if cmakegen then
 		cmakegen = "-G \""..cmakegen.."\" "
 	else
@@ -70,12 +60,12 @@ function build()
 end
 
 function install()
-	print("install")
+	log.i("install")
 	local ok, err = build()
 	if not ok then
 		return nil, err
 	end
-	return make(builddirfromurl(source), "install")
+	return make(path.src.dir.."-build", "install")
 end
 
 function clean()
