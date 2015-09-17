@@ -15,7 +15,9 @@ development and runtime environment emphasized on Lua development.
 dependencies = {
    "lrun-utils >= 0.1",
    "lrun-net-www-download >= 0.1",
-   "luasocket ~> 3"
+   "luasocket ~> 3",
+   "alt_getopt ~> 0.7",
+   "lualogging ~> 1.3"
 }
 build = {
    type = "builtin",

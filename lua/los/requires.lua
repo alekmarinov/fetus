@@ -13,87 +13,63 @@ local config     = require "lrun.util.config"
 local string     = require "lrun.util.string"
 local table      = require "lrun.util.table"
 local lospec     = require "los.lospec"
+local version    = require "los.lospec.format.version"
 
-local API =
-{
-	"os", -- temp
-	"getfenv",
-	"setfenv",
-	"package",
-	"require",
-	"print",
-	"pairs",
-	"ipairs",
-	["string"] = string,
-	["table"] = table,
-	["lfs"] = lfs,
-	["config"] = config,
-	"_conf",
-	"type",
-	"assert",
-	"loadfile"
-}
+local _G, ipairs, pairs, type, package, tostring =
+	  _G, ipairs, pairs, type, package, tostring
 
-local function loader(env, lospecfile)
-	local f, err = loadfile(lospecfile)
-	if not f then
-		return nil, err
-	end
-	setfenv(f, env)
-	setfenv(1, env)
-	use "api"
-	print("loading "..lospecfile)
-	f()
-end
+-- debug
+local print = print
+
+module "los.requires"
 
 local requirestack = {}
 
-function requires(pckname, version)
-	print("requires "..pckname.." "..(version or ""))
+-- loads los module specified by dependency description
+-- returns the loaded module as a table and its environment
+-- @param depstring: string representation of dependency, e.g. "foo >= 1.2, foo < 2"
+local requires = function (depstring)
+	_G._log:info(_NAME..": "..depstring)
+	local dep, err = version.parsedep(depstring)
+	if not dep then
+		return nil, err
+	end
 
-	-- locates lospec file definition
-	local lospecfile, versionorerr = lospec.findfile(pckname, version)
+	-- locates lospec file definition by required dependency description
+	local lospecfile, versionorerr = lospec.findfile(dep)
 	if not lospecfile then
 		return nil, err
 	end
-	version = versionorerr
+	local ver = versionorerr
+	_G._log:info(_NAME..": loading "..lospecfile)
 
 	-- avoid require loop
 	for _, pck in ipairs(requirestack) do
-		if pck[1] == pckname then
-			return nil, "Requires loop error on `"..pckname.."'"
+		if pck.name == dep.name then
+			return nil, "Requires loop error on `"..pck.name.."'"
 		end
 	end
-	table.insert(requirestack, {pckname, version})
+	table.insert(requirestack, dep)
 
-	-- prepare environment
-	local env = {}
-	for i, f in pairs(API) do
-		if type(i) == "string" then
-			env[i] = f
-		else
-			env[f] = _G[f]
-		end
+	-- loads lospec as module
+	local lomod, envorerr = lospec.load(lospecfile)
+	if not lomod then
+		return nil, envorerr
 	end
-	env.use = function (usable)
-		local filename = lfs.concatfilenames(config.get(_conf, "dir.usable"), usable..".lua")
-		print("Using "..usable.." from "..filename)
-		local f, err = loadfile(filename)
-		if not f then
-			return nil, err
-		end
-		setfenv(f, env)
-		f()
+
+	-- register requires function to los module environment
+	envorerr.requires = requires
+
+	-- executes los module
+	local ok, err = lospec.exec(lomod)
+	if not ok then
+		return nil, err
 	end
-	env.requires = function (...)
-		return assert(requires(...))
-	end
-	loader(env, lospecfile)
-	package.lospec = package.lospec or {}
-	package.lospec[pckname] = package.lospec[pckname] or {}
-	package.lospec[pckname][version] = env
+
+	-- remove from require stack
 	table.remove(requirestack)
-	return env
+
+	return lomod, envorerr
 end
 
 return requires

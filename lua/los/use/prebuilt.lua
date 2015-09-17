@@ -8,6 +8,10 @@
 --                                                                   --
 -----------------------------------------------------------------------
 
+-- prebuilt api imported and working in los module environment
+
+module "los.use.prebuilt"
+
 function configure(dirname)
 
 end
