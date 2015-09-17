@@ -4,14 +4,13 @@
 --                                                                   --
 -- Project:       LOS                                                --
 -- Filename:      api.lua                                            --
--- Description:   exported api to lospec                             --
+-- Description:   exported api to los module                         --
 --                                                                   --
 -----------------------------------------------------------------------
 
-local config  = require "lrun.util.config"
-local dw      = require "lrun.net.www.download.luasocket"
-local lfs     = require "lrun.util.lfs"
-local lextract = require "lrun.util.extract"
+-- base api imported and working in los module environment
+
+module "los.use.api"
 
 function installdir()
 	return lfs.path(config.get(_conf, "dir.install"))

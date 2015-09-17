@@ -3,14 +3,14 @@
 -- Copyright (C) 2003-2015, Intelibo Ltd                             --
 --                                                                   --
 -- Project:       LOS                                                --
--- Filename:      cmake.lua                                          --
--- Description:   build implementation with cmake                    --
+-- Filename:      autotools.lua                                      --
+-- Description:   build implementation with autotools                --
 --                                                                   --
 -----------------------------------------------------------------------
 
-local function builddirfromurl(url)
-	return srcdirfromurl(url, archdir).."-build"
-end
+-- autotool api imported and working in los module environment
+
+module "los.use.autotools"
 
 local function make(srcdir, target)
 	local cmd = "mingw32-make"
@@ -19,6 +19,11 @@ local function make(srcdir, target)
 	end
 	print("making ", target)
 	return lfs.executein(srcdir, cmd)
+end
+
+function configure(dirname)
+	print("configure in "..dirname)
+	return lfs.executein(dirname, "sh configure --prefix="..installdir().." \"INSTALL=install -c\"")
 end
 
 function build()
@@ -38,31 +43,28 @@ function build()
 		return nil, err
 	end
 	local dirname = assert(srcdirfromurl(source, archdir))
-	local dirbuild = builddirfromurl(source)
-	print("mkdir", dirbuild)
-	local ok, err = lfs.mkdir(dirbuild)
+	ok, err = configure(dirname)
 	if not ok then
 		return nil, err
 	end
-	print("building in "..dirbuild.." with cmake")
-	local installprefix = lfs.path(config.get(_conf, "dir.install"))
-
-	local cmakegen = config.get(_conf, "cmake.generator")
-	if cmakegen then
-		cmakegen = "-G \""..cmakegen.."\" "
-	else
-		cmakegen = ""
+	ok, err = make(dirname, "all")
+	if not ok then
+		return nil, err
 	end
 
-	ok, err = lfs.execute("cd "..lfs.Q(dirbuild).." && cmake "..cmakegen.."-DCMAKE_INSTALL_PREFIX="..lfs.Q(installprefix), lfs.path(dirname))
-	if not ok then
-		return nil, err
+	if type(buildafter) == "function" then
+		buildafter()
 	end
-	ok, err = make(dirbuild)
-	if not ok then
-		return nil, err
-	end
-	return dirbuild
+
+	return true
+end
+
+function createinstalldirs()
+	local instdir = installdir()
+	lfs.mkdir(lfs.concatfilenames(instdir, "bin"))
+	lfs.mkdir(lfs.concatfilenames(instdir, "lib"))
+	lfs.mkdir(lfs.concatfilenames(instdir, "include"))
+	lfs.mkdir(lfs.concatfilenames(instdir, "man/man1"))
 end
 
 function install()
@@ -71,9 +73,6 @@ function install()
 	if not ok then
 		return nil, err
 	end
-	return make(builddirfromurl(source), "install")
-end
-
-function clean()
-	return lfs.delete(builddirfromurl(source))
+	createinstalldirs()
+	return make(assert(srcdirfromurl(source, archdir)), "install")
 end

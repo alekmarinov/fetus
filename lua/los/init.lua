@@ -8,10 +8,14 @@
 --																--
 ------------------------------------------------------------------
 
+require "logging"
+require "logging.console"
+
+local getopt      = require "alt_getopt"
 local lfs         = require "lrun.util.lfs"
 local config      = require "lrun.util.config"
 local string      = require "lrun.util.string"
-local table      = require "lrun.util.table"
+local table       = require "lrun.util.table"
 local requires    = require "los.requires"
 
 local los = {}
@@ -22,13 +26,13 @@ los._DESCRIPTION = "los is command line tool providing lua powered development a
 
 local defaultconf = "conf/los.conf"
 local appwelcome = los._NAME.." "..los._VERSION.." Copyright (C) 2003-2015 Intelibo Ltd"
-local usagetext = "Usage: "..los._NAME.." [OPTION]... COMMAND [ARGS]..."
+local usagetext = "%s\n\nUsage: "..los._NAME.." [OPTION]... COMMAND [ARGS]..."
 local usagetexthelp = "Try "..los._NAME.." --help' for more options."
 local errortext = los._NAME..": %s"
 local helptext = [[
 -c   --config CONFIG  config file path (default ]]..defaultconf..[[)
      --config-dump    dumps all configuration
--Dname=value          overwrites config definition for name
+-Dname1=value1,name2=value2,...    overwrites config definition for name
 -q   --quiet          no output messages
 -v   --verbose        verbose messages
 -h,  --help           print this help.
@@ -38,10 +42,21 @@ where COMMAND can be one below:
 install <project> [version]
 ]]
 
+local longopts = {
+   verbose = "v",
+   help    = "h",
+   quiet   = "q",
+   define  = "D",
+   config  = "c",
+   ["config-dump"] = 0
+}
+
+local shortopts = "vhqD:c:"
+
 --- exit with usage information when the application arguments are wrong 
 local function usage(errmsg)
     assert(type(errmsg) == "string", "expected string, got "..type(errmsg))
-    io.stderr:write(string.format(usagetext, errmsg).."\n\n")
+    io.stderr:write(string.format(usagetext, errmsg).."\n")
     io.stderr:write(usagetexthelp.."\n")
     os.exit(1)
 end
@@ -53,55 +68,16 @@ local function exiterror(errmsg)
     os.exit(1)
 end
 
------------------------------------------------------------------------
--- Setup prorgam start ------------------------------------------------
------------------------------------------------------------------------
-
---- parses program arguments
-local function parseoptions(...)
-	local opts = {}
-	local args = {...}
-	local err
-	local i = 1
-	while i <= #args do
-		local arg = args[i]
-		if not opts.command then
-			if arg == "-h" or arg == "--help" then
-				io.stderr:write(appwelcome.."\n")
-				io.stderr:write(usagetext.."\n\n")
-				io.stderr:write(helptext)
-				os.exit(1)
-			elseif arg == "-c" or arg == "--config" then
-				i = i + 1
-				opts.config = args[i]
-				if not opts.config then
-					exiterror(arg.." option expects parameter")
-				end
-			elseif arg == "--config-dump" then
-				opts.configdump = true
-			elseif arg == "-v" or arg == "--verbose" then
-				opts.verbose = true
-				if opts.quiet then
-					exiterror(arg.." cannot be used together with -v")
-				end
-			elseif arg == "-q" or arg == "--quiet" then
-				opts.quiet = true
-				if opts.verbose then
-					exiterror(arg.." cannot be used together with -q")
-				end
-			elseif arg:sub(1, 2) == "-D" then
-				local parts = string.explode(arg:sub(3), "=")
-				opts.defines = opts.defines or {}
-				opts.defines[parts[1]] = parts[2] or "true"
-			else
-				opts.command = {string.lower(arg)}
-			end
+function createlogger(opts)
+	local logger = logging.console("[%level] %message\n")
+	if not opts.v then
+		if opts.q then
+			logger:setLevel(logging.FATAL)
 		else
-			table.insert(opts.command, arg)
+			logger:setLevel(logging.INFO)
 		end
-		i = i + 1
 	end
-	return opts
+	return logger
 end
 
 -----------------------------------------------------------------------
@@ -112,59 +88,65 @@ function los.main(losdir, ...)
 	local args = {...}
 
 	-- parse program options
-	local opts = parseoptions(...)
+	local opts, cmdidx = getopt.get_opts(args, shortopts, longopts)
 
 	--- load configuration
-	opts.config = opts.config or lfs.concatfilenames(losdir, defaultconf)
-	if not lfs.isfile(opts.config) then
-		exiterror("Config file `"..opts.config.."' is missing")
+	local confpath = opts.c or lfs.concatfilenames(losdir, defaultconf)
+	if not lfs.isfile(confpath) then
+		exiterror("Config file `"..confpath.."' is missing")
 	end
-	opts.conf, err = config.load(opts.config)
-	if not opts.conf then
-		exiterror(err)
-	end	
-	config.set(opts.conf, "dir.lospec", lfs.concatfilenames(losdir, "lospec"))
-	config.set(opts.conf, "dir.usable", lfs.concatfilenames(losdir, "usable"))
 
-	if opts.defines then
-		for dname, dvalue in pairs(opts.defines) do
-			config.set(opts.conf, dname, dvalue)
+	-- create logger
+	_log = createlogger(opts)
+
+	-- load configuration
+	_log:debug("Load config from "..confpath)
+	_conf, err = config.load(confpath)
+	if not _conf then
+		exiterror(err)
+	end
+
+	if opts.D then
+		for dname, dvalue in string.gmatch(opts.D..",", "(.-)=(.-),") do
+			config.set(_conf, dname, dvalue)
 		end
 	end
 
-	if opts.configdump then
-		print(los._NAME.." configuration")
-		print("-------------")
-		for _, key in ipairs(table.values(config.keys(opts.conf), true)) do
-			print(key.." = "..config.get(opts.conf, key))
+	if opts["config-dump"] then
+		for _, key in ipairs(table.values(config.keys(_conf), true)) do
+			print(string.format("%20s= %s", key, config.get(_conf, key)))
 		end
 		print()
 	end
 
-	if not opts.command then
-		usage("Missing parameter COMMAND")
+	args = { select(cmdidx, unpack(args)) }
+
+	local command = table.remove(args, 1)
+	if not command then
+		usage("Missing COMMAND parameter")
 	end
+	command = command:lower()
+	_log:info(los._NAME.." started with `"..command.." "..table.concat(args, " ").."'")
 
-	-- register configuration globaly
-	_G._conf = opts.conf
-
-	local cmdname = table.remove(opts.command, 1):lower()
-	print(los._NAME.." started with command "..cmdname:lower().." "..table.concat(opts.command, " "))
-
-	if #opts.command == 0 then
+	if #args == 0 then
 		exiterror("package [version] argument is missing")
 	end
 
-	local mod, err = requires(unpack(opts.command))
+	local mod, envorerr = requires(unpack(args))
 	if not mod then
-		exiterror(err)
+		exiterror(envorerr)
 	end
 
-	if type(mod[cmdname]) ~= "function" then
-		exiterror("command "..cmdname.." is not supported by "..opts.command[1])
+	print("....")
+	for i, v in pairs(envorerr) do
+		print(i,v)
 	end
 
-	local ok, err = mod[cmdname](mod)
+	if type(envorerr[command]) ~= "function" then
+		exiterror("command "..command.." is not supported by "..args[1])
+	end
+
+	local ok, err = envorerr[command](mod)
 	if not ok then
 		exiterror(err)
 	end

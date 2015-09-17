@@ -1,5 +1,9 @@
 -- requires("libjpeg", "8a"):install()
 
-version  = "1.1"
-source   = "http://alek:aviqa2@storage.intelibo.com/los/opensource/libia-1.1.zip"
-use "cmake"
+package =
+{
+	name = "libia",
+	version = "1.1",
+	source  = "$(repo.opensource)/libia-1.1.zip"
+}
+--use "cmake"
