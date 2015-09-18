@@ -10,42 +10,36 @@
 
 -- autotool api imported and working in los module environment
 
-function make(srcdir, target)
+function make(target, ...)
 	local cmd = "mingw32-make"
 	if target then
-		cmd = cmd.." "..target
+		cmd = cmd.." "..table.concat({...}, " ").." "..target
 	end
-	log.i("making ", target)
-	return lfs.executein(srcdir, cmd)
+	log.i("make ", cmd)
+	return lfs.executein(path.src.dir, cmd)
 end
 
 function configure(dirname)
-	print("configure in "..dirname)
-	return lfs.executein(dirname, "sh configure --prefix="..installdir().." \"INSTALL=install -c\"")
+	log.i("configure in "..dirname)
+	return lfs.executein(dirname, "sh configure --prefix="..path.install.dir.." \"INSTALL=install -c\"")
 end
 
 function build()
 	print("build")
-	if __dependencies then
-		print("install dependencies")
-		for _, pck in ipairs(__dependencies) do
-			pck:install()
-		end
-	end
-	local packname, err = download(source)
+	local packname, err = download(path.src.url)
 	if not packname then
 		return nil, err
 	end
-	local ok, err = extract(packname)
+	local ok, err = unarch(packname)
 	if not ok then
 		return nil, err
 	end
-	local dirname = assert(srcdirfromurl(source, archdir))
+	local dirname = path.src.dir
 	ok, err = configure(dirname)
 	if not ok then
 		return nil, err
 	end
-	ok, err = make(dirname, "all")
+	ok, err = make("all")
 	if not ok then
 		return nil, err
 	end
@@ -58,7 +52,7 @@ function build()
 end
 
 function createinstalldirs()
-	local instdir = installdir()
+	local instdir = path.install.dir
 	lfs.mkdir(lfs.concatfilenames(instdir, "bin"))
 	lfs.mkdir(lfs.concatfilenames(instdir, "lib"))
 	lfs.mkdir(lfs.concatfilenames(instdir, "include"))
@@ -72,5 +66,5 @@ function install()
 		return nil, err
 	end
 	createinstalldirs()
-	return make(assert(srcdirfromurl(source, archdir)), "install")
+	return make("install")
 end

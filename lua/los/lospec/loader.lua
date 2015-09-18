@@ -37,7 +37,9 @@ local lomod_mt =
 	end,
 	__index = function(t, name)
 		-- access to los configuration
-		if name == "conf" then
+		if name == "_NAME" then
+			return t.package and t.package._NAME or _NAME
+		elseif name == "conf" then
 			return setmetatable({}, {__index = function (t1, k) 
 				return config.get(_G._conf, k)
 			end})
@@ -76,6 +78,7 @@ local lomod_mt =
 				elseif name == "install" then
 					local install = {}
 					install.dir = lfs.path(t.conf["dir.install"])
+					install.lib = lfs.concatfilenames(install.dir, "lib")
 					return install
 				end
 			end})
@@ -87,10 +90,13 @@ local lomod_mt =
 function requirein(modname, env)
 	local err = {}
 	for i, loader in ipairs(loaders) do
-		local res = loader(modname)
-		if type(res) == "function" then
-			setfenv(res, env)
-			return res(modname) or true
+		local func = loader(modname)
+		if type(func) == "function" then
+			local oenv = getfenv(func)
+			setfenv(func, env)
+			local res = func(modname) or true
+			setfenv(func, oenv)
+			return res
 		else
 			table.insert(err, res)
 		end
@@ -126,7 +132,9 @@ local extapi =
 {
 	use = function (usable)
 		-- load usable module
-		return requirein ("los.use."..usable, getfenv())
+		local lomod = getfenv(2) -- parent env
+		lomod[usable] = requirein ("los.use."..usable, lomod)
+		return lomod[usable]
 	end
 }
 
@@ -166,15 +174,15 @@ function findfile(dep)
 	if not lospecveridx then
 		return nil, "can't find los module matching "..dep.name
 	end
-	return lfs.concatfilenames(lospecdir, lospecfiles[lospecveridx]) , lospecvers[lospecveridx]
+	return lfs.concatfilenames(lospecdir, lospecfiles[lospecveridx]), lospecvers[lospecveridx]
 end
 
 -- loads lospec file
 function load(lospecfile)
-	_G._log:info(_NAME..": .load: "..lospecfile)
-
 	-- prepare environment
 	local lomod = {}
+
+	_G._log:info(_NAME..": .load: "..lospecfile)
 
 	local function importfunc(name, func)
 		lomod[name] = func

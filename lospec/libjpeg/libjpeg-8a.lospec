@@ -1,7 +1,20 @@
 package = {
-	name     = "jpeg",
+	name     = "libjpeg",
 	version  = "8a",
 	source   = "$(repo.opensource)/jpegsr8a.zip",
 	archdir  = "jpeg-8a"
 }
+
 use "autotools"
+
+autotools_make = make
+
+function make(target)
+	return autotools_make(target, "-f", "Makefile.unix")
+end
+
+function install()
+	build()
+	lfs.copy(makepath(path.src.dir, package.name..".a"), path.install.lib)
+	return true
+end

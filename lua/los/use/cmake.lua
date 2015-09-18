@@ -11,11 +11,11 @@
 -- cmake api imported and working in los module environment
 
 local function make(srcdir, target)
-	local cmd = "mingw32-make"
+	local cmd = "mingw32-make VERBOSE=1"
 	if target then
 		cmd = cmd.." "..target
 	end
-	log.i("making ", target)
+	log.i("make ", cmd)
 	return lfs.executein(srcdir, cmd)
 end
 

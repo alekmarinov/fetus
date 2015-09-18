@@ -10,44 +10,33 @@
 
 -- prebuilt api imported and working in los module environment
 
-function configure(dirname)
+function configure()
 
 end
 
 function build()
-	print("build")
-	if __dependencies then
-		print("install dependencies")
-		for _, pck in ipairs(__dependencies) do
-			pck:install()
-		end
-	end
-	local packname,err = download(source)
+	log.i("build")
+	local packname, err = download(path.src.url)
 	if not packname then
-		return nil,err
+		return nil, err
 	end
-	local dirname = extract(packname)
-	configure(dirname)
-	make "all"
+	local dirname = unarch(packname)
 
 	if type(buildafter) == "function" then
 		buildafter()
 	end
+
 	return true
 end
 
 function install()
-	local ret,err = build()
+	local ret, err = build()
 	if not ret then
 		return nil, err
 	end
-	print("install")
+	log.i("install")
 	if type(installafter) == "function" then
 		installafter()
 	end
 	return true
-end
-
-function make(target)
-
 end

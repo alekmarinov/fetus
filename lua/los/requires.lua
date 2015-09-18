@@ -15,8 +15,8 @@ local table      = require "lrun.util.table"
 local lospecload = require "los.lospec.loader"
 local version    = require "los.lospec.version"
 
-local _G, ipairs, pairs, type, package, tostring =
-	  _G, ipairs, pairs, type, package, tostring
+local _G, ipairs, pairs, type, package, tostring, assert =
+	  _G, ipairs, pairs, type, package, tostring, assert
 
 -- debug
 local print = print
@@ -41,7 +41,7 @@ requires = function (depstring)
 	local lospecfile, versionorerr = lospecload.findfile(dep)
 	if not lospecfile then
 		_G._log:error(_NAME..": "..(err or "can't find lospec for "..depstring))
-		return nil, err
+		return nil, versionorerr
 	end
 	local ver = versionorerr
 	_G._log:info(_NAME..": loading "..lospecfile)

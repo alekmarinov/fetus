@@ -48,7 +48,6 @@ end
 --
 function copy(src,dst)
 	print("copying: "..src.." -> "..dst)
-	local os = require "os"
 	return lfs.copy(src,dst)
 end
 

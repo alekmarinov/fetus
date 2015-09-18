@@ -28,7 +28,7 @@ local defaultconf = "conf/los.conf"
 local appwelcome = los._NAME.." "..los._VERSION.." Copyright (C) 2003-2015 Intelibo Ltd"
 local usagetext = "%s\n\nUsage: "..los._NAME.." [OPTION]... COMMAND [ARGS]..."
 local usagetexthelp = "Try "..los._NAME.." --help' for more options."
-local errortext = los._NAME..": %s"
+local errortext = "FAILED: %s"
 local helptext = [[
 -c   --config CONFIG  config file path (default ]]..defaultconf..[[)
      --config-dump    dumps all configuration
@@ -53,7 +53,7 @@ local longopts = {
 
 local shortopts = "vhqD:c:"
 
---- exit with usage information when the application arguments are wrong 
+--- exit with usage information when the application arguments are wrong
 local function usage(errmsg)
     assert(type(errmsg) == "string", "expected string, got "..type(errmsg))
     io.stderr:write(string.format(usagetext, errmsg).."\n")
@@ -66,6 +66,12 @@ local function exiterror(errmsg)
     assert(type(errmsg) == "string", "expected string, got "..type(errmsg))
     io.stderr:write(string.format(errortext, errmsg).."\n")
     os.exit(1)
+end
+
+--- exit with success
+local function success()
+    io.stderr:write("SUCCESS!\n")
+    os.exit(0)
 end
 
 function createlogger(opts)
@@ -149,7 +155,7 @@ function los.main(losdir, ...)
 		exiterror(err)
 	end
 
-	return true
+	return success()
 end
 
 return los
