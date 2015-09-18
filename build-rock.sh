@@ -1,3 +1,6 @@
 #!/bin/sh
-luarocks make los-0.1-1.rockspec
-luarocks pack los 0.1-1
+NAME=los
+VERSION=0.1-1
+echo building $NAME $VERSION
+luarocks make $NAME-$VERSION.rockspec
+luarocks pack $NAME $VERSION
