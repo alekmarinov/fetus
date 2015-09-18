@@ -11,12 +11,14 @@
 -----------------------------------------------------------------------
 
 local config  = require "lrun.util.config"
-local version = require "los.lospec.format.version"
+local version = require "los.lospec.version"
 
-local _G, assert, type, string =
-      _G, assert, type, string
+local _G, assert, type, string, pairs =
+      _G, assert, type, string, pairs
 
-module "los.lospec.format.package"
+local print = print
+
+module "los.lospec.package"
 
 function parse(pack)
 	if type(pack.name) ~= "string" then
@@ -27,6 +29,10 @@ function parse(pack)
 	end
 	pack.name = string.lower(pack.name)
 	pack.version = version.parse(pack.version)
-	pack.source = config.subst(_G._conf, pack.source)
+	for k in pairs(pack) do
+		if type(pack[k]) == "string" then
+			pack[k] = config.subst(_G._conf, pack[k])
+		end
+	end
 	return pack
 end

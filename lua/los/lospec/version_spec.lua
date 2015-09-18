@@ -1,4 +1,4 @@
-local version = require "los.lospec.format.version"
+local version = require "los.lospec.version"
 describe("Version parser", function()
 	for n = 1, 5 do
 		it("should parse "..n.." version number", function()

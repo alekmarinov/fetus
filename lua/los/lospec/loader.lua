@@ -14,8 +14,8 @@ local string     = require "lrun.util.string"
 local table      = require "lrun.util.table"
 local extract    = require "lrun.util.extract"
 local dw         = require "lrun.net.www.download.luasocket"
-local version    = require "los.lospec.format.version"
-local package    = require "los.lospec.format.package"
+local version    = require "los.lospec.version"
+local package    = require "los.lospec.package"
 
 local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget =
 	  _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget
@@ -23,7 +23,7 @@ local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostrin
 -- debug
 local print = print
 
-module "los.lospec"
+module "los.lospec.loader"
 
 local lomod_mt = 
 {

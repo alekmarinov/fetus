@@ -24,10 +24,16 @@ build = {
       conf = { "conf/los.conf" },
       bin = { "bin/los" }
    },
-   copy_directories = { "lospec", "usable" },
+   copy_directories = { "lospec" },
    modules = {
-      ["los.requires"] = "lua/los/requires.lua",
       ["los.init"] = "lua/los/init.lua",
-      ["los.lospec"] = "lua/los/lospec.lua"
+      ["los.requires"] = "lua/los/requires.lua",
+      ["los.lospec.loader"] = "lua/los/lospec/loader.lua",
+      ["los.lospec.package"] = "lua/los/lospec/package.lua",
+      ["los.lospec.version"] = "lua/los/lospec/version.lua",
+      ["los.use.api"] = "lua/los/use/api.lua",
+      ["los.use.autotools"] = "lua/los/use/autotools.lua",
+      ["los.use.cmake"] = "lua/los/use/cmake.lua",
+      ["los.use.prebuilt"] = "lua/los/use/prebuilt.lua"
    }
 }

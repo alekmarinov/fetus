@@ -13,7 +13,7 @@
 local assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string, _log =
       assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string, _log
 
-module "los.lospec.format.version"
+module "los.lospec.version"
 
 local operators = {
    ["=="] = "==",

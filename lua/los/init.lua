@@ -106,6 +106,9 @@ function los.main(losdir, ...)
 		exiterror(err)
 	end
 
+	-- set lospec directory relative to los root
+	config.set(_conf, "dir.lospec", lfs.concatfilenames(losdir, "lospec"))
+
 	if opts.D then
 		for dname, dvalue in string.gmatch(opts.D..",", "(.-)=(.-),") do
 			config.set(_conf, dname, dvalue)
