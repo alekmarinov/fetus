@@ -10,7 +10,9 @@
 
 -- autotool api imported and working in los module environment
 
-function make(target, ...)
+local autotools = {}
+
+function autotools.make(target, ...)
 	local cmd = "mingw32-make"
 	if target then
 		cmd = cmd.." "..table.concat({...}, " ").." "..target
@@ -19,13 +21,13 @@ function make(target, ...)
 	return lfs.executein(path.src.dir, cmd)
 end
 
-function configure(dirname)
-	log.i("configure in "..dirname)
-	return lfs.executein(dirname, "sh configure --prefix="..path.install.dir.." \"INSTALL=install -c\"")
+function autotools.configure()
+	log.i("configure in "..path.src.dir)
+	return lfs.executein(path.src.dir, "sh configure --prefix="..path.install.dir.." \"INSTALL=install -c\"")
 end
 
-function build()
-	print("build")
+function autotools.build()
+	log.i("build")
 	local packname, err = download(path.src.url)
 	if not packname then
 		return nil, err
@@ -34,8 +36,7 @@ function build()
 	if not ok then
 		return nil, err
 	end
-	local dirname = path.src.dir
-	ok, err = configure(dirname)
+	ok, err = configure()
 	if not ok then
 		return nil, err
 	end
@@ -51,7 +52,7 @@ function build()
 	return true
 end
 
-function createinstalldirs()
+local function createinstalldirs()
 	local instdir = path.install.dir
 	lfs.mkdir(lfs.concatfilenames(instdir, "bin"))
 	lfs.mkdir(lfs.concatfilenames(instdir, "lib"))
@@ -59,7 +60,7 @@ function createinstalldirs()
 	lfs.mkdir(lfs.concatfilenames(instdir, "man/man1"))
 end
 
-function install()
+function autotools.install()
 	print("install")
 	local ok, err = build()
 	if not ok then
@@ -68,3 +69,5 @@ function install()
 	createinstalldirs()
 	return make("install")
 end
+
+return autotools

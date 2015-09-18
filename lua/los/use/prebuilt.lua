@@ -10,11 +10,9 @@
 
 -- prebuilt api imported and working in los module environment
 
-function configure()
+local prebuilt = {}
 
-end
-
-function build()
+function prebuilt.build()
 	log.i("build")
 	local packname, err = download(path.src.url)
 	if not packname then
@@ -29,7 +27,7 @@ function build()
 	return true
 end
 
-function install()
+function prebuilt.install()
 	local ret, err = build()
 	if not ret then
 		return nil, err
@@ -40,3 +38,5 @@ function install()
 	end
 	return true
 end
+
+return prebuilt

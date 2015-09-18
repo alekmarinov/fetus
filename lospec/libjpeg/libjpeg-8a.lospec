@@ -7,14 +7,18 @@ package = {
 
 use "autotools"
 
-autotools_make = make
+function prepare()
+	api.download()
+	api.unarch()
+end
 
-function make(target)
-	return autotools_make(target, "-f", "Makefile.unix")
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make("all", "-f", "Makefile.unix")
 end
 
 function install()
 	build()
-	lfs.copy(makepath(path.src.dir, package.name..".a"), path.install.lib)
-	return true
+	return lfs.copy(api.makepath(path.src.dir, package.name..".a"), path.install.lib)
 end

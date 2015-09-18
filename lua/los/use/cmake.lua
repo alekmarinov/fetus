@@ -10,6 +10,8 @@
 
 -- cmake api imported and working in los module environment
 
+local cmake = {}
+
 local function make(srcdir, target)
 	local cmd = "mingw32-make VERBOSE=1"
 	if target then
@@ -19,25 +21,14 @@ local function make(srcdir, target)
 	return lfs.executein(srcdir, cmd)
 end
 
-function build()
-	log.i("build ")
-	local packname, err = download(path.src.url)
-	if not packname then
-		return nil, err
-	end
-	local ok, err = unarch(packname)
-	if not ok then
-		return nil, err
-	end
-	local dirname = path.src.dir
+function cmake.build()
+	log.i("build")
 	local dirbuild = path.src.dir.."-build"
-	log.d("mkdir", dirbuild)
 	local ok, err = lfs.mkdir(dirbuild)
 	if not ok then
 		return nil, err
 	end
 	log.i("building in "..dirbuild.." with cmake")
-	local installprefix = path.install.dir
 
 	local cmakegen = conf["cmake.generator"]
 	if cmakegen then
@@ -46,7 +37,7 @@ function build()
 		cmakegen = ""
 	end
 
-	ok, err = lfs.execute("cd "..lfs.Q(dirbuild).." && cmake "..cmakegen.."-DCMAKE_INSTALL_PREFIX="..lfs.Q(installprefix), lfs.path(dirname))
+	ok, err = lfs.execute("cd "..lfs.Q(dirbuild).." && cmake "..cmakegen.."-DCMAKE_INSTALL_PREFIX="..lfs.Q(path.install.dir), path.src.dir)
 	if not ok then
 		return nil, err
 	end
@@ -54,18 +45,17 @@ function build()
 	if not ok then
 		return nil, err
 	end
-	return dirbuild
+	return true
 end
 
-function install()
+function cmake.install()
 	log.i("install")
-	local ok, err = build()
-	if not ok then
-		return nil, err
-	end
 	return make(path.src.dir.."-build", "install")
 end
 
-function clean()
-	return lfs.delete(builddirfromurl(source))
+function cmake.clean()
+	log.i("clean")
+	return lfs.delete(path.src.dir.."-build")
 end
+
+return cmake

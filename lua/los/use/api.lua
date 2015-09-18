@@ -10,17 +10,17 @@
 
 -- base api imported and working in los module environment
 
-function download(source)
-	assert(type(source) == "string")
+local api = {}
 
-	log.i("download "..source)
+function api.download()
+	log.i("download "..path.src.url)
 	local outfile = path.src.file
 	if not lfs.isfile(outfile) then
 		local ok, err = lfs.mkdir(lfs.dirname(outfile))
 		if not ok then
 			return nil, err
 		end
-		ok, err = dw.download(source, outfile)
+		ok, err = dw.download(path.src.url, outfile)
 		if not ok then
 			return nil, err
 		end
@@ -28,30 +28,28 @@ function download(source)
 	return outfile
 end
 
-function unarch(packname)
-	assert(type(packname) == "string")
-
-	log.i("unarch "..packname)
-	return extract.unarch(packname, conf["dir.src"])
+function api.unarch()
+	log.i("unarch "..path.src.file)
+	return extract.unarch(path.src.file, conf["dir.src"])
 end
 
-function makepath(...)
+function api.makepath(...)
 	return lfs.concatfilenames(...)
 end
 
-function makepathdir(...)
+function api.makepathdir(...)
 	return lfs.addpathsep(makepath(...))
 end
 
 --
 -- NOTE: iss hacked functions :)
 --
-function copy(src,dst)
+function api.copy(src,dst)
 	print("copying: "..src.." -> "..dst)
 	return lfs.copy(src,dst)
 end
 
-function copydir(src,dst)
+function api.copydir(src,dst)
 	assert(type(src) == "string")
 	assert(type(dst) == "string")
 
@@ -64,17 +62,19 @@ function copydir(src,dst)
 	end
 end
 
-function catfile(file,text)
+function api.catfile(file,text)
 	lfs.execute("echo '"..text.."' > "..file)
 end
 
 -- FIXME: to be moved to lfs... or not?
 -- lfs.hardware -> lfs.cpuarch
 
-function system()
+function api.system()
 	return lfs.osname()
 end
 
-function hardware()
+function api.hardware()
 	return lfs.hardware()
 end
+
+return api

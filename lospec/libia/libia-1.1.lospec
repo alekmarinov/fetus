@@ -1,7 +1,23 @@
+jpeg = requires("libjpeg ~> 8a")
+use "cmake"
 package = {
 	name = "libia",
 	version = "1.1",
 	source  = "$(repo.opensource)/libia-1.1.zip"
 }
-requires("libjpeg ~> 8a"):install()
-use "cmake"
+
+function prepare()
+	jpeg:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	cmake.build()
+end
+
+function install()
+	build()
+	return cmake.install()
+end
