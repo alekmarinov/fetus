@@ -10,14 +10,12 @@
 
 -- autotool api imported and working in los module environment
 
-module "los.use.autotools"
-
-local function make(srcdir, target)
+function make(srcdir, target)
 	local cmd = "mingw32-make"
 	if target then
 		cmd = cmd.." "..target
 	end
-	print("making ", target)
+	log.i("making ", target)
 	return lfs.executein(srcdir, cmd)
 end
 

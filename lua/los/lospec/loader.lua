@@ -20,6 +20,8 @@ local package    = require "los.lospec.package"
 local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget =
 	  _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget
 
+local loaders = _G.package.loaders
+
 -- debug
 local print = print
 
@@ -54,7 +56,7 @@ local lomod_mt =
 				end
 				if logger then
 					return function(...)
-						return logger(_G._log, t._NAME..": "..table.concat({...}, " "))
+						return logger(_G._log, t.package.name..": "..table.concat({...}, " "))
 					end
 				else
 					error("logger "..level.." is undefined")
@@ -81,13 +83,29 @@ local lomod_mt =
 	end
 }
 
+-- require loading module in specified environment
+function requirein(modname, env)
+	local err = {}
+	for i, loader in ipairs(loaders) do
+		local res = loader(modname)
+		if type(res) == "function" then
+			setfenv(res, env)
+			return res(modname) or true
+		else
+			table.insert(err, res)
+		end
+	end
+	return nil, table.concat(err, "\n")
+end
+
 -- declares imported definitions to be accessible from lospec
 local importapi =
 {
 	"print", -- debug
 	"getfenv",
 	"setfenv",
-	"require",
+	["requirein"] = requirein,
+	["loaders"] = loaders,
 	"pairs",
 	"ipairs",
 	["string"] = string,
@@ -100,7 +118,7 @@ local importapi =
 	"_log",
 	"type",
 	"assert",
-	"loadfile"
+	"error"
 }
 
 -- extend lospec api
@@ -108,17 +126,7 @@ local extapi =
 {
 	use = function (usable)
 		-- load usable module
-		local usemod = require ("los.use."..usable)
-
-		-- import usable api with environment set to this los module environment
-		local lomod = getfenv()
-		for i, v in pairs(usemod) do
-			if type(v) == "function" then
-				setfenv(v, lomod)
-			end
-			lomod[i] = v
-		end
-		lomod[usable] = usemod
+		return requirein ("los.use."..usable, getfenv())
 	end
 }
 

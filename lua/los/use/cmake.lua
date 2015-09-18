@@ -10,9 +10,7 @@
 
 -- cmake api imported and working in los module environment
 
-module "los.use.cmake"
-
-function make(srcdir, target)
+local function make(srcdir, target)
 	local cmd = "mingw32-make"
 	if target then
 		cmd = cmd.." "..target

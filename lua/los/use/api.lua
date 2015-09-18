@@ -10,8 +10,6 @@
 
 -- base api imported and working in los module environment
 
-module "los.use.api"
-
 function download(source)
 	assert(type(source) == "string")
 

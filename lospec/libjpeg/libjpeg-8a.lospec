@@ -1,6 +1,7 @@
 package = {
+	name     = "jpeg",
 	version  = "8a",
-	source   = "http://alek:aviqa2@storage.intelibo.com/los/opensource/jpegsr8a.zip",
+	source   = "$(repo.opensource)/jpegsr8a.zip",
 	archdir  = "jpeg-8a"
 }
 use "autotools"
