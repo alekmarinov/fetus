@@ -16,7 +16,8 @@ dependencies = {
    "lrun-utils >= 0.1",
    "lrun-net-www-download >= 0.1",
    "luasocket ~> 3",
-   "lualogging ~> 1.3"
+   "lualogging ~> 1.3",
+   "alt_getopt ~> 0.7.0-1"
 }
 build = {
    type = "builtin",
