@@ -11,7 +11,7 @@ function prepare()
 	api.download()
 	api.unarch()
 	if lfs.isunixlike() then
-		api.dos2unix(path.src.dir, "*")
+		api.dos2unix(path.src.dir)
 	end
 end
 

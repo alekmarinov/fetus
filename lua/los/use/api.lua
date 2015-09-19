@@ -34,7 +34,11 @@ function api.unarch()
 end
 
 function api.dos2unix(dir, ...)
-	return lfs.executein(dir, "dos2unix", ...)
+	local cmd = "dos2unix"
+	if table.getn{...} == 0 then
+		cmd = cmd .. " *"
+	end
+	return lfs.executein(dir, cmd, ...)
 end
 
 function api.makepath(...)
