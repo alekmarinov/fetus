@@ -13,9 +13,9 @@
 local autotools = {}
 
 function autotools.make(target, ...)
-	local cmd = "mingw32-make"
+	local cmd = conf["host.make"].." "..table.concat({...}, " ")
 	if target then
-		cmd = cmd.." "..table.concat({...}, " ").." "..target
+		cmd = cmd.." "..target
 	end
 	log.i("make ", cmd)
 	return lfs.executein(path.src.dir, cmd)
@@ -61,7 +61,7 @@ local function createinstalldirs()
 end
 
 function autotools.install()
-	print("install")
+	log.i("install")
 	local ok, err = build()
 	if not ok then
 		return nil, err

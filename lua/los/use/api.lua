@@ -33,6 +33,10 @@ function api.unarch()
 	return extract.unarch(path.src.file, conf["dir.src"])
 end
 
+function api.dos2unix(dir, ...)
+	return lfs.executein(dir, "dos2unix", ...)
+end
+
 function api.makepath(...)
 	return lfs.concatfilenames(...)
 end

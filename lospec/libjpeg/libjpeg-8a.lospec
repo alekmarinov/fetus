@@ -10,12 +10,19 @@ use "autotools"
 function prepare()
 	api.download()
 	api.unarch()
+	if lfs.isunixlike() then
+		api.dos2unix(path.src.dir, "*")
+	end
 end
 
 function build()
 	prepare()
 	autotools.configure()
-	autotools.make("all", "-f", "Makefile.unix")
+	if conf["host.target"] == "mingw32" then
+		autotools.make("all", "-f", "Makefile.unix")
+	else
+		autotools.make()
+	end
 end
 
 function install()
