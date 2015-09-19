@@ -14,6 +14,7 @@ local string     = require "lrun.util.string"
 local table      = require "lrun.util.table"
 local extract    = require "lrun.util.extract"
 local dw         = require "lrun.net.www.download.luasocket"
+local rollback   = require "los.rollback"
 local version    = require "los.lospec.version"
 local package    = require "los.lospec.package"
 
@@ -21,9 +22,6 @@ local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostrin
 	  _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget
 
 local loaders = _G.package.loaders
-
--- debug
-local print = print
 
 module "los.lospec.loader"
 
@@ -109,11 +107,11 @@ end
 -- declares imported definitions to be accessible from lospec
 local importapi =
 {
-	"print", -- debug
 	"getfenv",
 	"setfenv",
 	["requirein"] = requirein,
 	["loaders"] = loaders,
+	["rollback"] = rollback,
 	"pairs",
 	"ipairs",
 	["string"] = string,
@@ -126,6 +124,7 @@ local importapi =
 	"_log",
 	"type",
 	"assert",
+	"tostring",
 	"error"
 }
 

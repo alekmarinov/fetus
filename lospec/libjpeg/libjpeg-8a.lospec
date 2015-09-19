@@ -25,3 +25,4 @@ function install()
 	build()
 	autotools.make("install")
 end
+

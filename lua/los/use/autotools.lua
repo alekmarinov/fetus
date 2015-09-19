@@ -26,38 +26,21 @@ function autotools.configure()
 	return lfs.executein(path.src.dir, "sh configure --prefix="..path.install.dir.." \"INSTALL=install -c\"")
 end
 
-function autotools.build()
-	log.i("build")
-	local packname, err = download(path.src.url)
-	if not packname then
-		return nil, err
-	end
-	local ok, err = unarch(packname)
-	if not ok then
-		return nil, err
-	end
-	ok, err = configure()
-	if not ok then
-		return nil, err
-	end
-	ok, err = make("all")
-	if not ok then
-		return nil, err
-	end
-
-	if type(buildafter) == "function" then
-		buildafter()
-	end
-
-	return true
-end
+local installdirs = {"bin", "lib", "include", "man/man1"}
 
 local function createinstalldirs()
-	local instdir = path.install.dir
-	lfs.mkdir(lfs.concatfilenames(instdir, "bin"))
-	lfs.mkdir(lfs.concatfilenames(instdir, "lib"))
-	lfs.mkdir(lfs.concatfilenames(instdir, "include"))
-	lfs.mkdir(lfs.concatfilenames(instdir, "man/man1"))
+	for _, dir in ipairs(installdirs) do
+		local ok, err = lfs.mkdir(lfs.concatfilenames(path.install.dir, dir))
+		if not ok then
+			return nil, err
+		end
+	end
+end
+
+local function deleteinstalldirsifempty()
+	for _, dir in ipairs(installdirs) do
+		lfs.deleteifempty(lfs.concatfilenames(path.install.dir, dir))
+	end
 end
 
 function autotools.install()
@@ -66,8 +49,16 @@ function autotools.install()
 	if not ok then
 		return nil, err
 	end
-	createinstalldirs()
-	return make("install")
+	rollback.push(deleteinstalldirsifempty)
+	local ok, err = createinstalldirs()
+	if not ok then
+		return nil, err
+	end
+	ok, err = make("install")
+	if not ok then
+		return nil, err
+	end
+	rollback.pop()
 end
 
 return autotools

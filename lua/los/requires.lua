@@ -15,8 +15,8 @@ local table      = require "lrun.util.table"
 local lospecload = require "los.lospec.loader"
 local version    = require "los.lospec.version"
 
-local _G, ipairs, pairs, type, package, tostring, assert =
-	  _G, ipairs, pairs, type, package, tostring, assert
+local _G, ipairs, pairs, type, package, tostring, assert, error =
+	  _G, ipairs, pairs, type, package, tostring, assert, error
 
 -- debug
 local print = print
@@ -49,7 +49,7 @@ requires = function (depstring)
 	-- avoid require loop
 	for _, pck in ipairs(requirestack) do
 		if pck.name == dep.name then
-			return nil, "Requires loop error on `"..pck.name.."'"
+			error(_NAME..": ".."Requires loop error on `"..pck.name.."'")
 		end
 	end
 	table.insert(requirestack, dep)
@@ -57,6 +57,7 @@ requires = function (depstring)
 	-- loads lospec as module
 	local lomod, err = lospecload.load(lospecfile)
 	if not lomod then
+		_G._log:error(_NAME..": "..err)
 		return nil, err
 	end
 
@@ -66,6 +67,7 @@ requires = function (depstring)
 	-- executes los module
 	local ok, err = lospecload.exec(lomod)
 	if not ok then
+		_G._log:error(_NAME..": "..err)
 		return nil, err
 	end
 

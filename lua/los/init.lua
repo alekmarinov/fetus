@@ -17,6 +17,7 @@ local config      = require "lrun.util.config"
 local string      = require "lrun.util.string"
 local table       = require "lrun.util.table"
 local requires    = require "los.requires"
+local rollback    = require "los.rollback"
 
 local los = {}
 
@@ -28,7 +29,7 @@ local defaultconf = "conf/los.conf"
 local appwelcome = los._NAME.." "..los._VERSION.." Copyright (C) 2003-2015 Intelibo Ltd"
 local usagetext = "%s\n\nUsage: "..los._NAME.." [OPTION]... COMMAND [ARGS]..."
 local usagetexthelp = "Try "..los._NAME.." --help' for more options."
-local errortext = "FAILED: %s"
+local errortext = "Error: %s"
 local helptext = [[
 -c   --config CONFIG  config file path (default ]]..defaultconf..[[)
      --config-dump    dumps all configuration
@@ -43,35 +44,38 @@ install <project> [version]
 ]]
 
 local longopts = {
-   verbose = "v",
-   help    = "h",
-   quiet   = "q",
-   define  = "D",
-   config  = "c",
-   ["config-dump"] = 0
+	verbose = "v",
+	help    = "h",
+	quiet   = "q",
+	define  = "D",
+	config  = "c",
+	["config-dump"] = 0
 }
 
 local shortopts = "vhqD:c:"
 
 --- exit with usage information when the application arguments are wrong
 local function usage(errmsg)
-    assert(type(errmsg) == "string", "expected string, got "..type(errmsg))
-    io.stderr:write(string.format(usagetext, errmsg).."\n")
-    io.stderr:write(usagetexthelp.."\n")
-    os.exit(1)
+	assert(type(errmsg) == "string", "expected string, got "..type(errmsg))
+	io.stderr:write(string.format(usagetext, errmsg).."\n")
+	io.stderr:write(usagetexthelp.."\n")
+	os.exit(1)
 end
 
 --- exit with error message
 local function exiterror(errmsg)
-    assert(type(errmsg) == "string", "expected string, got "..type(errmsg))
-    io.stderr:write(string.format(errortext, errmsg).."\n")
-    os.exit(1)
+	assert(type(errmsg) == "string", "expected string, got "..type(errmsg))
+	io.stderr:write(string.format(errortext, errmsg).."\n")
+	io.stderr:write(los._NAME.." FAILED!\n")
+	rollback.execute()
+	os.exit(1)
 end
 
 --- exit with success
 local function success()
-    io.stderr:write("SUCCESS!\n")
-    os.exit(0)
+	io.stderr:write("SUCCESS!\n")
+	rollback.execute()
+	os.exit(0)
 end
 
 function createlogger(opts)
@@ -92,6 +96,7 @@ end
 
 function los.main(losdir, ...)
 	local args = {...}
+	local ok, err
 
 	-- parse program options
 	local opts, cmdidx = getopt.get_opts(args, shortopts, longopts)
@@ -141,16 +146,19 @@ function los.main(losdir, ...)
 		exiterror("package [version] argument is missing")
 	end
 
-	local mod, err = requires(unpack(args))
-	if not mod then
+	local lomod, err = requires(unpack(args))
+	if not lomod then
 		exiterror(err)
 	end
 
-	if type(mod[command]) ~= "function" then
+	if type(lomod[command]) ~= "function" then
 		exiterror("command "..command.." is not supported by "..args[1])
 	end
 
-	local ok, err = mod[command](mod)
+	_, ok, err = xpcall(function()
+		local ok, err = lomod[command](lomod)
+	end, function(err) exiterror(debug.traceback(err, 2)) end)
+
 	if not ok and err then
 		exiterror(err)
 	end

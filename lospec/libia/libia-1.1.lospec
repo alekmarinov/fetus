@@ -1,4 +1,5 @@
-jpeg = requires("libjpeg ~> 8a")
+jpeg = assert(requires("libjpeg ~> 8a"))
+
 use "cmake"
 package = {
 	name = "libia",

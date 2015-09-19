@@ -15,6 +15,7 @@ local api = {}
 function api.download()
 	log.i("download "..path.src.url)
 	local outfile = path.src.file
+	rollback.push(lfs.delete, outfile)
 	if not lfs.isfile(outfile) then
 		local ok, err = lfs.mkdir(lfs.dirname(outfile))
 		if not ok then
@@ -25,12 +26,18 @@ function api.download()
 			return nil, err
 		end
 	end
+	rollback.pop()
 	return outfile
 end
 
 function api.unarch()
-	log.i("unarch "..path.src.file)
-	return extract.unarch(path.src.file, conf["dir.src"])
+	log.i("unarch "..path.src.file, tostring(lfs.exists(path.src.file)))
+	rollback.push(lfs.delete, path.src.dir)
+	local ok, err = assert(extract.unarch(path.src.file, conf["dir.src"]))
+	if not ok then
+		return nil, err
+	end
+	rollback.pop()
 end
 
 function api.dos2unix(dir, ...)
@@ -58,8 +65,16 @@ function api.catfile(file, text)
 	return true
 end
 
+function api.copy(src, dst)
+	rollback.push(lfs.delete, dst)
+	local ok, err = lfs.copy(src, dst)
+	if not ok then
+		return nil, err
+	end
+	rollback.pop()
+end
+
 api.makepath = lfs.concatfilenames
-api.copy = lfs.copy
 api.system = lfs.osname
 hardware = lfs.hardware
 
