@@ -19,5 +19,5 @@ end
 
 function install()
 	build()
-	return cmake.install()
+	cmake.install()
 end

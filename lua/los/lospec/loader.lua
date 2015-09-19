@@ -78,7 +78,9 @@ local lomod_mt =
 				elseif name == "install" then
 					local install = {}
 					install.dir = lfs.path(t.conf["dir.install"])
+					install.bin = lfs.concatfilenames(install.dir, "bin")
 					install.lib = lfs.concatfilenames(install.dir, "lib")
+					install.inc = lfs.concatfilenames(install.dir, "include")
 					return install
 				end
 			end})

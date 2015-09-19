@@ -41,48 +41,26 @@ function api.dos2unix(dir, ...)
 	return lfs.executein(dir, cmd, ...)
 end
 
-function api.makepath(...)
-	return lfs.concatfilenames(...)
-end
-
 function api.makepathdir(...)
-	return lfs.addpathsep(makepath(...))
+	return lfs.addpathsep(api.makepath(...))
 end
 
---
--- NOTE: iss hacked functions :)
---
-function api.copy(src,dst)
-	print("copying: "..src.." -> "..dst)
-	return lfs.copy(src,dst)
-end
-
-function api.copydir(src,dst)
-	assert(type(src) == "string")
-	assert(type(dst) == "string")
-
-	print("copying: "..src.." -> "..dst)
-	lfs.mkdir(lfs.ospath(dst))
-	if lfs.isunixlike() then
-		return lfs.execute("cp -arfP "..lfs.ospath(src).."* "..lfs.ospath(dst))
-	else
-		return lfs.execute("xcopy /H /R /Q /E /I "..lfs.ospath(src).."*.* "..lfs.ospath(dst))
+function api.catfile(file, text)
+	local fd, err = io.open(file, w)
+	if not fd then
+		return nil, err
 	end
+	local ok, err = fd:write(text)
+	fd:close()
+	if not ok then
+		return nil, err
+	end
+	return true
 end
 
-function api.catfile(file,text)
-	lfs.execute("echo '"..text.."' > "..file)
-end
-
--- FIXME: to be moved to lfs... or not?
--- lfs.hardware -> lfs.cpuarch
-
-function api.system()
-	return lfs.osname()
-end
-
-function api.hardware()
-	return lfs.hardware()
-end
+api.makepath = lfs.concatfilenames
+api.copy = lfs.copy
+api.system = lfs.osname
+hardware = lfs.hardware
 
 return api

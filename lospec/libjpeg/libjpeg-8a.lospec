@@ -18,14 +18,10 @@ end
 function build()
 	prepare()
 	autotools.configure()
-	if conf["host.target"] == "mingw32" then
-		autotools.make("all", "-f", "Makefile.unix")
-	else
-		autotools.make()
-	end
+	autotools.make()
 end
 
 function install()
 	build()
-	return lfs.copy(api.makepath(path.src.dir, package.name..".a"), path.install.lib)
+	autotools.make("install")
 end

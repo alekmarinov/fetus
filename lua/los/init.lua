@@ -151,7 +151,7 @@ function los.main(losdir, ...)
 	end
 
 	local ok, err = mod[command](mod)
-	if not ok then
+	if not ok and err then
 		exiterror(err)
 	end
 
