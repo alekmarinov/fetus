@@ -15,19 +15,22 @@
 [ -z "$LOS_REPO_PASS" ] && LOS_REPO_PASS=aviqa2
 
 # bootstrap los cleanly
-rm -rf $TARGET_DIR
+# rm -rf $TARGET_DIR
 mkdir -p $TARGET_DIR
+
+echo "Bootstrap in $TARGET_DIR"
+
+die() { echo -e "error: $*" ; exit 1 ; }
 
 # downloads the bootstrap script and start it
 if [ -z "$BOOTSTRAP_SCRIPT" ]; then
-	wget -q -O $TARGET_DIR/bootstrap.sh http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh && \
-	LOS_REPO_USER=$LOS_REPO_USER LOS_REPO_PASS=$LOS_REPO_PASS sh $TARGET_DIR/bootstrap.sh
+	wget -q -O $TARGET_DIR/bootstrap.sh http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh		
 else
-	cp -f $BOOTSTRAP_SCRIPT $TARGET_DIR/bootstrap.sh && \
-	LOS_REPO_USER=$LOS_REPO_USER LOS_REPO_PASS=$LOS_REPO_PASS sh $TARGET_DIR/bootstrap.sh
+	cp -f $BOOTSTRAP_SCRIPT $TARGET_DIR/bootstrap.sh
 fi
 
-die() { echo -e "error: $*" ; exit 1 ; }
+LOS_REPO_USER=$LOS_REPO_USER LOS_REPO_PASS=$LOS_REPO_PASS sh $TARGET_DIR/bootstrap.sh
+
 # autorun lua rocks
 export PATH=$PATH:$TARGET_DIR/bin
 export LUA_PATH=$TARGET_DIR/share/lua/5.1/?.lua
