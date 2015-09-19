@@ -85,6 +85,7 @@ expect_file()
 	[ -f "$1" ] || die "File $1 is expected, but missing!";
 }
 
+# downloads url to file
 download_file()
 {
 	local url=$1

@@ -15,26 +15,59 @@
 [ -z "$LOS_REPO_PASS" ] && LOS_REPO_PASS=aviqa2
 
 # bootstrap los cleanly
-# rm -rf $TARGET_DIR
+rm -rf $TARGET_DIR
 mkdir -p $TARGET_DIR
 
-echo "Bootstrap in $TARGET_DIR"
+echo "Prepare bootstrap in $TARGET_DIR"
 
+# show message and exit with failure
 die() { echo -e "error: $*" ; exit 1 ; }
+
+# checks last command status and exits on failure with error
+check_status()
+{
+	if [[ $? != 0 ]]; then
+		die "$1 failed"
+	fi
+}
+
+# downloads url to file
+download_file()
+{
+	local url=$1
+	local file=$2
+	info "download $url to $file"
+
+	which curl 2> /dev/null > /dev/null
+	if [[ $? == 0 ]]; then
+		curl -f -s $url > $file
+		check_status "download with curl failed"
+	else
+		which wget 2> /dev/null > /dev/null
+		if [ $? == 0 ]; then
+			wget -q -O $file $url
+			check_status "download with wget failed"
+		else
+			die "Can't locate wget or curl to download files"
+		fi
+	fi
+}
 
 # downloads the bootstrap script and start it
 if [ -z "$BOOTSTRAP_SCRIPT" ]; then
-	wget -q -O $TARGET_DIR/bootstrap.sh http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh		
+	download_file http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh $TARGET_DIR/bootstrap.sh 
 else
 	cp -f $BOOTSTRAP_SCRIPT $TARGET_DIR/bootstrap.sh
 fi
 
 LOS_REPO_USER=$LOS_REPO_USER LOS_REPO_PASS=$LOS_REPO_PASS sh $TARGET_DIR/bootstrap.sh
+check_status "bootstrap.sh failed"
 
 # autorun lua rocks
 export PATH=$PATH:$TARGET_DIR/bin
 export LUA_PATH=$TARGET_DIR/share/lua/5.1/?.lua
-luarocks install los || die "luarocks install failed."
+luarocks install los
+check_status "luarocks install failed."
 
 chmod 0755 $TARGET_DIR/var/lib/rocks/bin/los
 ln -sf $TARGET_DIR/var/lib/rocks/bin/los $TARGET_DIR/bin/los
