@@ -1,14 +1,15 @@
 package = {
 	name     = "linux-minifs",
 	version  = "0.0.1",
-	source   = "$(repo.opensource)/prebuilt-toolchains/linux-minifs.tar.bz2"
+	source   = "$(repo.los)/prebuilt-toolchains/linux-minifs.tar.bz2"
 }
 
-function installafter()
-	local src = makepathdir(path.src.dir, "linux-minifs")
-	local dst = makepathdir(path.install.dir)
-	copydir(src, dst)
-	return true
+function prepare()
+	api.download()
+	api.unarch()
 end
 
-use "prebuilt"
+function install()
+	prepare()
+	api.copy(api.makepathdir(path.src.dir), path.install.dir)
+end

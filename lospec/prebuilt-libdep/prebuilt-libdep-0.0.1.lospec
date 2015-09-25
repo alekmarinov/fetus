@@ -1,14 +1,19 @@
-requires("prebuilt-busybox", "0.0.1"):install()
+busybox = assert(requires("prebuilt-busybox", "0.0.1"))
 
-version  = "0.0.1"
-srcname  = "libdep-"..system().."-"..hardware()
-source   = "http://alek:aviqa2@storage.intelibo.com/los/prebuilt-toolchains/prebuilt-"..srcname..".tar.bz2"
+package = {
+	name = "prebuilt-libdep",
+	version  = "0.0.1",
+	source   = "$(repo.los)/prebuilt-toolchains/prebuilt-libdep-"..api.system().."-"..lfs.cpuarch()..".tar.bz2",
+	archdir = ""
+}
 
-function installafter()
-	local src = makepathdir(sourcedir(),hardware().."-libdep")
-	local dst = makepathdir(installdir())
-	copydir(src,dst)
-	return true
+function prepare()
+	busybox:install()
+	api.download()
+	api.unarch()
 end
 
-use "prebuilt"
+function install()
+	prepare()
+	api.copy(api.makepathdir(path.src.dir, lfs.cpuarch().."-libdep"), path.install.dir)
+end

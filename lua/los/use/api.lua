@@ -13,7 +13,7 @@
 local api = {}
 
 function api.download()
-	log.i("download "..path.src.url)
+	log.i("download", path.src.url)
 	local outfile = path.src.file
 	rollback.push(lfs.delete, outfile)
 	if not lfs.isfile(outfile) then
@@ -21,22 +21,19 @@ function api.download()
 		if not ok then
 			return nil, err
 		end
-		ok, err = dw.download(path.src.url, outfile)
-		if not ok then
-			return nil, err
-		end
+		log.i("downloading", path.src.url, outfile)
+		assert(dw.download(path.src.url, outfile))
+	else
+		log.i("already downloaded file", outfile)
 	end
 	rollback.pop()
 	return outfile
 end
 
 function api.unarch()
-	log.i("unarch "..path.src.file, tostring(lfs.exists(path.src.file)))
+	log.i("unarch "..path.src.file)
 	rollback.push(lfs.delete, path.src.dir)
-	local ok, err = assert(extract.unarch(path.src.file, conf["dir.src"]))
-	if not ok then
-		return nil, err
-	end
+	assert(extract.unarch(path.src.file, conf["dir.src"]))
 	rollback.pop()
 end
 
@@ -67,6 +64,13 @@ end
 
 function api.copy(src, dst)
 	rollback.push(lfs.delete, dst)
+	if lfs.isfile(src) then
+		lfs.mkdir(lfs.dirname(dst))
+	else
+		lfs.mkdir(dst)
+	end
+
+	log.i("copy ", src, dst)
 	local ok, err = lfs.copy(src, dst)
 	if not ok then
 		return nil, err

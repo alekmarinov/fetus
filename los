@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# return current base script name
+script_name()
+{
+	local name=$(readlink -f $0)
+	name=$(basename $name 2>/dev/null)
+	echo $name
+}
+
+# locate this directory
+this_dir()
+{
+	local THIS_DIR=$(readlink -f "$0")
+	local SCRIPT_NAME=$(script_name)
+	while [ ! -f "$THIS_DIR/$SCRIPT_NAME" ]; do
+		THIS_DIR=$(dirname $THIS_DIR)
+	done
+	echo $THIS_DIR
+}
+
+export LOS_HOME=$(this_dir)
+OUTDIR=$(dirname $LOS_HOME)/out
+echo $OUTDIR
+export OPATH=$PATH
+export PATH=$PATH:$OUTDIR/bin:$OUTDIR/var/lib/rocks/bin
+export LUA_PATH="$OUTDIR/share/lua/5.1/?.lua;$LOS_HOME/lua/?/init.lua;$LOS_HOME/lua/?.lua"
+lua -lluarocks.require $LOS_HOME/bin/los -Dhost.system=linux,repo.username=alek,repo.password=aviqa2,dir.out=$OUTDIR $*
+export PATH=$OPATH

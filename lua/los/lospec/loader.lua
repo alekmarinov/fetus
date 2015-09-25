@@ -18,8 +18,8 @@ local rollback   = require "los.rollback"
 local version    = require "los.lospec.version"
 local package    = require "los.lospec.package"
 
-local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget =
-	  _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget
+local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io =
+	  _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io
 
 local loaders = _G.package.loaders
 
@@ -69,7 +69,7 @@ local lomod_mt =
 					local basename = lfs.basename(t.package.source)
 					local srcdir = lfs.path(t.conf["dir.src"])
 					local src = {}
-					src.dir = extract.unarchdir(basename, srcdir, t.package.archdir)
+					src.dir = assert(extract.unarchdir(basename, srcdir, t.package.archdir))
 					src.file = lfs.concatfilenames(srcdir, lfs.basename(t.package.source))
 					src.url = t.package.source
 					return src
@@ -107,6 +107,7 @@ end
 -- declares imported definitions to be accessible from lospec
 local importapi =
 {
+	"print",
 	"getfenv",
 	"setfenv",
 	["requirein"] = requirein,
@@ -120,6 +121,7 @@ local importapi =
 	["extract"] = extract,
 	["dw"] = dw,
 	["config"] = config,
+	["io"] = io,
 	["_conf"] = _G._conf,
 	"_log",
 	"type",

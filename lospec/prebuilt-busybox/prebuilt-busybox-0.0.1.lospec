@@ -1,13 +1,19 @@
-requires("linux-minifs", "0.0.1"):install()
+minifs = assert(requires("linux-minifs", "0.0.1"))
 
-version	= "0.0.1"
-source	= "http://www.busybox.net/downloads/binaries/latest/busybox-binaries.tar.bz2"
+package = {
+	name = "prebuilt-busybox",
+	version = "1.21.1",
+	source  = "http://www.busybox.net/downloads/binaries/1.21.1/busybox-binaries.tar.bz2",
+	archdir = ""
+}
 
-function installafter()
-	local src = makepath(sourcedir(),"busybox-"..hardware())
-	local dst = makepath(installdir(),"bin","busybox")
-	copy(src,dst)
-	return true
+function prepare()
+	minifs:install()
+	api.download()
+	api.unarch()
 end
 
-use "prebuilt"
+function install()
+	prepare()
+	api.copy(api.makepath(path.src.dir, "busybox-"..lfs.cpuarch()), api.makepath(path.install.bin, "busybox"))
+end

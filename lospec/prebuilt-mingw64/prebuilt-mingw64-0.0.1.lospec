@@ -1,16 +1,22 @@
-requires("prebuilt-busybox", "0.0.1"):install()
-requires("prebuilt-libdep", "0.0.1"):install()
+busybox = assert(requires("prebuilt-busybox", "0.0.1"))
+libdep = assert(requires("prebuilt-libdep", "0.0.1"))
 
-version  = "0.0.1"
-srcname  = "mingw64-"..system().."-"..hardware()
-source   = "http://alek:aviqa2@storage.intelibo.com/los/prebuilt-toolchains/prebuilt-"..srcname..".tar.bz2"
+package = {
+	name = "prebuilt-mingw64",
+	version = "0.0.1",
+	source  = "$(repo.los)/prebuilt-toolchains/prebuilt-mingw64-"..api.system().."-"..lfs.cpuarch()..".tar.bz2",
+	archdir = "x86_64-mingw64"
+}
 
-function installafter()
-	local src = makepathdir(sourcedir(),hardware().."-mingw64")
-	local dst = makepathdir(installdir(),"usr",hardware().."-mingw64")
-	copydir(src,dst)
-	catfile(makepath(installdir(),"etc","profile.d",hardware().."-mingw64.ash"),"pathmunge /usr/"..hardware().."-mingw64/bin after")
-	return true
+function prepare()
+	busybox:install()
+	libdep:install()
+	api.download()
+	api.unarch()
 end
 
-use "prebuilt"
+function install()
+	prepare()
+	api.copy(api.makepathdir(path.src.dir), api.makepathdir(path.install.dir, "usr", lfs.cpuarch().."-mingw64"))
+	api.catfile(api.makepath(path.install.dir, "etc", "profile.d", lfs.cpuarch().."-mingw64.ash"), "pathmunge /usr/"..lfs.cpuarch().."-mingw64/bin after")
+end
