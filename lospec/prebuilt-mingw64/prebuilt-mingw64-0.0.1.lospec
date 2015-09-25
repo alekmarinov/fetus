@@ -5,7 +5,7 @@ package = {
 	name = "prebuilt-mingw64",
 	version = "0.0.1",
 	source  = "$(repo.los)/prebuilt-toolchains/prebuilt-mingw64-"..api.system().."-"..lfs.cpuarch()..".tar.bz2",
-	archdir = "x86_64-mingw64"
+	archdir = lfs.cpuarch().."-mingw64"
 }
 
 function prepare()
