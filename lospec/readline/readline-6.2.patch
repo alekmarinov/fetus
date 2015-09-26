@@ -1,0 +1,12 @@
+diff -rupN readline-6.2-orig/util.c readline-6.2-modif/util.c
+--- util.c	2010-05-31 01:36:02.000000000 +0300
++++ util.c	2015-09-26 19:25:51.597354700 +0300
+@@ -389,7 +389,7 @@ _rl_strnicmp (string1, string2, count)
+         break;
+       s2++;
+     }
+-  while (--count != 0)
++  while (--count != 0);
+ 
+   return (0);
+ }

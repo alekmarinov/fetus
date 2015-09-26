@@ -1,0 +1,25 @@
+package = {
+	name     = "readline",
+	version  = "6.2",
+	source   = "$(repo.opensource)/readline-6.2.tar.gz",
+	patch    = "readline-6.2.patch"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+	api.patch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install", "\"INSTALL=install -c\"")
+end

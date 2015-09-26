@@ -1,0 +1,23 @@
+package = {
+	name     = "termcap",
+	version  = "1.3.1",
+	source   = "$(repo.opensource)/termcap-1.3.1.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install")
+end

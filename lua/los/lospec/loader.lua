@@ -187,7 +187,9 @@ end
 -- loads lospec file
 function load(lospecfile)
 	-- prepare environment
-	local lomod = {}
+	local lomod = {
+		lospecfile = lospecfile
+	}
 
 	_G._log:info(_NAME..": .load: "..lospecfile)
 

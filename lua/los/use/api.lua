@@ -37,6 +37,12 @@ function api.unarch()
 	rollback.pop()
 end
 
+function api.patch()
+	log.i("patch "..path.src.dir)
+	local patchfile = api.makepath(lfs.dirname(lospecfile), package.patch)
+	lfs.executein(path.src.dir, "patch", "-i", patchfile)
+end
+
 function api.dos2unix(dir, ...)
 	local cmd = "dos2unix"
 	if table.getn{...} == 0 then
@@ -80,6 +86,5 @@ end
 
 api.makepath = lfs.concatfilenames
 api.system = lfs.osname
-hardware = lfs.hardware
 
 return api
