@@ -1,0 +1,20 @@
+lua = assert(requires("lua", "5.1"))
+
+package = {
+	name     = "luarocks",
+	version  = "2.2.2",
+	source   = {
+		"$(repo.opensource)/luarocks-2.2.2.tar.gz",
+		mingw = "$(repo.opensource)/luarocks-2.2.2-win32.zip"
+	}
+}
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function install()
+	prepare()
+	lfs.executein(path.src.dir, path.install.bin.."/lua", "install.bat", "/NOADMIN", "/LUA", path.install.dir)
+end
