@@ -50,6 +50,8 @@ function install()
 		"install",
 		"INSTALL_TOP="..path.install.dir)
 
-	api.copy(api.makepath(path.src.dir, "src/lua51.dll"), path.install.bin)
-	api.copy(api.makepath(path.src.dir, "src/lua51.dll.a"), path.install.lib)
+	if conf["host.system"] == "mingw" then
+		api.copy(api.makepath(path.src.dir, "src/lua51.dll"), path.install.bin)
+		api.copy(api.makepath(path.src.dir, "src/lua51.dll.a"), path.install.lib)
+	end
 end

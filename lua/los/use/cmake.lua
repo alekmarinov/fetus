@@ -17,7 +17,7 @@ local function make(srcdir, target)
 	if target then
 		cmd = cmd.." "..target
 	end
-	log.i("make ", cmd)
+	log.i(cmd)
 	return lfs.executein(srcdir, cmd)
 end
 
