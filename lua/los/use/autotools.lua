@@ -17,7 +17,7 @@ function autotools.make(target, ...)
 	if target then
 		cmd = cmd.." "..target
 	end
-	log.i("make ", cmd)
+	log.i(cmd)
 	return lfs.executein(path.src.dir, cmd)
 end
 

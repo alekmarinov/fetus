@@ -1,0 +1,55 @@
+package = {
+	name     = "lua",
+	version  = "5.1.5",
+	source   = "$(repo.opensource)/lua-5.1.5.tar.gz"
+}
+
+local function make(dir, ...)
+	local args = {}
+	for _, v in ipairs{"VERBOSE=1", ...} do
+		table.insert(args, "\""..v.."\"")
+	end
+
+	local cmd = conf["host.make"].." "..table.concat(args, " ")
+	log.i(cmd)
+	return lfs.executein(dir, cmd)
+end
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+
+	if conf["host.system"] == "mingw" then
+		local luasrcdir = api.makepath(path.src.dir, "src")
+
+		-- compiles lua library and interpreter
+		make(luasrcdir,
+			"LUA_A=lua51.dll",
+			"LUA_T=lua.exe",
+			"AR=$(CC) -shared -Wl,--out-implib,lua51.dll.a -o",
+			"RANLIB=strip --strip-unneeded",
+			"MYCFLAGS=-DLUA_BUILD_AS_DLL",
+			"MYLIBS=",
+			"MYLDFLAGS=-s",
+			"lua.exe")
+
+		-- compiles luac
+		make(luasrcdir, "LUAC_T=luac.exe", "luac.exe")
+	else
+		make(path.src.dir, conf["host.system"])
+	end
+end
+
+function install()
+	build()
+	make(path.src.dir,
+		"install",
+		"INSTALL_TOP="..path.install.dir)
+
+	api.copy(api.makepath(path.src.dir, "src/lua51.dll"), path.install.bin)
+	api.copy(api.makepath(path.src.dir, "src/lua51.dll.a"), path.install.lib)
+end

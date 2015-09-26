@@ -66,12 +66,16 @@ local lomod_mt =
 		elseif name == "path" then
 			return setmetatable({}, {__index = function(t1, name)
 				if name == "src" then
-					local basename = lfs.basename(t.package.source)
-					local srcdir = lfs.path(t.conf["dir.src"])
 					local src = {}
-					src.dir = assert(extract.unarchdir(basename, srcdir, t.package.archdir))
-					src.file = lfs.concatfilenames(srcdir, lfs.basename(t.package.source))
 					src.url = t.package.source
+					if type(src.url) == "table" then
+						src.url = src.url[t.conf["host.system"]] or src.url[1]
+					end
+					local basename = lfs.basename(src.url)
+					local srcdir = lfs.path(t.conf["dir.src"])
+					src.dir = assert(extract.unarchdir(basename, srcdir, t.package.archdir))
+					src.file = lfs.concatfilenames(srcdir, lfs.basename(src.url))
+					
 					return src
 				elseif name == "install" then
 					local install = {}

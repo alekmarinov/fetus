@@ -13,7 +13,7 @@
 local cmake = {}
 
 local function make(srcdir, target)
-	local cmd = "mingw32-make VERBOSE=1"
+	local cmd = conf["cmake.make"].." VERBOSE=1"
 	if target then
 		cmd = cmd.." "..target
 	end

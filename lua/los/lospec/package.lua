@@ -20,6 +20,16 @@ local print = print
 
 module "los.lospec.package"
 
+local function confsubst(t)
+	for k in pairs(t) do
+		if type(t[k]) == "string" then
+			t[k] = config.subst(_G._conf, t[k])
+		elseif type(t[k]) == "table" then
+			confsubst(t[k])
+		end
+	end
+end
+
 function parse(pack)
 	if type(pack.name) ~= "string" then
 		return nil, "name field is mendatory string"
@@ -29,10 +39,6 @@ function parse(pack)
 	end
 	pack.name = string.lower(pack.name)
 	pack.version = version.parse(pack.version)
-	for k in pairs(pack) do
-		if type(pack[k]) == "string" then
-			pack[k] = config.subst(_G._conf, pack[k])
-		end
-	end
+	confsubst(pack)
 	return pack
 end
