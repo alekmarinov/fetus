@@ -40,7 +40,7 @@ end
 function api.patch()
 	log.i("patch "..path.src.dir)
 	local patchfile = api.makepath(lfs.dirname(lospecfile), package.patch)
-	lfs.executein(path.src.dir, "patch", "-i", patchfile)
+	lfs.executein(path.src.dir, "patch", "-p0", "-i", patchfile)
 end
 
 function api.dos2unix(dir, ...)

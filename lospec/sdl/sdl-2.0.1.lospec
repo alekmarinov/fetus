@@ -1,0 +1,24 @@
+
+package = {
+	name = "sdl",
+	version = "2.0.1",
+	source = "$(repo.opensource)/SDL2-2.0.1.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install")
+end

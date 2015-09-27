@@ -21,9 +21,10 @@ function autotools.make(target, ...)
 	return lfs.executein(path.src.dir, cmd)
 end
 
-function autotools.configure()
-	log.i("configure in "..path.src.dir)
-	return lfs.executein(path.src.dir, "sh configure --prefix="..path.install.dir.." \"INSTALL=install -c\"")
+function autotools.configure(...)
+	local cmd = "sh configure --prefix="..path.install.dir.." \"INSTALL=install -c\" "..table.concat({...}, " ")
+	log.i(cmd)
+	return lfs.executein(path.src.dir, cmd)
 end
 
 local installdirs = {"bin", "lib", "include", "man/man1"}
