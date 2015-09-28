@@ -1,0 +1,44 @@
+package = {
+	name = "zlib",
+	version = "1.2.8",
+	source = "$(repo.opensource)/zlib128.zip",
+	archdir = "zlib-1.2.8"
+}
+
+use "autotools"
+
+local function make(...)
+	local args = {}
+	for _, v in ipairs{"VERBOSE=1", ...} do
+		table.insert(args, "\""..v.."\"")
+	end
+
+	local cmd = conf["host.make"].." "..table.concat(args, " ")
+	log.i(cmd)
+	return lfs.executein(path.src.dir, cmd)
+end
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	if conf["host.system"] == "mingw" then
+		api.copy(api.makepath(path.src.dir, "contrib/asm686/match.S"), path.src.dir)
+		make("LOC=-DASMV", "OBJA=match.o", "-f", "win32/Makefile.gcc")
+	else
+		autotools.configure()
+		autotools.make()
+	end
+end
+
+function install()
+	build()
+	if conf["host.system"] == "mingw" then
+		make("install", "-f", "win32/Makefile.gcc", "SHARED_MODE=1", "BINARY_PATH="..path.install.bin, "INCLUDE_PATH="..path.install.inc, "LIBRARY_PATH="..path.install.lib)
+	else
+		autotools.make("install") 
+	end
+end
