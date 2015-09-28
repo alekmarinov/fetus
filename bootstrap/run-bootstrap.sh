@@ -23,6 +23,9 @@ echo "Prepare bootstrap in $TARGET_DIR"
 # show message and exit with failure
 die() { echo -e "error: $*" ; exit 1 ; }
 
+# debug info message
+info() { echo "$(script_name): $1"; }
+
 # checks last command status and exits on failure with error
 check_status()
 {
@@ -55,7 +58,7 @@ download_file()
 
 # downloads the bootstrap script and start it
 if [ -z "$BOOTSTRAP_SCRIPT" ]; then
-	download_file http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh $TARGET_DIR/bootstrap.sh 
+	download_file http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh $TARGET_DIR/bootstrap.sh
 else
 	cp -f $BOOTSTRAP_SCRIPT $TARGET_DIR/bootstrap.sh
 fi
