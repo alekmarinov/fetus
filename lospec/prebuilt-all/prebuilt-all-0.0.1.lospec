@@ -11,9 +11,9 @@ git = assert(requires("prebuilt-git", "0.0.1"))
 svn = assert(requires("prebuilt-svn", "0.0.1"))
 
 package = {
-	name = "prebuilt-make",
+	name = "prebuilt-all",
 	version  = "0.0.1",
-	source   = "$(repo.los)/prebuilt-toolchains/prebuilt-make-"..api.system().."-"..lfs.cpuarch()..".tar.bz2",
+	source   = "",
 	archdir = ""
 }
 
@@ -29,9 +29,8 @@ function prepare()
 	cmake:install()
 	git:install()
 	svn:install()
-	--
-	api.download()
-	api.unarch()
+	-- api.download()
+	-- api.unarch()
 end
 
 function install()
