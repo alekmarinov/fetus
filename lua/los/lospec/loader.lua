@@ -56,7 +56,8 @@ local lomod_mt =
 				end
 				if logger then
 					return function(...)
-						return logger(_G._log, t.package.name..": "..table.concat({...}, " "))
+						logger(_G._log, t.package.name..": "..table.concat({...}, " "))
+						io.stdout:flush()
 					end
 				else
 					error("logger "..level.." is undefined")
