@@ -35,13 +35,15 @@ function api.download()
 		assert(dw.download(url, outfile))
 
 		if srcmd5 then
-			md5sum = api.readfile(outfile)
+			local md5sum = api.readfile(outfile)
 			md5sum = string.upper(md5.sumhexa(md5sum))
 			if  srcmd5 ~= md5sum then
 				error("invalid md5 sum, expected "..srcmd5..", got "..md5sum)
 			end
+			log.i(outfile.." matches md5 "..md5sum)
+		else
+			log.i(urlmd5.." is not available, skipping md5 check")
 		end
-		log.i(outfile.." matches md5 "..md5sum)
 	else
 		log.i("already downloaded file", outfile)
 	end
