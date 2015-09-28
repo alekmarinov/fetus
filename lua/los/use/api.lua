@@ -29,7 +29,6 @@ function api.download()
 		if dw.download(urlmd5, outfilemd5) then
 			srcmd5 = assert(api.readfile(outfilemd5))
 			srcmd5 = string.sub(srcmd5, 1, 32)
-			fd:close()
 		end
 
 		log.i("downloading", url, outfile)
