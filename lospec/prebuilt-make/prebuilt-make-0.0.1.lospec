@@ -1,0 +1,19 @@
+busybox = assert(requires("prebuilt-busybox", "0.0.1"))
+
+package = {
+	name = "prebuilt-make",
+	version  = "0.0.1",
+	source   = "$(repo.los)/prebuilt-toolchains/prebuilt-make-"..api.system().."-"..lfs.cpuarch()..".tar.bz2",
+	archdir = ""
+}
+
+function prepare()
+	busybox:install()
+	api.download()
+	api.unarch()
+end
+
+function install()
+	prepare()
+	api.copy(api.makepathdir(path.src.dir, lfs.cpuarch().."-make"), path.install.dir)
+end
