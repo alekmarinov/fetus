@@ -22,7 +22,7 @@ function autotools.make(target, ...)
 end
 
 function autotools.configure(...)
-	local cmd = "sh configure --prefix="..path.install.dir.." \"INSTALL=install -c\" "..table.concat({...}, " ")
+	local cmd = "sh configure --prefix="..path.install.dir.." "..table.concat({...}, " ")
 	log.i(cmd)
 	return lfs.executein(path.src.dir, cmd)
 end
