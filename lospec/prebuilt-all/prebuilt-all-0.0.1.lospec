@@ -1,39 +1,13 @@
-linux_minifs = assert(requires("linux-minifs", "0.0.1"))
-busybox = assert(requires("prebuilt-busybox", "0.0.1"))
-libdep = assert(requires("prebuilt-libdep", "0.0.1"))
-gcc = assert(requires("prebuilt-gcc", "0.0.1"))
-mingw32 = assert(requires("prebuilt-mingw32", "0.0.1"))
-mingw64 = assert(requires("prebuilt-mingw64", "0.0.1"))
-autotools = assert(requires("prebuilt-autotools", "0.0.1"))
-make = assert(requires("prebuilt-make", "0.0.1"))
-cmake = assert(requires("prebuilt-cmake", "0.0.1"))
-git = assert(requires("prebuilt-git", "0.0.1"))
-svn = assert(requires("prebuilt-svn", "0.0.1"))
-
-package = {
-	name = "prebuilt-all",
-	version  = "0.0.1",
-	source   = "",
-	archdir = ""
-}
-
-function prepare()
-	linux_minifs:install()
-	busybox:install()
-	libdep:install()
-	gcc:install()
-	mingw32:install()
-	mingw64:install()
-	autotools:install()
-	make:install()
-	cmake:install()
-	git:install()
-	svn:install()
-	-- api.download()
-	-- api.unarch()
-end
-
 function install()
-	prepare()
-	api.copy(api.makepathdir(path.src.dir, lfs.cpuarch().."-make"), path.install.dir)
+	assert(requires("linux-minifs", "0.0.1")):install()
+	assert(requires("prebuilt-busybox", "0.0.1")):install()
+	assert(requires("prebuilt-libdep", "0.0.1")):install()
+	assert(requires("prebuilt-gcc", "0.0.1")):install()
+	assert(requires("prebuilt-mingw32", "0.0.1")):install()
+	assert(requires("prebuilt-mingw64", "0.0.1")):install()
+	assert(requires("prebuilt-autotools", "0.0.1")):install()
+	assert(requires("prebuilt-make", "0.0.1")):install()
+	assert(requires("prebuilt-cmake", "0.0.1")):install()
+	assert(requires("prebuilt-git", "0.0.1")):install()
+	assert(requires("prebuilt-svn", "0.0.1")):install()
 end
