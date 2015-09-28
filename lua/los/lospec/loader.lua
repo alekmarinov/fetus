@@ -17,6 +17,7 @@ local dw         = require "lrun.net.www.download.luasocket"
 local rollback   = require "los.rollback"
 local version    = require "los.lospec.version"
 local package    = require "los.lospec.package"
+local md5        = require "md5"
 
 local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io =
 	  _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io
@@ -115,6 +116,7 @@ local importapi =
 	"print",
 	"getfenv",
 	"setfenv",
+	["md5"] = md5,
 	["requirein"] = requirein,
 	["loaders"] = loaders,
 	["rollback"] = rollback,

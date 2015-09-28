@@ -1,9 +1,9 @@
 lua = assert(requires("lua", "5.1"))
 
 package = {
-	name     = "luarocks",
-	version  = "2.2.2",
-	source   = {
+	name = "luarocks",
+	version = "2.2.2",
+	source = {
 		"$(repo.opensource)/luarocks-2.2.2.tar.gz",
 		mingw = "$(repo.opensource)/luarocks-2.2.2-win32.zip"
 	}

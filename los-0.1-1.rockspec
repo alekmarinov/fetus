@@ -17,7 +17,8 @@ dependencies = {
    "lrun-net-www-download >= 0.1",
    "luasocket ~> 3",
    "lualogging ~> 1.3",
-   "alt-getopt ~> 0.7"
+   "alt-getopt ~> 0.7",
+   "md5 ~> 1.2"
 }
 build = {
    type = "builtin",

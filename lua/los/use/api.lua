@@ -13,7 +13,8 @@
 local api = {}
 
 function api.download()
-	log.i("download", path.src.url)
+	local url = path.src.url
+	log.i("download", url)
 	local outfile = path.src.file
 	rollback.push(lfs.delete, outfile)
 	if not lfs.isfile(outfile) then
@@ -21,8 +22,27 @@ function api.download()
 		if not ok then
 			return nil, err
 		end
-		log.i("downloading", path.src.url, outfile)
-		assert(dw.download(path.src.url, outfile))
+		local urlmd5 = url..".md5"
+		local outfilemd5 = outfile..".md5"
+		log.i("downloading", urlmd5, outfilemd5)
+		assert(dw.download(urlmd5, outfilemd5))
+
+		local fd = assert(io.open(outfilemd5))
+		local srcmd5 = fd:read("*a")
+		srcmd5 = string.sub(srcmd5, 1, 32)
+		fd:close()
+
+		log.i("downloading", url, outfile)
+		assert(dw.download(url, outfile))
+
+		fd, err = io.open(outfile, "rb")
+		local buf = fd:read("*a")
+		local md5sum = string.upper(md5.sumhexa(buf))
+		fd:close()
+		if srcmd5 ~= md5sum then
+			error("invalid md5 sum, expected "..srcmd5..", got "..md5sum)
+		end
+		log.i(outfile.." matches md5 "..md5sum)
 	else
 		log.i("already downloaded file", outfile)
 	end
@@ -39,7 +59,11 @@ end
 
 function api.patch()
 	log.i("patch "..path.src.dir)
-	local patchfile = api.makepath(lfs.dirname(lospecfile), package.patch)
+	local patch = package.patch
+	if type(patch) == "table" then
+		patch = patch[conf["host.system"]] or patch[1]
+	end
+	local patchfile = api.makepath(lfs.dirname(lospecfile), patch)
 	lfs.executein(path.src.dir, "patch", "-p0", "-i", patchfile)
 end
 
