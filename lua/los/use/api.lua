@@ -25,21 +25,22 @@ function api.download()
 		local urlmd5 = url..".md5"
 		local outfilemd5 = outfile..".md5"
 		log.i("downloading", urlmd5, outfilemd5)
-		assert(dw.download(urlmd5, outfilemd5))
-
-		local fd = assert(io.open(outfilemd5))
-		local srcmd5 = fd:read("*a")
-		srcmd5 = string.sub(srcmd5, 1, 32)
-		fd:close()
+		local srcmd5
+		if dw.download(urlmd5, outfilemd5) then
+			srcmd5 = assert(api.readfile(outfilemd5))
+			srcmd5 = string.sub(srcmd5, 1, 32)
+			fd:close()
+		end
 
 		log.i("downloading", url, outfile)
 		assert(dw.download(url, outfile))
 
-		md5sum = api.readfile(outfile)
-		md5sum = string.upper(md5.sumhexa(md5sum))
-
-		if srcmd5 ~= md5sum then
-			error("invalid md5 sum, expected "..srcmd5..", got "..md5sum)
+		if srcmd5 then
+			md5sum = api.readfile(outfile)
+			md5sum = string.upper(md5.sumhexa(md5sum))
+			if  srcmd5 ~= md5sum then
+				error("invalid md5 sum, expected "..srcmd5..", got "..md5sum)
+			end
 		end
 		log.i(outfile.." matches md5 "..md5sum)
 	else
