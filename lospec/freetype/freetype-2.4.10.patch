@@ -1,0 +1,12 @@
+diff -ruN freetype-2.4.10/builds/unix/configure freetype-2.4.10_modif/builds/unix/configure
+--- builds/unix/configure	2012-06-15 07:46:55.000000000 +0300
++++ builds/unix/configure	2015-09-28 18:54:04.350647500 +0300
+@@ -4616,7 +4616,7 @@
+ if test "x$GCC" = xyes; then
+   XX_CFLAGS="-Wall"
+   XX_ANSIFLAGS=""
+-  for a in -pedantic -ansi
++  for a in -pedantic
+   do
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking gcc compiler flag ${a} to assure ANSI C works correctly" >&5
+ $as_echo_n "checking gcc compiler flag ${a} to assure ANSI C works correctly... " >&6; }

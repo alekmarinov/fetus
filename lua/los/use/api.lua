@@ -35,10 +35,9 @@ function api.download()
 		log.i("downloading", url, outfile)
 		assert(dw.download(url, outfile))
 
-		fd, err = io.open(outfile, "rb")
-		local buf = fd:read("*a")
-		local md5sum = string.upper(md5.sumhexa(buf))
-		fd:close()
+		md5sum = api.readfile(outfile)
+		md5sum = string.upper(md5.sumhexa(md5sum))
+
 		if srcmd5 ~= md5sum then
 			error("invalid md5 sum, expected "..srcmd5..", got "..md5sum)
 		end
@@ -63,8 +62,14 @@ function api.patch()
 	if type(patch) == "table" then
 		patch = patch[conf["host.system"]] or patch[1]
 	end
-	local patchfile = api.makepath(lfs.dirname(lospecfile), patch)
-	lfs.executein(path.src.dir, "patch", "-p0", "-i", patchfile)
+	if patch then
+		local patchfile = api.makepath(lfs.dirname(lospecfile), patch)
+		lfs.executein(path.src.dir, "patch", "-p0", "-i", patchfile)
+	else
+		if not patch then
+			log.i("no patch for host system "..conf["host.system"])
+		end
+	end
 end
 
 function api.dos2unix(dir, ...)
@@ -80,16 +85,33 @@ function api.makepathdir(...)
 end
 
 function api.catfile(file, text)
-	local fd, err = io.open(file, w)
+	local fd, err = io.open(file, "w")
 	if not fd then
 		return nil, err
 	end
 	local ok, err = fd:write(text)
 	fd:close()
-	if not ok then
+	return ok, err
+end
+
+function api.appendfile(file, text)
+	local fd, err = io.open(file, "a+")
+	if not fd then
 		return nil, err
 	end
-	return true
+	local ok, err = fd:write(text)
+	fd:close()
+	return ok, err
+end
+
+function api.readfile(file)
+	local fd, err = io.open(file, "rb")
+	if not fd then
+		return nil, err
+	end
+	local ok, err = fd:read("*a")
+	fd:close()
+	return ok, err
 end
 
 function api.copy(src, dst)
@@ -101,10 +123,7 @@ function api.copy(src, dst)
 	end
 
 	log.i("copy ", src, dst)
-	local ok, err = lfs.copy(src, dst)
-	if not ok then
-		return nil, err
-	end
+	assert(lfs.copy(src, dst))
 	rollback.pop()
 end
 

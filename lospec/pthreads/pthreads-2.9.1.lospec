@@ -1,0 +1,45 @@
+
+package = {
+	name     = "pthreads",
+	version  = "2.9.1",
+	source   = {
+		mingw = "$(repo.opensource)/pthreads-w32-2-9-1-release.tar.gz"
+	}
+}
+
+local function make(...)
+	local args = {}
+	for _, v in ipairs{"VERBOSE=1", ...} do
+		table.insert(args, "\""..v.."\"")
+	end
+	local cmd = conf["host.make"].." "..table.concat(args, " ")
+	log.i(cmd)
+	return lfs.executein(path.src.dir, cmd)
+end
+
+function prepare()
+	if conf["host.system"] == "mingw" then
+		api.download()
+		api.unarch()
+	end
+end
+
+function build()
+	prepare()
+	if conf["host.system"] == "mingw" then
+		make("GC")
+		lfs.executein(path.src.dir, "dlltool", "-d", "pthread.def", "-l", "libpthreadGC2.dll.a")
+	end
+end
+
+function install()
+	build()
+	if conf["host.system"] == "mingw" then
+		api.copy(api.makepath(path.src.dir, "pthreadGC2.dll"), path.install.bin)
+		api.copy(api.makepath(path.src.dir, "libpthreadGC2.a"), path.install.lib)
+		api.copy(api.makepath(path.src.dir, "libpthreadGC2.dll.a"), path.install.lib)
+		for _, hfile in ipairs{"pthread.h", "sched.h", "semaphore.h"} do
+			api.copy(api.makepath(path.src.dir, hfile), path.install.inc)
+		end
+	end
+end

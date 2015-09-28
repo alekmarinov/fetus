@@ -1,0 +1,23 @@
+package = {
+	name     = "pixman",
+	version  = "0.32.8",
+	source   = "$(repo.opensource)/pixman-0.32.8.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install")
+end

@@ -19,8 +19,8 @@ local version    = require "los.lospec.version"
 local package    = require "los.lospec.package"
 local md5        = require "md5"
 
-local _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io =
-	  _G, assert, setfenv, loadfile, ipairs, pairs, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io
+local _G, assert, setfenv, loadfile, ipairs, pairs, unpack, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io =
+	  _G, assert, setfenv, loadfile, ipairs, pairs, unpack, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io
 
 local loaders = _G.package.loaders
 
@@ -132,6 +132,7 @@ local importapi =
 	["_conf"] = _G._conf,
 	"_log",
 	"type",
+	"unpack",
 	"assert",
 	"tostring",
 	"error"

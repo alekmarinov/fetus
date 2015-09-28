@@ -1,0 +1,42 @@
+zlib = assert(requires("zlib")) 
+
+package = {
+	name     = "freetype",
+	version  = "2.4.10",
+	source   = "$(repo.opensource)/freetype-2.4.10.tar.gz",
+	patch = {
+		mingw = "freetype-2.4.10.patch"
+	}
+}
+
+use "autotools"
+
+function prepare()
+	zlib:install()
+	api.download()
+	api.unarch()
+	api.patch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+
+	if conf["host.system"] == "mingw" then
+		-- FIXME: dll is not built
+		-- local filedef = api.makepath(path.src.dir, "ftexport.def")
+		-- api.catfile(filedef, "EXPORTS\n")
+		-- api.appendfile(filedef, api.readfile(api.makepath(path.src.dir, "objs/ftexport.sym")))
+		-- lfs.executein(path.src.dir, "dlltool", "-d", "ftexport.def", "-l", "libfreetype.dll.a")
+	end
+end
+
+function install()
+	build()
+	autotools.make("install")
+	if conf["host.system"] == "mingw" then
+		-- FIXME: dll is not built
+		-- api.copy(api.makepath(path.src.dir, "libfreetype.dll.a"), path.install.lib)
+	end
+end

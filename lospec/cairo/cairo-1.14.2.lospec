@@ -1,0 +1,35 @@
+ptreads = assert(requires("pthreads"))
+pixman = assert(requires("pixman"))
+freetype = assert(requires("freetype"))
+
+package = {
+	name     = "cairo",
+	version  = "1.14.2",
+	source   = "$(repo.opensource)/cairo-1.14.2.tar.xz"
+}
+
+use "autotools"
+
+function prepare()
+	ptreads:install()
+	pixman:install()
+	freetype:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	local confargs = {}
+	if conf["host.system"] == "mingw" then
+		table.insert(confargs, "--enable-xlib=no")
+		table.insert(confargs, "--enable-xcb=no")
+	end
+	autotools.configure(unpack(confargs))
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install")
+end
