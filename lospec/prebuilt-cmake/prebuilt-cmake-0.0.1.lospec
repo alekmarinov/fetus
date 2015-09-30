@@ -1,4 +1,4 @@
-make = assert(requires("prebuilt-make))
+make = assert(requires("prebuilt-make"))
 
 package = {
 	name = "prebuilt-cmake",

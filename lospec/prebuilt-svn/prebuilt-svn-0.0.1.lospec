@@ -1,4 +1,4 @@
-busybox = assert(requires("prebuilt-busybox))
+busybox = assert(requires("prebuilt-busybox"))
 
 package = {
 	name = "prebuilt-svn",

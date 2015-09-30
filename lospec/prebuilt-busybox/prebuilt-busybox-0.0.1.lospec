@@ -1,4 +1,4 @@
-minifs = assert(requires("linux-minifs))
+minifs = assert(requires("linux-minifs"))
 
 package = {
 	name = "prebuilt-busybox",

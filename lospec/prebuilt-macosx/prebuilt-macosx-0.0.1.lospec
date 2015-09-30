@@ -1,5 +1,5 @@
-busybox = assert(requires("prebuilt-busybox))
-libdep = assert(requires("prebuilt-libdep))
+busybox = assert(requires("prebuilt-busybox"))
+libdep = assert(requires("prebuilt-libdep"))
 
 package = {
 	name = "prebuilt-macosx",
