@@ -1,0 +1,27 @@
+package = {
+	name     = "libiconv",
+	version  = "1.14",
+	source   = "$(repo.opensource)/libiconv-1.14.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install")
+	if conf["host.system"] == "mingw" then
+		-- iconf.h is not installed under mingw
+		api.copy(api.makepath(path.src.dir, "include/iconv.h"), path.install.inc)
+	end
+end

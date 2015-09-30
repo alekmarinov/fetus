@@ -10,8 +10,8 @@
 --                                                                   --
 -----------------------------------------------------------------------
 
-local assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string, _log =
-      assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string, _log
+local _G, assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string =
+      _G, assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string
 
 module "los.lospec.version"
 
@@ -132,7 +132,7 @@ function parse(vstring)
          -- extract a word
          token, rest = vstring:match("^(%a+)[%.%-%_]*(.*)")
          if not token then
-            _log.warn(_NAME..": version number '"..vstring.."' could not be parsed.")
+            _G._log:warn(_NAME..": version number '"..vstring.."' could not be parsed.")
             version[i] = 0
             break
          end

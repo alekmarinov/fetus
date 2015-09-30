@@ -1,6 +1,6 @@
-ptreads = assert(requires("pthreads"))
-pixman = assert(requires("pixman"))
-freetype = assert(requires("freetype"))
+ptreads = assert(requires("pthreads == 2.9.1"))
+pixman = assert(requires("pixman == 0.32.8"))
+freetype = assert(requires("freetype == 2.4.10"))
 
 package = {
 	name     = "cairo",

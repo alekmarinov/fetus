@@ -1,0 +1,39 @@
+zlib = requires("zlib == 1.2.8")
+ffi = requires("libffi == 3.2.1")
+gettext = requires("gettext == 0.19.6")
+
+package = {
+	name     = "glib",
+	version  = "2.46.0",
+	source   = "$(repo.opensource)/glib-2.46.0.tar.xz"
+}
+
+use "autotools"
+
+function prepare()
+	-- zlib:install()
+	-- ffi:install()
+	-- gettext:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+
+	local confargs = {}
+	if conf["host.system"] == "mingw" then
+		-- under mingw install prefix is not enough to detect some dependent libs
+		table.insert(confargs, "CFLAGS=-I"..path.install.inc)
+		table.insert(confargs, "LDFLAGS=-L"..path.install.lib)
+		table.insert(confargs, "LIBFFI_CFLAGS="..path.install.inc)
+		table.insert(confargs, "LIBFFI_LIBS=-lffi")
+	end
+	autotools.configure(unpack(confargs))
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install")
+end

@@ -1,4 +1,4 @@
-lua = assert(requires("lua", "5.1"))
+lua = assert(requires("lua == 5.1"))
 
 package = {
 	name = "luarocks",

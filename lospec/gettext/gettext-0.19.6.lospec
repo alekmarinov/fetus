@@ -1,0 +1,34 @@
+pthreads = assert(requires("pthreads == 2.9.1"))
+iconv = assert(requires("libiconv == 1.14"))
+
+package = {
+	name     = "gettext",
+	version  = "0.19.6",
+	source   = "$(repo.opensource)/gettext-0.19.6.tar.xz"
+}
+
+use "autotools"
+
+function prepare()
+	-- pthreads:install()
+	-- iconv:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+
+	if conf["host.system"] == "mingw" then
+		-- solves unresolved pthread functions
+		autotools.configure("\"LDFLAGS=-L"..path.install.lib.." -lpthread\"")
+	else
+		autotools.configure()
+	end
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install")
+end

@@ -1,4 +1,4 @@
-zlib = assert(requires("zlib"))
+zlib = assert(requires("zlib == 1.2.8"))
 
 package = {
 	name     = "libpng",

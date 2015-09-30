@@ -1,4 +1,4 @@
-busybox = assert(requires("prebuilt-busybox", "0.0.1"))
+busybox = assert(requires("prebuilt-busybox))
 
 package = {
 	name = "prebuilt-make",

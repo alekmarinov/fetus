@@ -1,0 +1,30 @@
+package = {
+	name     = "libffi",
+	version  = "3.2.1",
+	source   = "$(repo.opensource)/libffi-3.2.1.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function install()
+	-- build()
+	autotools.make("install")
+
+	if conf["host.system"] == "mingw" then
+		-- header files are installed to wrong location
+		local srcincdir = api.makepath(path.install.lib, "libffi-"..package.version.string)
+		api.copy(api.makepath(srcincdir, "include").."/", path.install.inc)
+		lfs.delete(srcincdir)
+	end
+end

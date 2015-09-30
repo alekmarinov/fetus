@@ -1,4 +1,4 @@
-readline = requires "readline"
+readline = requires "readline == 6.2"
 
 package = {
 	name     = "lua",

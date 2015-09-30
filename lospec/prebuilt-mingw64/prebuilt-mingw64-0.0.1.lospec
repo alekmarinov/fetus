@@ -1,5 +1,5 @@
-busybox = assert(requires("prebuilt-busybox", "0.0.1"))
-libdep = assert(requires("prebuilt-libdep", "0.0.1"))
+busybox = assert(requires("prebuilt-busybox))
+libdep = assert(requires("prebuilt-libdep))
 
 package = {
 	name = "prebuilt-mingw64",

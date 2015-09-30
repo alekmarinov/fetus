@@ -29,6 +29,8 @@ function api.download()
 		if dw.download(urlmd5, outfilemd5) then
 			srcmd5 = assert(api.readfile(outfilemd5))
 			srcmd5 = string.upper(string.sub(srcmd5, 1, 32))
+		else
+			lfs.delete(outfilemd5)
 		end
 
 		log.i("downloading", url, outfile)
