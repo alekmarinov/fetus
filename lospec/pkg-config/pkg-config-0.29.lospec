@@ -1,0 +1,28 @@
+package = {
+	name     = "pkg-config",
+	version  = "0.29",
+	source   = "$(repo.opensource)/pkg-config-0.29.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+
+	if conf["host.system"] == "mingw" then
+		autotools.configure("\"GLIB_CFLAGS=-I"..api.makepath(path.install.inc, "glib-2.0").." -I"..api.makepath(path.install.lib, "glib-2.0/include").."\"", "\"GLIB_LIBS=-L"..path.install.lib.." -lglib-2.0\"")
+	else
+		autotools.configure()
+	end
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install")
+end
