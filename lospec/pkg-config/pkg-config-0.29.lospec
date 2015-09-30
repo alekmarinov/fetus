@@ -1,3 +1,5 @@
+glib = assert(requires("glib == 2.46.0"))
+
 package = {
 	name     = "pkg-config",
 	version  = "0.29",

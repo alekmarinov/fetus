@@ -1,0 +1,25 @@
+sdl = assert(requires("sdl ~> 2.0"))
+
+package = {
+	name = "avgl",
+	version = "0.9",
+	source = "$(repo.opensource)/avgl-0.9.zip"
+}
+
+use "cmake"
+
+function prepare()
+	-- sdl:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	--prepare()
+	cmake.build()
+end
+
+function install()
+	build()
+	cmake.install()
+end

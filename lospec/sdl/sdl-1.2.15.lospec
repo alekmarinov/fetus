@@ -1,0 +1,25 @@
+ptreads = assert(requires("pthreads == 2.9.1"))
+
+package = {
+	name = "sdl",
+	version = "1.2.15",
+	source = "$(repo.opensource)/SDL-1.2.15.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function install()
+	build()
+	autotools.make("install")
+end
