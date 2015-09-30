@@ -6,21 +6,19 @@ package = {
 	source   = "$(repo.opensource)/libpng-1.6.18.tar.gz"
 }
 
-use "autotools"
+use "cmake"
 
 function prepare()
-	zlib:install()
 	api.download()
 	api.unarch()
 end
 
 function build()
 	prepare()
-	autotools.configure()
-	autotools.make()
+	cmake.build()
 end
 
 function install()
 	build()
-	autotools.make("install")
+	cmake.install()
 end

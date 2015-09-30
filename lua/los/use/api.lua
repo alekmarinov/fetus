@@ -77,6 +77,8 @@ function api.patch()
 end
 
 function api.dos2unix(dir, ...)
+	assert(type(dir) == "string")
+
 	local cmd = "dos2unix"
 	if table.getn{...} == 0 then
 		cmd = cmd .. " *"
@@ -89,6 +91,9 @@ function api.makepathdir(...)
 end
 
 function api.catfile(file, text)
+	assert(type(file) == "string")
+	assert(type(text) == "string")
+
 	local fd, err = io.open(file, "w")
 	if not fd then
 		return nil, err
@@ -99,6 +104,9 @@ function api.catfile(file, text)
 end
 
 function api.appendfile(file, text)
+	assert(type(file) == "string")
+	assert(type(text) == "string")
+
 	local fd, err = io.open(file, "a+")
 	if not fd then
 		return nil, err
@@ -109,6 +117,8 @@ function api.appendfile(file, text)
 end
 
 function api.readfile(file)
+	assert(type(file) == "string")
+
 	local fd, err = io.open(file, "rb")
 	if not fd then
 		return nil, err
@@ -119,6 +129,9 @@ function api.readfile(file)
 end
 
 function api.copy(src, dst)
+	assert(type(src) == "string")
+	assert(type(dst) == "string")
+
 	rollback.push(lfs.delete, dst)
 	if lfs.isfile(src) then
 		lfs.mkdir(lfs.dirname(dst))

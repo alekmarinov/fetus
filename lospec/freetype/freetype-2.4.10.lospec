@@ -3,19 +3,21 @@ zlib = assert(requires("zlib == 1.2.8"))
 package = {
 	name     = "freetype",
 	version  = "2.4.10",
-	source   = "$(repo.opensource)/freetype-2.4.10.tar.gz",
+	source   = "$(repo.opensource)/freetype-2.4.10.tar.gz"
+	--[[,
 	patch = {
 		mingw = "freetype-2.4.10.patch"
 	}
+	--]]
 }
 
 use "autotools"
 
 function prepare()
-	zlib:install()
+	-- zlib:install()
 	api.download()
 	api.unarch()
-	api.patch()
+	-- api.patch()
 end
 
 function build()
