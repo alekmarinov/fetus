@@ -15,7 +15,7 @@ function prepare()
 end
 
 function build()
-	--prepare()
+	prepare()
 	cmake.build()
 end
 

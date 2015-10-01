@@ -18,7 +18,7 @@ function build()
 end
 
 function install()
-	-- build()
+	build()
 	autotools.make("install")
 
 	if conf["host.system"] == "mingw" then
