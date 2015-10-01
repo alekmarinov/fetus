@@ -10,15 +10,9 @@
 ##################################################################
 #set -x
 ## configure variables
-[ -z "$TARGET_DIR" ] && TARGET_DIR="$HOME/los"
+[ -z "$LOS_ROOT" ] && LOS_ROOT="$HOME/los"
 [ -z "$LOS_REPO_USER" ] && LOS_REPO_USER=alek
 [ -z "$LOS_REPO_PASS" ] && LOS_REPO_PASS=aviqa2
-
-# bootstrap los cleanly
-rm -rf $TARGET_DIR
-mkdir -p $TARGET_DIR
-
-echo "Prepare bootstrap in $TARGET_DIR"
 
 # return current base script name
 script_name()
@@ -64,25 +58,28 @@ download_file()
 	fi
 }
 
+# make sure we bootstrap los cleanly
+[ -e $LOS_ROOT ] && die "$LOS_ROOT directory exists. Please install los in non existing directory"
+mkdir -p $LOS_ROOT
+
+echo "Prepare bootstrap in $LOS_ROOT"
+
+
 # downloads the bootstrap script and start it
 if [ -z "$BOOTSTRAP_SCRIPT" ]; then
-	download_file http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh $TARGET_DIR/bootstrap.sh
+	download_file http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh $LOS_ROOT/bootstrap.sh
 else
-	cp -f $BOOTSTRAP_SCRIPT $TARGET_DIR/bootstrap.sh
+	cp -f $BOOTSTRAP_SCRIPT $LOS_ROOT/bootstrap.sh
 fi
 
-LOS_REPO_USER=$LOS_REPO_USER LOS_REPO_PASS=$LOS_REPO_PASS sh $TARGET_DIR/bootstrap.sh
-check_status "bootstrap.sh failed"
+sh $LOS_ROOT/bootstrap.sh "--los-root=$LOS_ROOT" "--repo-user=$LOS_REPO_USER" "--repo-pass=$LOS_REPO_PASS" $*
+check_status "bootstrap.sh"
 
 # autorun lua rocks
-export PATH=$PATH:$TARGET_DIR/bin
-export LUA_PATH=$TARGET_DIR/share/lua/5.1/?.lua
-luarocks install los
-check_status "luarocks install failed."
+LUAROCKS_DIR=$LOS_ROOT/luarocks/2.2
+export PATH=$PATH:$LUAROCKS_DIR
+export LUA_PATH=$LUAROCKS_DIR/lua/?.lua
 
-chmod 0755 $TARGET_DIR/var/lib/rocks/bin/los
-ln -sf $TARGET_DIR/var/lib/rocks/bin/los $TARGET_DIR/bin/los
-echo -e "\n\n==========================================="
-echo -e "Add the following vars to your environment:"
-echo -e "export LOS_HOME=$TARGET_DIR"
-echo -e "export PATH=\$PATH:\$LOS_HOME/bin"
+lua $LUAROCKS_DIR/luarocks.lua install los
+check_status "luarocks install failed."
+chmod 0755 $LUAROCKS_DIR/rocks/bin/los

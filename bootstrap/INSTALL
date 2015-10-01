@@ -1,0 +1,19 @@
+Bootstrap LOS for Windows
+=========================
+
+-- Install for Windows/MinGW64
+
+With the recommended options install 
+1. tdm64-gcc-5.1.0-2.exe
+2. mingw-get-setup.exe
+
+make sure the var MINGW64_DIR definined in the beginnign of bootstrap.cmd points MinGW64 directory correctly.
+
+Run bootstrap.cmd
+
+-- Install for Linux
+
+Prepare the following requsites:
+which, sh, readlink, unzip, tar, patch, wget, lua
+
+Run run-bootstrap.sh

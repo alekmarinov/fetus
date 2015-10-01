@@ -9,21 +9,8 @@
 ##																##
 ##################################################################
 
-## configure variables
-URL_REPO_BASE="http://${LOS_REPO_USER}:${LOS_REPO_PASS}@storage.intelibo.com/los"
-URL_REPO_OPENSOURCE=$URL_REPO_BASE/opensource
-URL_REPO_ROCKS=$URL_REPO_BASE/rocks
-URL_REPO_LOS=$URL_REPO_BASE/bootstrap
-
-LUAROCKS_VERSION="2.2.2"
-LUAROCKS_NAME="luarocks-$LUAROCKS_VERSION"
-LUAROCKS_PACKAGE="$LUAROCKS_NAME.tar.gz"
-LUAROCKS_CONFIGURE_DIFF="$LUAROCKS_NAME-configure.diff"
-
-SCRIPT_PATH_NAME=$(readlink -f $0)
-[ -z "$INSTALL_ROOT" ] && INSTALL_ROOT=$(dirname $SCRIPT_PATH_NAME)
-LUAROCKS_TREE_DIR="$INSTALL_ROOT/var/lib/rocks"
-LUAROCKS_CONFIG_LUA="$INSTALL_ROOT/etc/luarocks/config-5.1.lua"
+# default parameters
+DEFAULT_LOS_ROOT=$(dirname $(readlink -f $0))
 
 ## utility functions
 
@@ -107,6 +94,112 @@ download_file()
 
 ## entry point
 
+USAGE="
+LOS bootstrap utility
+
+SYNOPSIS
+	$(basename "$0") [--repo-base=...] [--repo-opensource=...] [--repo-rocks=...] [--repo-bootstrap=...] [--los-root=...] [--luarocks-root=...] [--luarocks-rocks=...] [-h | --help]
+
+OPTIONS
+    --repo-user=<username>        username to main los repository
+    --repo-pass=<password>        password to main los repository
+    --repo-base=<url>             base url to los repository, default 
+                                  http://<repo_user>:<repo_pass>@storage.intelibo.com/los
+    --repo-opensource=<url>       url to los opensource files, default
+                                  <repo-base>/opensource
+    --repo-rocks=<url>            url to los rock files, default
+                                  <repo-base>/rocks
+    --repo-bootstrap=<url>        url to los bootstrap files, default
+                                  <repo-base>/bootstrap
+    --los-root=<directory>        the directory where to install los files, default
+                                  $DEFAULT_LOS_ROOT
+    --luarocks-root=<directory>   the directory where to install luarocks, default
+                                  $DEFAULT_LOS_ROOT/luarocks
+    --luarocks-tree=<directory>   luarocks tree directory, default
+                                  $DEFAULT_LOS_ROOT/luarocks/tree
+    -h|--help                     show this help text"
+
+## parsing command line options
+
+for i in "$@"; do
+	case $i in
+		--repo-user=*)
+			REPO_USER="${i#*=}"
+			shift
+		;;
+		--repo-pass=*)
+			REPO_PASS="${i#*=}"
+			shift
+		;;
+		--repo-base=*)
+			URL_REPO_BASE="${i#*=}"
+			shift
+		;;
+		--repo-opensource=*)
+			URL_REPO_OPENSOURCE="${i#*=}"
+			shift
+		;;
+		--repo-rocks=*)
+			URL_REPO_ROCKS="${i#*=}"
+			shift
+		;;
+		--repo-bootstrap=*)
+			URL_REPO_BOOTSTRAP="${i#*=}"
+			shift
+		;;
+		--los-root=*)
+			LOS_ROOT="${i#*=}"
+			shift
+		;;
+		--luarocks-root=*)
+			LUAROCKS_ROOT="${i#*=}"
+			shift
+		;;
+		--luarocks-tree=*)
+			LUAROCKS_TREE_DIR="${i#*=}"
+			shift
+		;;
+		-h|--help)
+			echo "$USAGE"
+			exit
+		;;
+		*)
+			die "unknown option $i"
+		;;
+	esac
+done
+
+## configure variables
+if [ -z "$URL_REPO_BASE" ]; then
+	[ -z "$REPO_USER" ] && die "--repo-user parameter required for the main los repository"
+	[ -z "$REPO_PASS" ] && die "--repo-pass parameter required for the main los repository"
+	URL_REPO_BASE="http://${REPO_USER}:${REPO_PASS}@storage.intelibo.com/los"
+fi
+
+URL_REPO_OPENSOURCE=${URL_REPO_OPENSOURCE:-"$URL_REPO_BASE/opensource"}
+URL_REPO_ROCKS=${URL_REPO_ROCKS:-"$URL_REPO_BASE/rocks"}
+URL_REPO_BOOTSTRAP=${URL_REPO_BOOTSTRAP:-"$URL_REPO_BASE/bootstrap"}
+LOS_ROOT=${LOS_ROOT:-"$DEFAULT_LOS_ROOT"}
+LUAROCKS_ROOT="$LOS_ROOT/luarocks"
+LUAROCKS_TREE_DIR="$LUAROCKS_ROOT/tree"
+
+LUAROCKS_VERSION="2.2.2"
+
+if [[ "$WINDIR" != "" ]]; then
+	LUAROCKS_NAME="luarocks-$LUAROCKS_VERSION-win32"
+	LUAROCKS_PACKAGE="$LUAROCKS_NAME.zip"
+else
+	LUAROCKS_NAME="luarocks-$LUAROCKS_VERSION"
+	LUAROCKS_PACKAGE="$LUAROCKS_NAME.tar.gz"
+	LUAROCKS_CONFIGURE_DIFF="$LUAROCKS_NAME-configure.diff"
+fi
+
+if [[ "$WINDIR" != "" ]]; then
+	LUAROCKS_CONFIG_LUA="$LUAROCKS_ROOT/config.lua"
+else
+	LUAROCKS_CONFIG_LUA="$LUAROCKS_ROOT/etc/luarocks/config-5.1.lua"
+fi
+
 # locate and test lua interpreter
 check_program lua
 EXPECTED="hi"
@@ -128,51 +221,64 @@ patch --help > /dev/null
 check_status "patch execution test failed"
 
 # cleanup installation dir
-rm -rf $INSTALL_ROOT/{$LUAROCKS_PACKAGE,$LUAROCKS_NAME,bin,etc,share,var}
-mkdir -p $INSTALL_ROOT
-check_status "creating directory $INSTALL_ROOT"
+mkdir -p $LOS_ROOT
+check_status "creating directory $LOS_ROOT"
 
 # download luarocks
-download_file "$URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE" "$INSTALL_ROOT/$LUAROCKS_PACKAGE"
+download_file "$URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE" "$LOS_ROOT/$LUAROCKS_PACKAGE"
 check_status "downloading $URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE"
 
 # extract luarocks
-info "extract $INSTALL_ROOT/$LUAROCKS_PACKAGE"
-tar xfz $INSTALL_ROOT/$LUAROCKS_PACKAGE -C $INSTALL_ROOT
-check_status "extracting $INSTALL_ROOT/$LUAROCKS_PACKAGE"
-rm -f $INSTALL_ROOT/$LUAROCKS_PACKAGE
+info "extract $LOS_ROOT/$LUAROCKS_PACKAGE"
 
-# fix luarocks configure issue in case LUA_DIR is found in / which makes invaild paths like $LUA_DIR/include -> //include
-info "patching $INSTALL_ROOT/$LUAROCKS_NAME/configure"
-download_file "$URL_REPO_LOS/$LUAROCKS_CONFIGURE_DIFF" "$INSTALL_ROOT/$LUAROCKS_NAME/$LUAROCKS_CONFIGURE_DIFF"
-check_status "downloading $URL_REPO_LOS/$LUAROCKS_CONFIGURE_DIFF"
-patch $INSTALL_ROOT/$LUAROCKS_NAME/configure $INSTALL_ROOT/$LUAROCKS_NAME/$LUAROCKS_CONFIGURE_DIFF
+if [[ "$WINDIR" != "" ]]; then
+	unzip $LOS_ROOT/$LUAROCKS_PACKAGE -d $LOS_ROOT
+	check_status "unzip $LOS_ROOT/$LUAROCKS_PACKAGE"
+else
+	tar xfz $LOS_ROOT/$LUAROCKS_PACKAGE -C $LOS_ROOT
+	check_status "tar xfz $LOS_ROOT/$LUAROCKS_PACKAGE"
 
-# configure luarocks
-info "configure $INSTALL_ROOT/$LUAROCKS_NAME"
-cd $INSTALL_ROOT/$LUAROCKS_NAME
-./configure --prefix=$INSTALL_ROOT --rocks-tree=$LUAROCKS_TREE_DIR --with-downloader=curl
-check_status "configuring $INSTALL_ROOT/$LUAROCKS_NAME"
+	# fix luarocks configure issue in case LUA_DIR is found in / which makes invaild paths like $LUA_DIR/include -> //include
+	info "patching $LOS_ROOT/$LUAROCKS_NAME/configure"
+	download_file "$URL_REPO_BOOTSTRAP/$LUAROCKS_CONFIGURE_DIFF" "$LOS_ROOT/$LUAROCKS_NAME/$LUAROCKS_CONFIGURE_DIFF"
+	check_status "downloading $URL_REPO_BOOTSTRAP/$LUAROCKS_CONFIGURE_DIFF"
+	patch $LOS_ROOT/$LUAROCKS_NAME/configure $LOS_ROOT/$LUAROCKS_NAME/$LUAROCKS_CONFIGURE_DIFF
+fi
+rm -f $LOS_ROOT/$LUAROCKS_PACKAGE
 
-# make luarocks
-info "make $INSTALL_ROOT/$LUAROCKS_NAME"
-make > /dev/null
-check_status "making luarocks"
+cd $LOS_ROOT/$LUAROCKS_NAME
 
-# install luarocks
-info "install $INSTALL_ROOT/$LUAROCKS_NAME"
-make install > /dev/null
-check_status "installing luarocks"
-cd $INSTALL_ROOT
-rm -rf $INSTALL_ROOT/$LUAROCKS_NAME
+if [[ "$WINDIR" == "" ]]; then
+	# configure luarocks
+	info "configure $LOS_ROOT/$LUAROCKS_NAME"
+	./configure --prefix=$LUAROCKS_ROOT --rocks-tree=$LUAROCKS_TREE_DIR
+	check_status "configuring $LOS_ROOT/$LUAROCKS_NAME"
+
+	# make luarocks
+	info "make $LOS_ROOT/$LUAROCKS_NAME"
+	make > /dev/null
+	check_status "making luarocks"
+
+	# install luarocks
+	info "install $LOS_ROOT/$LUAROCKS_NAME"
+	make install > /dev/null
+	check_status "installing luarocks"
+else
+	# start luarocks installer
+	LUA_DIR=$(dirname $(dirname $(which lua)))
+	$COMSPEC //\c install.bat //\P $LUAROCKS_ROOT //\TREE $LUAROCKS_TREE_DIR //\LUA $LUA_DIR //\MW //\F //\NOREG //\NOADMIN //\Q
+fi
+
+cd $LOS_ROOT
+rm -rf $LOS_ROOT/$LUAROCKS_NAME
 
 # check luarocks config
 expect_file $LUAROCKS_CONFIG_LUA
 
 # configure luarocks repository
 info "set luarocks server to $URL_REPO_ROCKS"
-echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n }" >> $LUAROCKS_CONFIG_LUA
+echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
 
-echo -e "luarocks installation finished.\nAdd the following vars to your environment:\nPATH=\$PATH:$INSTALL_ROOT/bin\nLUA_PATH=$INSTALL_ROOT/share/lua/5.1/?.lua"
+echo -e "luarocks installation finished.\nAdd the following vars to your environment:\nPATH=\$PATH:$LUAROCKS_ROOT/2.2\nLUA_PATH=$LUAROCKS_ROOT/lua/?.lua"
 
 echo "Bootstrap SUCCESS!"
