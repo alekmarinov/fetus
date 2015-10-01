@@ -20,6 +20,14 @@ mkdir -p $TARGET_DIR
 
 echo "Prepare bootstrap in $TARGET_DIR"
 
+# return current base script name
+script_name()
+{
+	local name=$(readlink -f $0)
+	name=$(basename $name 2>/dev/null)
+	echo $name
+}
+
 # show message and exit with failure
 die() { echo -e "error: $*" ; exit 1 ; }
 
@@ -75,4 +83,6 @@ check_status "luarocks install failed."
 chmod 0755 $TARGET_DIR/var/lib/rocks/bin/los
 ln -sf $TARGET_DIR/var/lib/rocks/bin/los $TARGET_DIR/bin/los
 echo -e "\n\n==========================================="
-echo -e "Add the following vars to your environment:\nPATH=\$PATH:$TARGET_DIR/bin"
+echo -e "Add the following vars to your environment:"
+echo -e "export LOS_HOME=$TARGET_DIR"
+echo -e "export PATH=\$PATH:\$LOS_HOME/bin"
