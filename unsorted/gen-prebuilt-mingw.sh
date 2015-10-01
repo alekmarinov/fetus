@@ -32,8 +32,10 @@ generate()
 	mingw${bits}-pkg-config
 	mingw${bits}-headers
 	mingw${bits}-crt
-	mingw${bits}-dlfcn-static
-	mingw${bits}-winpthreads-static
+    mingw${bits}-dlfcn
+    mingw${bits}-dlfcn-static
+    mingw${bits}-winpthreads
+    mingw${bits}-winpthreads-static
 	"
 
 	rm -f $(pwd)/*.rpm
