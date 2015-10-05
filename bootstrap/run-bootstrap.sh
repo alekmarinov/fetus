@@ -58,14 +58,8 @@ download_file()
 	fi
 }
 
-# make sure we bootstrap los cleanly
-[ -e $LOS_ROOT ] && die "$LOS_ROOT directory exists. Please install los in non existing directory"
-mkdir -p $LOS_ROOT
-
-echo "Prepare bootstrap in $LOS_ROOT"
-
-
 # downloads the bootstrap script and start it
+mkdir -p $LOS_ROOT
 if [ -z "$BOOTSTRAP_SCRIPT" ]; then
 	download_file http://$LOS_REPO_USER:$LOS_REPO_PASS@storage.intelibo.com/los/bootstrap/bootstrap.sh $LOS_ROOT/bootstrap.sh
 else
@@ -73,13 +67,13 @@ else
 fi
 
 sh $LOS_ROOT/bootstrap.sh "--los-root=$LOS_ROOT" "--repo-user=$LOS_REPO_USER" "--repo-pass=$LOS_REPO_PASS" $*
-check_status "bootstrap.sh"
+if [[ $? == 0 ]]; then
+	# autorun lua rocks
+	LUAROCKS_DIR=$LOS_ROOT/luarocks/2.2
+	export PATH=$PATH:$LUAROCKS_DIR
+	export LUA_PATH=$LUAROCKS_DIR/lua/?.lua
 
-# autorun lua rocks
-LUAROCKS_DIR=$LOS_ROOT/luarocks/2.2
-export PATH=$PATH:$LUAROCKS_DIR
-export LUA_PATH=$LUAROCKS_DIR/lua/?.lua
-
-lua $LUAROCKS_DIR/luarocks.lua install los
-check_status "luarocks install failed."
-chmod 0755 $LUAROCKS_DIR/rocks/bin/los
+	lua $LUAROCKS_DIR/luarocks.lua install los
+	check_status "luarocks install failed."
+	chmod 0755 $LUAROCKS_DIR/rocks/bin/los
+fi

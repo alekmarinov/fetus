@@ -161,7 +161,7 @@ for i in "$@"; do
 		;;
 		-h|--help)
 			echo "$USAGE"
-			exit
+			exit 1
 		;;
 		*)
 			die "unknown option $i"
@@ -180,10 +180,16 @@ URL_REPO_OPENSOURCE=${URL_REPO_OPENSOURCE:-"$URL_REPO_BASE/opensource"}
 URL_REPO_ROCKS=${URL_REPO_ROCKS:-"$URL_REPO_BASE/rocks"}
 URL_REPO_BOOTSTRAP=${URL_REPO_BOOTSTRAP:-"$URL_REPO_BASE/bootstrap"}
 LOS_ROOT=${LOS_ROOT:-"$DEFAULT_LOS_ROOT"}
-LUAROCKS_ROOT="$LOS_ROOT/luarocks"
-LUAROCKS_TREE_DIR="$LUAROCKS_ROOT/tree"
-
+LUAROCKS_ROOT=${LUAROCKS_ROOT:-"$LOS_ROOT/luarocks"}
+LUAROCKS_TREE_DIR=${LUAROCKS_TREE_DIR:-"$LUAROCKS_ROOT/tree"}
 LUAROCKS_VERSION="2.2.2"
+ZZIPLIB_NAME="zziplib-0.13.62"
+ZZIPLIB_PACKAGE="$ZZIPLIB_NAME.tar.bz2"
+
+echo "Prepare bootstrap in $LOS_ROOT"
+
+# make sure we bootstrap los in existing directory
+mkdir -p $LOS_ROOT
 
 if [[ "$WINDIR" != "" ]]; then
 	LUAROCKS_NAME="luarocks-$LUAROCKS_VERSION-win32"
@@ -224,6 +230,9 @@ check_status "patch execution test failed"
 mkdir -p $LOS_ROOT
 check_status "creating directory $LOS_ROOT"
 
+# cleanup polluted luarocks files from previous installs
+rm -rf $LOS_ROOT/{$LUAROCKS_PACKAGE,$LUAROCKS_NAME,$LUAROCKS_ROOT}
+
 # download luarocks
 download_file "$URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE" "$LOS_ROOT/$LUAROCKS_PACKAGE"
 check_status "downloading $URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE"
@@ -248,6 +257,7 @@ rm -f $LOS_ROOT/$LUAROCKS_PACKAGE
 
 cd $LOS_ROOT/$LUAROCKS_NAME
 
+# install luarocks
 if [[ "$WINDIR" == "" ]]; then
 	# configure luarocks
 	info "configure $LOS_ROOT/$LUAROCKS_NAME"
@@ -264,9 +274,45 @@ if [[ "$WINDIR" == "" ]]; then
 	make install > /dev/null
 	check_status "installing luarocks"
 else
-	# start luarocks installer
-	LUA_DIR=$(dirname $(dirname $(which lua)))
+	# start luarocks installer with the installed lua
+	LUA_DIR=$(dirname $(dirname $($COMSPEC /c "which lua")))
+
 	$COMSPEC //\c install.bat //\P $LUAROCKS_ROOT //\TREE $LUAROCKS_TREE_DIR //\LUA $LUA_DIR //\MW //\F //\NOREG //\NOADMIN //\Q
+
+	# patch config.lua to use compiler named gcc, instead mingw-gcc
+	sed -i "s/variables = {/variables = {\n    CC = 'gcc',\n    LD = 'gcc',\n    CFLAGS = '-m32 -O2',\n    LIBFLAG = '-m32 -shared',/" $LUAROCKS_ROOT/config.lua
+	EXT_DIR=$(echo $LUA_DIR | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g')
+	sed -i "s/LUALIB = .*/LUALIB = '-llua',\n    LUA_LIBDIR = '',/" $LUAROCKS_ROOT/config.lua
+
+	# patch cfg.lua getting rid of hardcoded path c:/external/
+	sed -i "s/\"c:\/external\/\"/\"$(echo $EXT_DIR | sed -e 's/\\\\/\\\//g')\"/" $LUAROCKS_ROOT/2.2/lua/luarocks/cfg.lua
+	EXT_DIR=$(echo $EXT_DIR | sed -e 's/\\\\/\//g')
+
+	# build zziplib for mingw32
+	if [ -f $EXT_DIR/lib/libzzip.a ]; then
+		info "$ZZIPLIB_NAME is already installed in $EXT_DIR"
+	else
+		# cleanup polluted files from previous installs
+		rm -rf $LOS_ROOT/{build,$ZZIPLIB_NAME,$ZZIPLIB_PACKAGE}
+
+		download_file "$URL_REPO_OPENSOURCE/$ZZIPLIB_PACKAGE" "$LOS_ROOT/$ZZIPLIB_PACKAGE"
+		check_status "downloading $URL_REPO_OPENSOURCE/$ZZIPLIB_PACKAGE"
+		tar xfj $LOS_ROOT/$ZZIPLIB_PACKAGE -C $LOS_ROOT
+		mkdir -p "$LOS_ROOT/build"
+		cd "$LOS_ROOT/build"
+		sh ../$ZZIPLIB_NAME/configure CFLAGS=-m32 LDFLAGS=-m32 --disable-mmap --disable-builddir --prefix=$EXT_DIR
+		check_status "configure $ZZIPLIB_NAME"
+		# only the lib is needed to provide
+		sed -i "s/^SUBDIRS = .*/SUBDIRS = zzip/" Makefile
+		mingw32-make
+		check_status "make $ZZIPLIB_NAME"
+		mingw32-make install
+		check_status "make install $ZZIPLIB_NAME"
+		cd $LOS_ROOT
+
+		# zzip sources are no longer needed, cleaning up
+		rm -rf $LOS_ROOT/{build,$ZZIPLIB_NAME,$ZZIPLIB_PACKAGE}
+	fi
 fi
 
 cd $LOS_ROOT

@@ -3,11 +3,20 @@ Bootstrap LOS for Windows
 
 -- Install for Windows/MinGW64
 
-With the recommended options install 
-1. tdm64-gcc-5.1.0-2.exe
-2. mingw-get-setup.exe
+With the recommended options install
 
-make sure the var MINGW64_DIR definined in the beginnign of bootstrap.cmd points MinGW64 directory correctly.
+1. tdm64-gcc-5.1.0-2.exe
+http://tdm-gcc.tdragon.net/
+
+2. mingw-get-setup.exe
+http://sourceforge.net/projects/mingw/files/Installer/
+
+3. Git-2.6.0-32-bit.exe
+https://git-scm.com/download/win
+
+Edit bootstrap.cmd and fix the following variables if necessary
+SET GIT_BIN=C:\Program Files (x86)\Git\bin
+SET MINGW64_DIR=C:\TDM-GCC-64
 
 Run bootstrap.cmd
 
