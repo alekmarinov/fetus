@@ -183,6 +183,8 @@ LOS_ROOT=${LOS_ROOT:-"$DEFAULT_LOS_ROOT"}
 LUAROCKS_ROOT=${LUAROCKS_ROOT:-"$LOS_ROOT/luarocks"}
 LUAROCKS_TREE_DIR=${LUAROCKS_TREE_DIR:-"$LUAROCKS_ROOT/tree"}
 LUAROCKS_VERSION="2.2.2"
+ZLIB_NAME="zlib-1.2.8"
+ZLIB_PACKAGE="zlib128.zip"
 ZZIPLIB_NAME="zziplib-0.13.62"
 ZZIPLIB_PACKAGE="$ZZIPLIB_NAME.tar.bz2"
 
@@ -287,6 +289,23 @@ else
 	# patch cfg.lua getting rid of hardcoded path c:/external/
 	sed -i "s/\"c:\/external\/\"/\"$(echo $EXT_DIR | sed -e 's/\\\\/\\\//g')\"/" $LUAROCKS_ROOT/2.2/lua/luarocks/cfg.lua
 	EXT_DIR=$(echo $EXT_DIR | sed -e 's/\\\\/\//g')
+
+	# build zlib for mingw32
+	if [ -f $EXT_DIR/lib/libz.dll.a ]; then
+		info "$ZLIB_NAME is already installed in $EXT_DIR"
+	else
+		# cleanup polluted files from previous installs
+		rm -rf $LOS_ROOT/{build,$ZLIB_NAME,$ZLIB_PACKAGE}
+
+		download_file "$URL_REPO_OPENSOURCE/$ZLIB_PACKAGE" "$LOS_ROOT/$ZLIB_PACKAGE"
+		check_status "downloading $URL_REPO_OPENSOURCE/$ZLIB_PACKAGE"
+		unzip $LOS_ROOT/$ZLIB_PACKAGE -d $LOS_ROOT
+		cd "$LOS_ROOT/$ZLIB_NAME"
+		mingw32-make zlib1.dll RCFLAGS="-DGCC_WINDRES --output-format=coff --target=pe-i386" "LDFLAGS=-m32" "CFLAGS=-DZLIB_DLL -m32" -f win32/Makefile.gcc
+		check_status "make $ZLIB_NAME"
+		mingw32-make INCLUDE_PATH=$EXT_DIR/include LIBRARY_PATH=$EXT_DIR/lib BINARY_PATH=$EXT_DIR/bin -f win32/Makefile.gcc install SHARED_MODE=1
+		check_status "make install $ZLIB_NAME"
+	fi
 
 	# build zziplib for mingw32
 	if [ -f $EXT_DIR/lib/libzzip.a ]; then
