@@ -183,10 +183,11 @@ LOS_ROOT=${LOS_ROOT:-"$DEFAULT_LOS_ROOT"}
 LUAROCKS_ROOT=${LUAROCKS_ROOT:-"$LOS_ROOT/luarocks"}
 LUAROCKS_TREE_DIR=${LUAROCKS_TREE_DIR:-"$LUAROCKS_ROOT/tree"}
 LUAROCKS_VERSION="2.2.2"
-ZLIB_NAME="zlib-1.2.8"
-ZLIB_PACKAGE="zlib128.zip"
-ZZIPLIB_NAME="zziplib-0.13.62"
-ZZIPLIB_PACKAGE="$ZZIPLIB_NAME.tar.bz2"
+
+#ZLIB_NAME="zlib-1.2.8"
+#ZLIB_PACKAGE="zlib128.zip"
+#ZZIPLIB_NAME="zziplib-0.13.62"
+#ZZIPLIB_PACKAGE="$ZZIPLIB_NAME.tar.bz2"
 
 echo "Prepare bootstrap in $LOS_ROOT"
 
@@ -291,47 +292,53 @@ else
 	EXT_DIR=$(echo $EXT_DIR | sed -e 's/\\\\/\//g')
 
 	# build zlib for mingw32
-	if [ -f $EXT_DIR/lib/libz.dll.a ]; then
-		info "$ZLIB_NAME is already installed in $EXT_DIR"
-	else
-		# cleanup polluted files from previous installs
-		rm -rf $LOS_ROOT/{build,$ZLIB_NAME,$ZLIB_PACKAGE}
 
-		download_file "$URL_REPO_OPENSOURCE/$ZLIB_PACKAGE" "$LOS_ROOT/$ZLIB_PACKAGE"
-		check_status "downloading $URL_REPO_OPENSOURCE/$ZLIB_PACKAGE"
-		unzip $LOS_ROOT/$ZLIB_PACKAGE -d $LOS_ROOT
-		cd "$LOS_ROOT/$ZLIB_NAME"
-		mingw32-make zlib1.dll RCFLAGS="-DGCC_WINDRES --output-format=coff --target=pe-i386" "LDFLAGS=-m32" "CFLAGS=-DZLIB_DLL -m32" -f win32/Makefile.gcc
-		check_status "make $ZLIB_NAME"
-		mingw32-make INCLUDE_PATH=$EXT_DIR/include LIBRARY_PATH=$EXT_DIR/lib BINARY_PATH=$EXT_DIR/bin -f win32/Makefile.gcc install SHARED_MODE=1
-		check_status "make install $ZLIB_NAME"
-	fi
+	#if [ -f $EXT_DIR/lib/libz.dll.a ]; then
+	#	info "$ZLIB_NAME is already installed in $EXT_DIR"
+	#else
+		# cleanup polluted files from previous installs
+	#	rm -rf $LOS_ROOT/{build,$ZLIB_NAME,$ZLIB_PACKAGE}
+
+	#	download_file "$URL_REPO_OPENSOURCE/$ZLIB_PACKAGE" "$LOS_ROOT/$ZLIB_PACKAGE"
+	#	check_status "downloading $URL_REPO_OPENSOURCE/$ZLIB_PACKAGE"
+	#	unzip $LOS_ROOT/$ZLIB_PACKAGE -d $LOS_ROOT
+	#	cd "$LOS_ROOT/$ZLIB_NAME"
+
+	#	# skip stripping zlib1.dll since it is losing symbol information for the nm utility
+	#	sed -i "s/\$(STRIP) \$@//g" win32/Makefile.gcc
+
+	#	mingw32-make zlib1.dll RCFLAGS="-DGCC_WINDRES --output-format=coff --target=pe-i386" "LDFLAGS=-m32" "CFLAGS=-DZLIB_DLL -m32" -f win32/Makefile.gcc
+	#	check_status "make $ZLIB_NAME"
+	#	mingw32-make INCLUDE_PATH=$EXT_DIR/include LIBRARY_PATH=$EXT_DIR/lib BINARY_PATH=$EXT_DIR/bin -f win32/Makefile.gcc install SHARED_MODE=1
+	#	check_status "make install $ZLIB_NAME"
+	#fi
 
 	# build zziplib for mingw32
-	if [ -f $EXT_DIR/lib/libzzip.a ]; then
-		info "$ZZIPLIB_NAME is already installed in $EXT_DIR"
-	else
+	#if [ -f $EXT_DIR/lib/libzzip.a ]; then
+	#	info "$ZZIPLIB_NAME is already installed in $EXT_DIR"
+	#else
 		# cleanup polluted files from previous installs
-		rm -rf $LOS_ROOT/{build,$ZZIPLIB_NAME,$ZZIPLIB_PACKAGE}
+	#	rm -rf $LOS_ROOT/{build,$ZZIPLIB_NAME,$ZZIPLIB_PACKAGE}
 
-		download_file "$URL_REPO_OPENSOURCE/$ZZIPLIB_PACKAGE" "$LOS_ROOT/$ZZIPLIB_PACKAGE"
-		check_status "downloading $URL_REPO_OPENSOURCE/$ZZIPLIB_PACKAGE"
-		tar xfj $LOS_ROOT/$ZZIPLIB_PACKAGE -C $LOS_ROOT
-		mkdir -p "$LOS_ROOT/build"
-		cd "$LOS_ROOT/build"
-		sh ../$ZZIPLIB_NAME/configure CFLAGS=-m32 LDFLAGS=-m32 --disable-mmap --disable-builddir --prefix=$EXT_DIR
-		check_status "configure $ZZIPLIB_NAME"
+	#	download_file "$URL_REPO_OPENSOURCE/$ZZIPLIB_PACKAGE" "$LOS_ROOT/$ZZIPLIB_PACKAGE"
+	#	check_status "downloading $URL_REPO_OPENSOURCE/$ZZIPLIB_PACKAGE"
+	#	tar xfj $LOS_ROOT/$ZZIPLIB_PACKAGE -C $LOS_ROOT
+	#	mkdir -p "$LOS_ROOT/build"
+	#	cd "$LOS_ROOT/build"
+	#	sh ../$ZZIPLIB_NAME/configure CFLAGS=-m32 LDFLAGS=-m32 --disable-mmap --disable-builddir --prefix=$EXT_DIR
+	#	check_status "configure $ZZIPLIB_NAME"
 		# only the lib is needed to provide
-		sed -i "s/^SUBDIRS = .*/SUBDIRS = zzip/" Makefile
-		mingw32-make
-		check_status "make $ZZIPLIB_NAME"
-		mingw32-make install
-		check_status "make install $ZZIPLIB_NAME"
-		cd $LOS_ROOT
+	#	sed -i "s/^SUBDIRS = .*/SUBDIRS = zzip/" Makefile
+	#	mingw32-make
+	#	check_status "make $ZZIPLIB_NAME"
+
+	#	mingw32-make install
+	#	check_status "make install $ZZIPLIB_NAME"
+	#	cd $LOS_ROOT
 
 		# zzip sources are no longer needed, cleaning up
-		rm -rf $LOS_ROOT/{build,$ZZIPLIB_NAME,$ZZIPLIB_PACKAGE}
-	fi
+	#	rm -rf $LOS_ROOT/{build,$ZZIPLIB_NAME,$ZZIPLIB_PACKAGE}
+	#fi
 fi
 
 cd $LOS_ROOT
