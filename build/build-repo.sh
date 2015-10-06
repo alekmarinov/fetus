@@ -54,4 +54,4 @@ BOOTSTRAP_LOCAL_DIR=$(root_dir)/bootstrap
 
 # copy los bootstrap files
 mkdir -p "$REPO_BOOTSTRAP_DIR"
-cp -vf "$BOOTSTRAP_LOCAL_DIR/"* "$REPO_BOOTSTRAP_DIR"
+cp -vrf "$BOOTSTRAP_LOCAL_DIR/"* "$REPO_BOOTSTRAP_DIR"
