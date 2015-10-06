@@ -183,6 +183,8 @@ LOS_ROOT=${LOS_ROOT:-"$DEFAULT_LOS_ROOT"}
 LUAROCKS_ROOT=${LUAROCKS_ROOT:-"$LOS_ROOT"}
 LUAROCKS_TREE_DIR=${LUAROCKS_TREE_DIR:-"$LUAROCKS_ROOT/tree"}
 LUAROCKS_VERSION="2.2.2"
+CMAKE_NAME=cmake-3.3.2-win32-x86
+CMAKE_PACKAGE="$CMAKE_NAME.zip"
 
 #ZLIB_NAME="zlib-1.2.8"
 #ZLIB_PACKAGE="zlib128.zip"
@@ -290,6 +292,21 @@ else
 	# patch cfg.lua getting rid of hardcoded path c:/external/
 	sed -i "s/\"c:\/external\/\"/\"$(echo $EXT_DIR | sed -e 's/\\\\/\\\//g')\"/" $LUAROCKS_ROOT/2.2/lua/luarocks/cfg.lua
 	EXT_DIR=$(echo $EXT_DIR | sed -e 's/\\\\/\//g')
+
+	# install cmake for windows
+	if [ -f $EXT_DIR/bin/cmake.exe ]; then
+		info "cmake is already installed in $EXT_DIR"
+	else
+		rm -rf $LOS_ROOT/{$CMAKE_PACKAGE,$CMAKE_NAME}
+		download_file "$URL_REPO_OPENSOURCE/$CMAKE_PACKAGE" "$LOS_ROOT/$CMAKE_PACKAGE"
+		check_status "downloading $URL_REPO_OPENSOURCE/$CMAKE_PACKAGE"
+		info "extracting cmake..."
+		unzip -q $LOS_ROOT/$CMAKE_PACKAGE -d $LOS_ROOT
+		info "installing cmake to $EXT_DIR..."
+		cp -rf --remove-destination $LOS_ROOT/$CMAKE_NAME/* $EXT_DIR
+		check_program cmake
+		rm -rf $LOS_ROOT/{$CMAKE_PACKAGE,$CMAKE_NAME}
+	fi
 
 	# build zlib for mingw32
 
