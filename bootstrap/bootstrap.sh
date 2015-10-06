@@ -114,7 +114,7 @@ OPTIONS
     --los-root=<directory>        the directory where to install los files, default
                                   $DEFAULT_LOS_ROOT
     --luarocks-root=<directory>   the directory where to install luarocks, default
-                                  $DEFAULT_LOS_ROOT
+                                  <los-root>
     --luarocks-tree=<directory>   luarocks tree directory, default
                                   $DEFAULT_LOS_ROOT/luarocks/tree
     -h|--help                     show this help text"
@@ -347,10 +347,18 @@ rm -rf $LOS_ROOT/$LUAROCKS_NAME
 # check luarocks config
 expect_file $LUAROCKS_CONFIG_LUA
 
+if [[ "$WINDIR" != "" ]]; then
+	LUAROCKS_BIN=$LUAROCKS_ROOT/2.2
+	LUAROCKS_LUA=$LUAROCKS_ROOT/2.2/lua
+else
+	LUAROCKS_BIN=$LUAROCKS_ROOT/bin
+	LUAROCKS_LUA=$LUAROCKS_ROOT/share/lua/5.1
+fi
+
 # configure luarocks repository
 info "set luarocks server to $URL_REPO_ROCKS"
 echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
 
-echo -e "luarocks installation finished.\nAdd the following vars to your environment:\nPATH=\$PATH:$LUAROCKS_ROOT/2.2\nLUA_PATH=$LUAROCKS_ROOT/lua/?.lua"
+echo -e "luarocks installation finished.\nAdd the following vars to your environment:\nPATH=\$PATH:$LUAROCKS_BIN\nLUA_PATH=$LUAROCKS_LUA/?.lua"
 
 echo "Bootstrap SUCCESS!"
