@@ -11,6 +11,7 @@ for %%F in ("%COMSPEC%") do set SYS32DIR=%%~dpF
 SET PATH=%MINGW_BIN%;%MSYS_BIN%;%GIT_BIN%;%SYS32DIR%
 
 if not exist %MSYS_BIN%\which.exe copy %~dp0w32\tools\which.exe %MSYS_BIN%
+if not exist %MSYS_BIN%\make.exe copy %~dp0w32\tools\make.exe %MSYS_BIN%
 if not exist %MSYS_BIN%\sh.exe mingw-get install sh
 if not exist %MSYS_BIN%\readlink.exe mingw-get install msys-coreutils
 if not exist %MSYS_BIN%\unzip.exe mingw-get install msys-unzip
