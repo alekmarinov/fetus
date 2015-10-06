@@ -114,7 +114,7 @@ OPTIONS
     --los-root=<directory>        the directory where to install los files, default
                                   $DEFAULT_LOS_ROOT
     --luarocks-root=<directory>   the directory where to install luarocks, default
-                                  $DEFAULT_LOS_ROOT/luarocks
+                                  $DEFAULT_LOS_ROOT
     --luarocks-tree=<directory>   luarocks tree directory, default
                                   $DEFAULT_LOS_ROOT/luarocks/tree
     -h|--help                     show this help text"
@@ -180,7 +180,7 @@ URL_REPO_OPENSOURCE=${URL_REPO_OPENSOURCE:-"$URL_REPO_BASE/opensource"}
 URL_REPO_ROCKS=${URL_REPO_ROCKS:-"$URL_REPO_BASE/rocks"}
 URL_REPO_BOOTSTRAP=${URL_REPO_BOOTSTRAP:-"$URL_REPO_BASE/bootstrap"}
 LOS_ROOT=${LOS_ROOT:-"$DEFAULT_LOS_ROOT"}
-LUAROCKS_ROOT=${LUAROCKS_ROOT:-"$LOS_ROOT/luarocks"}
+LUAROCKS_ROOT=${LUAROCKS_ROOT:-"$LOS_ROOT"}
 LUAROCKS_TREE_DIR=${LUAROCKS_TREE_DIR:-"$LUAROCKS_ROOT/tree"}
 LUAROCKS_VERSION="2.2.2"
 
