@@ -66,7 +66,12 @@ else
 	cp -f $BOOTSTRAP_SCRIPT $LOS_ROOT/bootstrap.sh
 fi
 
-sh $LOS_ROOT/bootstrap.sh "--los-root=$LOS_ROOT" "--repo-user=$LOS_REPO_USER" "--repo-pass=$LOS_REPO_PASS" "--luarocks-root=$LOS_ROOT/luarocks" $*
+EXTRA_OPTS=""
+if [[ "$WINDIR" != "" ]]; then
+	EXTRA_OPTS="--luarocks-root=$LOS_ROOT/luarocks"
+fi
+
+sh $LOS_ROOT/bootstrap.sh "--los-root=$LOS_ROOT" "--repo-user=$LOS_REPO_USER" "--repo-pass=$LOS_REPO_PASS" $EXTRA_OPTS $*
 if [[ $? == 0 ]]; then
 	# autorun lua rocks
 
