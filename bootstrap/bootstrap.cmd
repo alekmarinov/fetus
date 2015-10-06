@@ -18,6 +18,7 @@ if not exist %MSYS_BIN%\unzip.exe mingw-get install msys-unzip
 if not exist %MSYS_BIN%\tar.exe mingw-get install msys-tar
 if not exist %MSYS_BIN%\patch.exe mingw-get install msys-patch
 if not exist %MSYS_BIN%\wget.exe mingw-get install msys-wget
+if not exist %MSYS_BIN%\grep.exe mingw-get install msys-grep
 if not exist %MINGW_BIN%\lua.exe mingw-get install "lua<5.2"
 
 SET BOOTSTRAP_SCRIPT=bootstrap.sh

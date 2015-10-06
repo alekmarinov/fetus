@@ -92,6 +92,30 @@ download_file()
 	fi
 }
 
+# add directory to PATH
+pathmunge()
+{
+	if ! echo $PATH | grep -q "(^|:)$1($|:)" ; then
+		if [ "$2" = "after" ] ; then
+			PATH=$PATH:$1
+		else
+			PATH=$1:$PATH
+		fi
+	fi
+}
+
+# make windows path
+makewinpath()
+{
+	echo "$1" | sed -e 's|^/\([a-z]\)/|\1:/|' -e 's/\//\\/g'
+}
+
+# get windows path
+getwinpath()
+{
+	$COMSPEC path
+}
+
 ## entry point
 
 USAGE="
@@ -116,7 +140,7 @@ OPTIONS
     --luarocks-root=<directory>   the directory where to install luarocks, default
                                   <los-root>
     --luarocks-tree=<directory>   luarocks tree directory, default
-                                  $DEFAULT_LOS_ROOT/luarocks/tree
+                                  <luarocks-root>/tree
     -h|--help                     show this help text"
 
 ## parsing command line options
@@ -246,7 +270,7 @@ check_status "downloading $URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE"
 info "extract $LOS_ROOT/$LUAROCKS_PACKAGE"
 
 if [[ "$WINDIR" != "" ]]; then
-	unzip $LOS_ROOT/$LUAROCKS_PACKAGE -d $LOS_ROOT
+	unzip -q $LOS_ROOT/$LUAROCKS_PACKAGE -d $LOS_ROOT
 	check_status "unzip $LOS_ROOT/$LUAROCKS_PACKAGE"
 else
 	tar xfz $LOS_ROOT/$LUAROCKS_PACKAGE -C $LOS_ROOT
@@ -261,6 +285,9 @@ fi
 rm -f $LOS_ROOT/$LUAROCKS_PACKAGE
 
 cd $LOS_ROOT/$LUAROCKS_NAME
+
+# remove config.lua if already there to avoid luarocks complains
+rm -f $LUAROCKS_ROOT/config.lua
 
 # install luarocks
 if [[ "$WINDIR" == "" ]]; then
@@ -358,6 +385,8 @@ else
 	#fi
 fi
 
+echo -e "luarocks installation finished."
+
 cd $LOS_ROOT
 rm -rf $LOS_ROOT/$LUAROCKS_NAME
 
@@ -376,6 +405,23 @@ fi
 info "set luarocks server to $URL_REPO_ROCKS"
 echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
 
-echo -e "luarocks installation finished.\nAdd the following vars to your environment:\nPATH=\$PATH:$LUAROCKS_BIN\nLUA_PATH=$LUAROCKS_LUA/?.lua"
+if [[ "$WINDIR" != "" ]]; then
+	pathmunge $LUAROCKS_BIN
+	pathmunge $LUAROCKS_TREE_DIR/bin
+
+	IFS=:
+	for dir in $PATH; do
+		if [[ $dir != "/usr/bin" ]]; then
+			if [[ "$ makewinpath" != "" ]]; then
+				 makewinpath="$ makewinpath;"
+			fi
+			 makewinpath="$ makewinpath$( makewinpath "$dir")"
+		fi
+	done
+	echo "@ECHO OFF" > $LOS_ROOT/losvars.cmd
+	echo "set PATH=$ makewinpath" >> $LOS_ROOT/losvars.cmd
+	echo "set LUA_PATH=$( makewinpath "$LUAROCKS_LUA/?.lua")" >> $LOS_ROOT/losvars.cmd
+	info "Run $( makewinpath "$LOS_ROOT/losvars.cmd") to set your environment"
+fi
 
 echo "Bootstrap SUCCESS!"
