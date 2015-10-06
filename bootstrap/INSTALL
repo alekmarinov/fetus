@@ -11,6 +11,8 @@ http://tdm-gcc.tdragon.net/
 2. mingw-get-setup.exe
 http://sourceforge.net/projects/mingw/files/Installer/
 
+Set target directory to the one where tdm64-gcc is installed at the 1st step
+
 3. Git-2.6.0-32-bit.exe
 https://git-scm.com/download/win
 
