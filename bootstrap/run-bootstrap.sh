@@ -66,14 +66,19 @@ else
 	cp -f $BOOTSTRAP_SCRIPT $LOS_ROOT/bootstrap.sh
 fi
 
-sh $LOS_ROOT/bootstrap.sh "--los-root=$LOS_ROOT" "--repo-user=$LOS_REPO_USER" "--repo-pass=$LOS_REPO_PASS" $*
+sh $LOS_ROOT/bootstrap.sh "--los-root=$LOS_ROOT" "--repo-user=$LOS_REPO_USER" "--repo-pass=$LOS_REPO_PASS" "--luarocks-root=$LOS_ROOT/luarocks" $*
 if [[ $? == 0 ]]; then
 	# autorun lua rocks
-	LUAROCKS_DIR=$LOS_ROOT/luarocks/2.2
-	export PATH=$PATH:$LUAROCKS_DIR
-	export LUA_PATH=$LUAROCKS_DIR/lua/?.lua
 
-	lua $LUAROCKS_DIR/luarocks.lua install los
-	check_status "luarocks install failed."
-	chmod 0755 $LUAROCKS_DIR/rocks/bin/los
+	if [[ "$WINDIR" != "" ]]; then
+		LUAROCKS_DIR=$LOS_ROOT/luarocks/2.2
+		export PATH=$PATH:$LUAROCKS_DIR
+		export LUA_PATH=$LUAROCKS_DIR/lua/?.lua
+		lua $LUAROCKS_DIR/luarocks.lua install los
+	else
+		export PATH=$PATH:$LOS_ROOT/bin
+		export LUA_PATH=$LOS_ROOT/share/lua/5.1/?.lua
+		luarocks install los
+	fi
+	check_status "luarocks install los failed."
 fi
