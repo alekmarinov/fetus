@@ -128,7 +128,7 @@ function los.main(losdir, ...)
 
 	if opts["config-dump"] then
 		for _, key in ipairs(table.values(config.keys(_conf), true)) do
-			print(string.format("%20s= %s", key, config.get(_conf, key)))
+			print(string.format("%30s= %s", key, config.get(_conf, key)))
 		end
 		print()
 	end
