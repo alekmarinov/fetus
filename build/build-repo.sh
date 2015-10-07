@@ -65,5 +65,5 @@ BOOTSTRAP_LOCAL_DIR=$(root_dir)/bootstrap
 
 # copy los bootstrap files
 mkdir -p "$REPO_BOOTSTRAP_DIR"
-zip -r -q "$REPO_BOOTSTRAP_DIR/bootstrap-$(app_version $(root_dir)).zip" "$BOOTSTRAP_LOCAL_DIR/"*
+cd $BOOTSTRAP_LOCAL_DIR && zip -r -q "$REPO_BOOTSTRAP_DIR/bootstrap-$(app_version $(root_dir)).zip" *
 # cp -vrf "$BOOTSTRAP_LOCAL_DIR/"* "$REPO_BOOTSTRAP_DIR"
