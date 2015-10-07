@@ -24,14 +24,14 @@ end
 
 function build()
 	if readline then
-		readline:install()
+		-- readline:install()
 	end
 	prepare()
 
 	if conf["host.system"] == "mingw" then
 		local luasrcdir = api.makepath(path.src.dir, "src")
 
-		local ccflags = readline and " -DLUA_USE_READLINE" or ""
+		local ccflags = readline and " -DLUA_USE_READLINE -I"..path.install.inc or ""
 		local ldlibs = readline and " -L"..path.install.lib.." -lreadline -lhistory" or ""
 
 		-- compiles lua library and interpreter

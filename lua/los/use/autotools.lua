@@ -22,7 +22,25 @@ function autotools.make(target, ...)
 end
 
 function autotools.configure(...)
-	local cmd = "sh configure --prefix="..path.install.dir.." "..table.concat({...}, " ")
+	local args = {...}
+	local opts =
+	{
+		CFLAGS = "-I"..path.install.inc.." "..conf["gcc.cflags"],
+		LDFLAGS = "-L"..path.install.lib.." "..conf["gcc.ldflags"]
+	}
+	local extra = args[1]
+	if type(extra) == "table" then
+		for i, v in pairs(extra) do
+			if opts[i] then
+				opts[i] = " "..v
+			end
+		end
+	end
+	table.remove(args, 1)
+	for i, v in pairs(opts) do
+		table.insert(args, '"'..i.."="..v..'"')
+	end
+	local cmd = "sh configure --prefix="..path.install.dir.." "..table.concat(args, " ")
 	log.i(cmd)
 	return lfs.executein(path.src.dir, cmd)
 end

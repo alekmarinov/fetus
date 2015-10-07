@@ -9,17 +9,39 @@
 ##																##
 ##################################################################
 
-# default parameters
-DEFAULT_LOS_ROOT=$(dirname $(readlink -f $0))
+# make windows path
+makewinpath()
+{
+	echo "$1" | sed -e 's|^/\([a-z]\)/|\1:/|' -e 's/\//\\/g'
+}
 
-## utility functions
+makeunixpath()
+{
+	echo "/$1" | sed -e 's/\\/\//g' -e 's/://' -e 's/\/\//\//'
+}
+
+this_script=$(makeunixpath $0)
+
+makepath()
+{
+	if [[ "$WINDIR" != "" ]]; then
+		makewinpath $1
+	else
+		makeunixpath $1
+	fi
+}
+
+# get windows path
+getwinpath()
+{
+	$COMSPEC path
+}
 
 # return current base script name
 script_name()
 {
-	local name=$(readlink -f $0)
-	name=$(basename $name 2>/dev/null)
-	echo $name
+	local name=$(readlink -f $(makeunixpath $this_script))
+	echo $(basename $name 2>/dev/null)
 }
 
 # show message and exit with failure
@@ -104,25 +126,16 @@ pathmunge()
 	fi
 }
 
-# make windows path
-makewinpath()
-{
-	echo "$1" | sed -e 's|^/\([a-z]\)/|\1:/|' -e 's/\//\\/g'
-}
-
-# get windows path
-getwinpath()
-{
-	$COMSPEC path
-}
-
 ## entry point
+
+# default parameters
+DEFAULT_LOS_ROOT=$(makepath $(dirname $(readlink -f $(script_name))))
 
 USAGE="
 LOS bootstrap utility
 
 SYNOPSIS
-	$(basename "$0") [--repo-base=...] [--repo-opensource=...] [--repo-rocks=...] [--repo-bootstrap=...] [--los-root=...] [--luarocks-root=...] [--luarocks-rocks=...] [-h | --help]
+	$(basename "$(script_name)") [--repo-base=...] [--repo-opensource=...] [--repo-rocks=...] [--repo-bootstrap=...] [--los-root=...] [--luarocks-root=...] [--luarocks-rocks=...] [-h | --help]
 
 OPTIONS
     --repo-user=<username>        username to main los repository
@@ -194,6 +207,7 @@ for i in "$@"; do
 done
 
 ## configure variables
+
 if [ -z "$URL_REPO_BASE" ]; then
 	[ -z "$REPO_USER" ] && die "--repo-user parameter required for the main los repository"
 	[ -z "$REPO_PASS" ] && die "--repo-pass parameter required for the main los repository"
@@ -203,12 +217,22 @@ fi
 URL_REPO_OPENSOURCE=${URL_REPO_OPENSOURCE:-"$URL_REPO_BASE/opensource"}
 URL_REPO_ROCKS=${URL_REPO_ROCKS:-"$URL_REPO_BASE/rocks"}
 URL_REPO_BOOTSTRAP=${URL_REPO_BOOTSTRAP:-"$URL_REPO_BASE/bootstrap"}
-LOS_ROOT=${LOS_ROOT:-"$DEFAULT_LOS_ROOT"}
-LUAROCKS_ROOT=${LUAROCKS_ROOT:-"$LOS_ROOT"}
-LUAROCKS_TREE_DIR=${LUAROCKS_TREE_DIR:-"$LUAROCKS_ROOT/tree"}
+LOS_ROOT=$(makepath ${LOS_ROOT:-"$DEFAULT_LOS_ROOT"})
+LUAROCKS_ROOT=$(makepath ${LUAROCKS_ROOT:-"$LOS_ROOT"})
+LUAROCKS_TREE_DIR=$(makepath ${LUAROCKS_TREE_DIR:-"$LUAROCKS_ROOT/tree"})
 LUAROCKS_VERSION="2.2.2"
 CMAKE_NAME=cmake-3.3.2-win32-x86
 CMAKE_PACKAGE="$CMAKE_NAME.zip"
+
+echo "URL_REPO_OPENSOURCE=$URL_REPO_OPENSOURCE"
+echo "URL_REPO_ROCKS=$URL_REPO_ROCKS"
+echo "URL_REPO_BOOTSTRAP=$URL_REPO_BOOTSTRAP"
+echo "LOS_ROOT=$LOS_ROOT"
+echo "LUAROCKS_ROOT=$LUAROCKS_ROOT"
+echo "LUAROCKS_TREE_DIR=$LUAROCKS_TREE_DIR"
+echo "LUAROCKS_VERSION=$LUAROCKS_VERSION"
+echo "CMAKE_NAME=$CMAKE_NAME"
+echo "CMAKE_PACKAGE=$CMAKE_PACKAGE"
 
 #ZLIB_NAME="zlib-1.2.8"
 #ZLIB_PACKAGE="zlib128.zip"
@@ -330,7 +354,7 @@ else
 		info "extracting cmake..."
 		unzip -q $LOS_ROOT/$CMAKE_PACKAGE -d $LOS_ROOT
 		info "installing cmake to $EXT_DIR..."
-		cp -rf --remove-destination $LOS_ROOT/$CMAKE_NAME/* $EXT_DIR
+		cp -rf --remove-destination $(makeunixpath $LOS_ROOT/$CMAKE_NAME/*) $EXT_DIR
 		check_program cmake
 		rm -rf $LOS_ROOT/{$CMAKE_PACKAGE,$CMAKE_NAME}
 	fi
@@ -404,24 +428,30 @@ fi
 # configure luarocks repository
 info "set luarocks server to $URL_REPO_ROCKS"
 echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
+check_status "Editing $LUAROCKS_CONFIG_LUA"
 
 if [[ "$WINDIR" != "" ]]; then
-	pathmunge $LUAROCKS_BIN
-	pathmunge $LUAROCKS_TREE_DIR/bin
+	pathmunge $(makeunixpath $LUAROCKS_BIN)
+	pathmunge $(makeunixpath $LUAROCKS_TREE_DIR/bin)
 
+	echo "making exported PATH...: $PATH"
 	IFS=:
 	for dir in $PATH; do
-		if [[ $dir != "/usr/bin" ]]; then
-			if [[ "$ makewinpath" != "" ]]; then
-				 makewinpath="$ makewinpath;"
-			fi
-			 makewinpath="$ makewinpath$( makewinpath "$dir")"
+		echo $dir
+
+		if [[ $dir == "/usr/bin" ]]; then
+			dir="$EXT_DIR/msys/1.0/bin"
 		fi
+		if [[ "$winpath" != "" ]]; then
+			 winpath="$winpath;"
+		fi
+		 winpath="$winpath$(makewinpath "$dir")"
 	done
+	echo "exported PATH done!"
 	echo "@ECHO OFF" > $LOS_ROOT/losvars.cmd
-	echo "set PATH=$ makewinpath" >> $LOS_ROOT/losvars.cmd
-	echo "set LUA_PATH=$( makewinpath "$LUAROCKS_LUA/?.lua")" >> $LOS_ROOT/losvars.cmd
-	info "Run $( makewinpath "$LOS_ROOT/losvars.cmd") to set your environment"
+	echo "set PATH=$winpath" >> $LOS_ROOT/losvars.cmd
+	echo "set LUA_PATH=$(makewinpath "$LUAROCKS_LUA/?.lua")" >> $LOS_ROOT/losvars.cmd
+	info "Run $(makewinpath "$LOS_ROOT/losvars.cmd") to set your environment"
 fi
 
 echo "Bootstrap SUCCESS!"

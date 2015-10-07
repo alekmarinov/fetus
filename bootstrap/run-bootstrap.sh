@@ -10,6 +10,7 @@
 ##################################################################
 #set -x
 ## configure variables
+HOME=${HOME:-$USERPROFILE}
 [ -z "$LOS_ROOT" ] && LOS_ROOT="$HOME/los"
 [ -z "$LOS_REPO_USER" ] && LOS_REPO_USER=alek
 [ -z "$LOS_REPO_PASS" ] && LOS_REPO_PASS=aviqa2
