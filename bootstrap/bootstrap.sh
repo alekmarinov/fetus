@@ -437,8 +437,6 @@ if [[ "$WINDIR" != "" ]]; then
 	echo "making exported PATH...: $PATH"
 	IFS=:
 	for dir in $PATH; do
-		echo $dir
-
 		if [[ $dir == "/usr/bin" ]]; then
 			dir="$EXT_DIR/msys/1.0/bin"
 		fi
