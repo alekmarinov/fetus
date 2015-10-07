@@ -44,6 +44,17 @@ usage()
 	exit 1
 }
 
+# returns application version description
+# param 1: application git repository
+app_version()
+{
+	local git_repo=$1
+	local git_ver=$(cd $git_repo && git describe --match "[0-9]*")
+	local normal_ver=${git_ver/\-/.}
+	local app_ver=${normal_ver/%-*/}
+	echo $app_ver
+}
+
 # process script arguments
 REPO_BOOTSTRAP_DIR=$1
 [[ -z $REPO_BOOTSTRAP_DIR ]] && usage "<repo_bootstrap_dir>"
@@ -54,4 +65,5 @@ BOOTSTRAP_LOCAL_DIR=$(root_dir)/bootstrap
 
 # copy los bootstrap files
 mkdir -p "$REPO_BOOTSTRAP_DIR"
-cp -vrf "$BOOTSTRAP_LOCAL_DIR/"* "$REPO_BOOTSTRAP_DIR"
+zip -r -q "$REPO_BOOTSTRAP_DIR/bootstrap-$(app_version $(root_dir)).zip" "$BOOTSTRAP_LOCAL_DIR/"*
+# cp -vrf "$BOOTSTRAP_LOCAL_DIR/"* "$REPO_BOOTSTRAP_DIR"
