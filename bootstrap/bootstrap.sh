@@ -12,7 +12,7 @@
 # make windows path
 makewinpath()
 {
-	echo "$1" | sed -e 's|^/\([a-z]\)/|\1:/|' -e 's/\//\\/g'
+	echo "$1" | sed -e 's|^/\([a-zA-Z]\)/|\1:/|' -e 's/\//\\/g'
 }
 
 makeunixpath()
