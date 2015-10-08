@@ -251,7 +251,6 @@ if [[ "$WINDIR" != "" ]]; then
 else
 	LUAROCKS_NAME="luarocks-$LUAROCKS_VERSION"
 	LUAROCKS_PACKAGE="$LUAROCKS_NAME.tar.gz"
-	LUAROCKS_CONFIGURE_DIFF="$LUAROCKS_NAME-configure.diff"
 fi
 
 if [[ "$WINDIR" != "" ]]; then
@@ -302,10 +301,13 @@ else
 	check_status "tar xfz $LOS_ROOT/$LUAROCKS_PACKAGE"
 
 	# fix luarocks configure issue in case LUA_DIR is found in / which makes invaild paths like $LUA_DIR/include -> //include
+	echo "317a318,320"                                   > "$LOS_ROOT/$LUAROCKS_NAME/configure.diff"
+	echo ">       if [[ \"$LUA_DIR\" == \"/\" ]]; then" >> "$LOS_ROOT/$LUAROCKS_NAME/configure.diff"
+	echo ">          LUA_DIR=\"\""                      >> "$LOS_ROOT/$LUAROCKS_NAME/configure.diff"
+	echo ">       fi"                                   >> "$LOS_ROOT/$LUAROCKS_NAME/configure.diff"
+
 	info "patching $LOS_ROOT/$LUAROCKS_NAME/configure"
-	download_file "$URL_REPO_BOOTSTRAP/linux/$LUAROCKS_CONFIGURE_DIFF" "$LOS_ROOT/$LUAROCKS_NAME/$LUAROCKS_CONFIGURE_DIFF"
-	check_status "downloading $URL_REPO_BOOTSTRAP/linux/$LUAROCKS_CONFIGURE_DIFF"
-	patch $LOS_ROOT/$LUAROCKS_NAME/configure $LOS_ROOT/$LUAROCKS_NAME/$LUAROCKS_CONFIGURE_DIFF
+	patch $LOS_ROOT/$LUAROCKS_NAME/configure $LOS_ROOT/$LUAROCKS_NAME/configure.diff
 fi
 rm -f $LOS_ROOT/$LUAROCKS_PACKAGE
 

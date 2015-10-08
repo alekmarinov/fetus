@@ -1,4 +1,0 @@
-317a318,320
->       if [[ "$LUA_DIR" == "/" ]]; then
->          LUA_DIR=""
->       fi
