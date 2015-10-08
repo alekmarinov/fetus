@@ -117,6 +117,17 @@ function los.main(losdir, ...)
 		exiterror(err)
 	end
 
+	-- search for los-local.conf in etc/ or any parent, ../etc, ../../etc and so on
+	local parentdir = losdir
+	while string.len(parentdir) > 0 do
+		local localconf = lfs.concatfilenames(parentdir, "etc/los-local.conf")
+		if lfs.isfile(localconf) then
+			_log:debug("Load local config from "..localconf)
+			config.load(localconf, _conf)
+		end
+		parentdir = lfs.dirname(parentdir)
+	end
+
 	-- set lospec directory relative to los root
 	config.set(_conf, "dir.lospec", lfs.concatfilenames(losdir, "lospec"))
 
