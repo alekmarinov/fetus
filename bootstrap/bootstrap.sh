@@ -224,6 +224,8 @@ LUAROCKS_TREE_DIR=$(makepath ${LUAROCKS_TREE_DIR:-"$LUAROCKS_ROOT/tree"})
 LUAROCKS_VERSION="2.2.2"
 CMAKE_NAME=cmake-3.3.2-win32-x86
 CMAKE_PACKAGE="$CMAKE_NAME.zip"
+LUA_EX_API_NAME="lua-ex-api-0.1"
+LUA_EX_API_PACKAGE="$LUA_EX_API_NAME.zip"
 
 echo "URL_REPO_OPENSOURCE=$URL_REPO_OPENSOURCE"
 echo "URL_REPO_ROCKS=$URL_REPO_ROCKS"
@@ -234,6 +236,8 @@ echo "LUAROCKS_TREE_DIR=$LUAROCKS_TREE_DIR"
 echo "LUAROCKS_VERSION=$LUAROCKS_VERSION"
 echo "CMAKE_NAME=$CMAKE_NAME"
 echo "CMAKE_PACKAGE=$CMAKE_PACKAGE"
+echo "LUA_EX_API_NAME=$LUA_EX_API_NAME"
+echo "LUA_EX_API_PACKAGE=$LUA_EX_API_PACKAGE"
 
 #ZLIB_NAME="zlib-1.2.8"
 #ZLIB_PACKAGE="zlib128.zip"
@@ -349,14 +353,14 @@ else
 
 	# install cmake for windows
 	if [ -f $EXT_DIR/bin/cmake.exe ]; then
-		info "cmake is already installed in $EXT_DIR"
+		info "$CMAKE_NAME is already installed in $EXT_DIR"
 	else
 		rm -rf $LOS_ROOT/{$CMAKE_PACKAGE,$CMAKE_NAME}
 		download_file "$URL_REPO_OPENSOURCE/$CMAKE_PACKAGE" "$LOS_ROOT/$CMAKE_PACKAGE"
 		check_status "downloading $URL_REPO_OPENSOURCE/$CMAKE_PACKAGE"
-		info "extracting cmake..."
+		info "extracting $CMAKE_NAME..."
 		unzip -q $LOS_ROOT/$CMAKE_PACKAGE -d $LOS_ROOT
-		info "installing cmake to $EXT_DIR..."
+		info "installing $CMAKE_NAME to $EXT_DIR..."
 		cp -rf --remove-destination $(makeunixpath $LOS_ROOT/$CMAKE_NAME/*) $EXT_DIR
 		check_program cmake
 		rm -rf $LOS_ROOT/{$CMAKE_PACKAGE,$CMAKE_NAME}
@@ -412,8 +416,6 @@ else
 	#fi
 fi
 
-echo -e "luarocks installation finished."
-
 cd $LOS_ROOT
 rm -rf $LOS_ROOT/$LUAROCKS_NAME
 
@@ -432,6 +434,35 @@ fi
 info "set luarocks server to $URL_REPO_ROCKS"
 echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
 check_status "Editing $LUAROCKS_CONFIG_LUA"
+
+echo -e "luarocks installation finished."
+
+# installing lua-ex-api
+
+rm -rf $LOS_ROOT/{$LUA_EX_API_PACKAGE,$LUA_EX_API_NAME}
+download_file "$URL_REPO_OPENSOURCE/$LUA_EX_API_PACKAGE" "$LOS_ROOT/$LUA_EX_API_PACKAGE"
+check_status "downloading $URL_REPO_OPENSOURCE/$LUA_EX_API_PACKAGE"
+info "extracting $LUA_EX_API_NAME..."
+unzip -q $LOS_ROOT/$LUA_EX_API_PACKAGE -d $LOS_ROOT
+
+echo "LUA=$LUAROCKS_TREE_DIR" > $LOS_ROOT/$LUA_EX_API_NAME/conf
+echo "LUAINC=" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
+echo "LUALIB=-llua" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
+echo "POSIX_SPAWN=-DMISSING_POSIX_SPAWN" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
+echo "EXTRA=posix_spawn.o" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
+cd $LOS_ROOT/$LUA_EX_API_NAME
+if [[ "$WINDIR" != "" ]]; then
+	sed -i "s/TARGET_ARCH=.*/TARGET_ARCH=-m32/g" $LOS_ROOT/$LUA_EX_API_NAME/w32api/Makefile
+	CC=gcc make mingw
+	[ -f $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll ] || die "Failed compiling ex.dll"
+	cp $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll $LUAROCKS_TREE_DIR/lib/lua/5.1
+else
+	CC=gcc make linux
+	[ -f $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so ] || die "Failed compiling ex.so"
+	cp $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so $LUAROCKS_TREE_DIR/lib/lua/5.1
+fi
+cd $LOS_ROOT
+rm -rf $LOS_ROOT/{$LUA_EX_API_PACKAGE,$LUA_EX_API_NAME}
 
 # create los-local.conf
 mkdir -p "$(dirname $LOCAL_CONF)"
