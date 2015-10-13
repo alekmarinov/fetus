@@ -16,8 +16,6 @@ local version = require "los.lospec.version"
 local _G, assert, type, string, pairs =
       _G, assert, type, string, pairs
 
-local print = print
-
 module "los.lospec.package"
 
 local function confsubst(t)

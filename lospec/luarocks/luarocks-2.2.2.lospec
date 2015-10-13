@@ -10,11 +10,16 @@ package = {
 }
 
 function prepare()
+	lua:install()
 	api.download()
 	api.unarch()
 end
 
 function install()
 	prepare()
-	lfs.executein(path.src.dir, path.install.bin.."/lua", "install.bat", "/NOADMIN", "/LUA", path.install.dir)
+	if conf["host.system"] == "mingw" then
+		lfs.executein(path.src.dir, path.install.bin.."/lua", "install.bat", "/NOADMIN", "/LUA", path.install.dir)
+	else
+		error(conf["host.system"].." is not configured yet")
+	end
 end

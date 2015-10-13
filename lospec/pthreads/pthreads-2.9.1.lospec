@@ -32,14 +32,25 @@ function build()
 	end
 end
 
+function isinstalled()
+	return api.isinstalled{
+		h = "pthread.h",
+		static = {"pthreadGC2"},
+		dynamic = "pthreadGC2"
+	}
+end
+
 function install()
-	build()
-	if conf["host.system"] == "mingw" then
-		api.copy(api.makepath(path.src.dir, "pthreadGC2.dll"), path.install.bin)
-		api.copy(api.makepath(path.src.dir, "libpthreadGC2.a"), path.install.lib)
-		api.copy(api.makepath(path.src.dir, "libpthreadGC2.dll.a"), path.install.lib)
-		for _, hfile in ipairs{"pthread.h", "sched.h", "semaphore.h"} do
-			api.copy(api.makepath(path.src.dir, hfile), path.install.inc)
+	if not isinstalled() then
+		build()
+		if conf["host.system"] == "mingw" then
+			api.copy(api.makepath(path.src.dir, "pthreadGC2.dll"), path.install.bin)
+			api.copy(api.makepath(path.src.dir, "libpthreadGC2.a"), path.install.lib)
+			api.copy(api.makepath(path.src.dir, "libpthreadGC2.dll.a"), path.install.lib)
+			for _, hfile in ipairs{"pthread.h", "sched.h", "semaphore.h"} do
+				api.copy(api.makepath(path.src.dir, hfile), path.install.inc)
+			end
 		end
+		assert(isinstalled(), "something wrong after pthread install")
 	end
 end

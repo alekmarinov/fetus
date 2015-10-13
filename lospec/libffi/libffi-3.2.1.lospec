@@ -17,14 +17,23 @@ function build()
 	autotools.make()
 end
 
-function install()
-	build()
-	autotools.make("install")
+function isinstalled()
+	if conf["target.system"] == "mingw" then
+		local libdir = path.install.lib
+		if conf["target.arch"] == 32 then
+			libdir = api.makepath(path.install.dir, "lib32")
+		end
+		return api.isinstalled{
+			dynamic = "libffi-6.dll",
+			static = { api.makepath(libdir, "libffi.a"), api.makepath(libdir, "libffi.dll.a") }
+		}
+	end
+end
 
-	if conf["host.system"] == "mingw" then
-		-- header files are installed to wrong location
-		local srcincdir = api.makepath(path.install.lib, "libffi-"..package.version.string)
-		api.copy(api.makepath(srcincdir, "include").."/", path.install.inc)
-		lfs.delete(srcincdir)
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after libffi install")
 	end
 end

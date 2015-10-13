@@ -19,7 +19,18 @@ function build()
 	autotools.make()
 end
 
+function isinstalled()
+	return api.isinstalled {
+		h = {"readline/readline.h", "readline/history.h"},
+		dynamic = "libreadline6",
+		static = "readline"
+	}
+end
+
 function install()
-	build()
-	autotools.make("install", "\"INSTALL=install -c\"")
+	if not isinstalled() then
+		build()
+		autotools.make("install", "\"INSTALL=install -c\"")
+		assert(isinstalled(), "something wrong after readline install")
+	end
 end

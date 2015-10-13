@@ -5,7 +5,7 @@ package = {
 	archdir = "zlib-1.2.8"
 }
 
-use "cmake"
+use "autotools"
 
 function prepare()
 	api.download()
@@ -14,10 +14,38 @@ end
 
 function build()
 	prepare()
-	cmake.build()
+	api.copy(api.makepath(path.src.dir, "contrib/asm686/match.S"), path.src.dir)
+	if conf["host.system"] == "mingw" then
+		if conf["target.arch"] == 32 then
+			api.executein(path.src.dir, conf["host.make"], nil, "all", "RCFLAGS=--define GCC_WINDRES --target=pe-i386", "ASFLAGS=-m32", "CFLAGS=-m32", "LDFLAGS=-m32", "LOC=-DASMV", "OBJA=match.o", "-fwin32/Makefile.gcc")
+		else
+			api.executein(path.src.dir, conf["host.make"], nil, "all", "RCFLAGS=--define GCC_WINDRES", "LOC=-DASMV", "OBJA=match.o", "-fwin32/Makefile.gcc")
+		end
+	else
+		autotools.configure()
+		autotools.make()
+	end
+end
+
+function isinstalled()
+	local files = {
+		h = "zlib.h",
+		static = {"z"}
+	}
+	if conf["target.system"] == "mingw" then
+		files.static = {"z.dll"}
+		files.dynamic = "zlib1.dll"
+	end
+	return api.isinstalled(files)
 end
 
 function install()
-	build()
-	cmake.install()
+	if not isinstalled() then
+		build()
+		if conf["host.system"] == "mingw" then
+			api.executein(path.src.dir, conf["host.make"], nil, "install", "BINARY_PATH="..path.install.bin, "LIBRARY_PATH="..path.install.lib, "INCLUDE_PATH="..path.install.inc, "SHARED_MODE=1", "-fwin32/Makefile.gcc")
+		else
+			autotools.make("install")
+		end
+	end
 end

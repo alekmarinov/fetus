@@ -24,7 +24,7 @@ end
 
 function build()
 	if readline then
-		-- readline:install()
+		readline:install()
 	end
 	prepare()
 
@@ -52,14 +52,25 @@ function build()
 	end
 end
 
-function install()
-	build()
-	make(path.src.dir,
-		"install",
-		"INSTALL_TOP="..path.install.dir)
+function isinstalled()
+	return api.isinstalled {
+		h = "lua.h",
+		dynamic = "lua51",
+		static = "lua"
+	}
+end
 
-	if conf["host.system"] == "mingw" then
-		api.copy(api.makepath(path.src.dir, "src/lua51.dll"), path.install.bin)
-		api.copy(api.makepath(path.src.dir, "src/lua51.dll.a"), path.install.lib)
+function install()
+	if not isinstalled() then
+		build()
+		make(path.src.dir,
+			"install",
+			"INSTALL_TOP="..path.install.dir)
+
+		if conf["host.system"] == "mingw" then
+			api.copy(api.makepath(path.src.dir, "src/lua51.dll"), path.install.bin)
+			api.copy(api.makepath(path.src.dir, "src/lua51.dll.a"), path.install.lib)
+		end
+		assert(isinstalled(), "something wrong after lua install")
 	end
 end

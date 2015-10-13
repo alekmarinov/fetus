@@ -1,5 +1,3 @@
-ptreads = assert(requires("pthreads == 2.9.1"))
-
 package = {
 	name = "sdl",
 	version = "1.2.15",
@@ -19,7 +17,22 @@ function build()
 	autotools.make()
 end
 
+function isinstalled()
+	local files = {
+		h = "SDL/SDL.h",
+		dynamic = "SDL",
+		static = {"SDL"}
+	}
+	if conf["target.system"] == "mingw" then
+		table.insert(files.static, "SDL.dll")
+	end
+	return api.isinstalled(files)
+end
+
 function install()
-	build()
-	autotools.make("install")
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something is wrong after sdl install")
+	end
 end

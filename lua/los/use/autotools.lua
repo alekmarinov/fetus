@@ -12,13 +12,18 @@
 
 local autotools = {}
 
-function autotools.make(target, ...)
-	local cmd = conf["host.make"].." "..table.concat({...}, " ")
-	if target then
-		cmd = cmd.." "..target
+function autotools.envmake(target, env, ...)
+	if env then
+		local penv = os.environ()
+		for n, v in pairs(penv) do
+			env[n] = v
+		end
 	end
-	log.i(cmd)
-	return lfs.executein(path.src.dir, cmd)
+	return api.executein(path.src.dir, conf["host.make"], env, target, ...)
+end
+
+function autotools.make(target, ...)
+	return autotools.envmake(target, nil, ...)
 end
 
 function autotools.configure(...)
@@ -26,23 +31,29 @@ function autotools.configure(...)
 	local opts =
 	{
 		CFLAGS = "-I"..path.install.inc.." "..conf["gcc.cflags"],
+		CXXFLAGS = "-I"..path.install.inc.." "..conf["gcc.ccflags"],
 		LDFLAGS = "-L"..path.install.lib.." "..conf["gcc.ldflags"]
 	}
 	local extra = args[1]
 	if type(extra) == "table" then
 		for i, v in pairs(extra) do
 			if opts[i] then
-				opts[i] = " "..v
+				opts[i] = opts[i].." "..v
+			else
+				opts[i] = v
 			end
 		end
+		table.remove(args, 1)
 	end
-	table.remove(args, 1)
 	for i, v in pairs(opts) do
-		table.insert(args, '"'..i.."="..v..'"')
+		table.insert(args, i.."="..v)
 	end
-	local cmd = "sh configure --prefix="..path.install.dir.." "..table.concat(args, " ")
-	log.i(cmd)
-	return lfs.executein(path.src.dir, cmd)
+	local env
+	if type(args[1]) == "table" then
+		env = args[1]
+		table.remove(args, 1)
+	end
+	return api.executein(path.src.dir, "sh", env, "configure", "--prefix="..path.install.dir, unpack(args))
 end
 
 local installdirs = {"bin", "lib", "include", "man/man1"}

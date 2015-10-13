@@ -271,6 +271,7 @@ function matchconstraints(version, constraints)
       end
       local constr_version, constr_op = constr.version, constr.op
       setmetatable(constr_version, version_mt)
+
       if     constr_op == "==" then ok = version == constr_version
       elseif constr_op == "~=" then ok = version ~= constr_version
       elseif constr_op == ">"  then ok = version >  constr_version
@@ -287,7 +288,7 @@ end
 --- Extracts version from lospec file name
 -- @param lospecfile string: Filename of lospec file
 function parsefromlospecfile(lospecfile)
-   local vstring = string.match(lospecfile, "[^%-]*%-(.-)%.lospec")
+   local vstring = string.match(lospecfile, ".*%-(.-)%.lospec")
    return parse(vstring)
 end
 

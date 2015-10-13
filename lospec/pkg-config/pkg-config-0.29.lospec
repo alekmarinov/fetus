@@ -9,6 +9,7 @@ package = {
 use "autotools"
 
 function prepare()
+	glib:install()
 	api.download()
 	api.unarch()
 end
@@ -17,14 +18,26 @@ function build()
 	prepare()
 
 	if conf["host.system"] == "mingw" then
-		autotools.configure("\"GLIB_CFLAGS=-I"..api.makepath(path.install.inc, "glib-2.0").." -I"..api.makepath(path.install.lib, "glib-2.0/include").."\"", "\"GLIB_LIBS=-L"..path.install.lib.." -lglib-2.0\"")
+		autotools.configure{
+			GLIB_CFLAGS="-I"..api.makepath(path.install.inc, "glib-2.0").." -I"..api.makepath(path.install.lib, "glib-2.0/include"),
+			GLIB_LIBS="-L"..path.install.lib.." -lglib-2.0"
+		}
 	else
 		autotools.configure()
 	end
 	autotools.make()
 end
 
+function isinstalled()
+	return api.isinstalled{
+		exec = "pkg-config"
+	}
+end
+
 function install()
-	build()
-	autotools.make("install")
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after pkg-config install")
+	end
 end

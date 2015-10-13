@@ -9,7 +9,7 @@ package = {
 use "autotools"
 
 function prepare()
-	-- zlib:install()
+	zlib:install()
 	api.download()
 	api.unarch()
 end
@@ -18,21 +18,24 @@ function build()
 	prepare()
 	autotools.configure()
 	autotools.make()
+end
 
-	if conf["host.system"] == "mingw" then
-		-- FIXME: dll is not built
-		-- local filedef = api.makepath(path.src.dir, "ftexport.def")
-		-- api.catfile(filedef, "EXPORTS\n")
-		-- api.appendfile(filedef, api.readfile(api.makepath(path.src.dir, "objs/ftexport.sym")))
-		-- lfs.executein(path.src.dir, "dlltool", "-d", "ftexport.def", "-l", "libfreetype.dll.a")
+function isinstalled()
+	local files = {
+		h = "freetype2/freetype/freetype.h",
+		static = {"freetype"}
+	}
+	if conf["target.system"] == "mingw" then
+		table.insert(files.static, "freetype.dll")
+		files.dynamic = "libfreetype-6.dll"
 	end
+	return api.isinstalled(files)
 end
 
 function install()
-	build()
-	autotools.make("install")
-	if conf["host.system"] == "mingw" then
-		-- FIXME: dll is not built
-		-- api.copy(api.makepath(path.src.dir, "libfreetype.dll.a"), path.install.lib)
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after freetype install")
 	end
 end

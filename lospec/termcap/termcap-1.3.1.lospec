@@ -13,11 +13,22 @@ end
 
 function build()
 	prepare()
-	autotools.configure()
+	api.executein(path.src.dir, "sh", nil, "configure", "--prefix="..path.install.dir)
 	autotools.make()
 end
 
+
+function isinstalled()
+	return api.isinstalled{
+		h = "termcap.h",
+		static = "termcap"
+	}
+end
+
 function install()
-	build()
-	autotools.make("install")
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after termcap install")
+	end
 end

@@ -451,6 +451,7 @@ echo "LUALIB=-llua" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
 echo "POSIX_SPAWN=-DMISSING_POSIX_SPAWN" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
 echo "EXTRA=posix_spawn.o" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
 cd $LOS_ROOT/$LUA_EX_API_NAME
+mkdir -p "$LUAROCKS_TREE_DIR/lib/lua/5.1"
 if [[ "$WINDIR" != "" ]]; then
 	sed -i "s/TARGET_ARCH=.*/TARGET_ARCH=-m32/g" $LOS_ROOT/$LUA_EX_API_NAME/w32api/Makefile
 	CC=gcc make mingw

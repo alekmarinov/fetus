@@ -13,15 +13,40 @@ end
 
 function build()
 	prepare()
-	autotools.configure()
+
+	-- the default compiler option -Oz is not working
+	autotools.configure{CFLAGS="-O2"}
+	if conf["host.system"] == "mingw" then
+		-- error building executables for mingw, skipping
+		api.catfile(api.makepath(path.src.dir, "src/Makefile"), "all install:")
+
+		if conf["target.arch"] == 32 then
+			-- add windres option for 32-bit arch
+			api.catfile(api.makepath(path.src.dir, "windows/windres-options", "echo \"--target=pe-i386\""), "a")
+		end
+	end
 	autotools.make()
 end
 
+function isinstalled()
+	local files = {
+		h = "iconv.h"
+	}
+	if conf["target.system"] == "mingw" then
+		files.static = "iconv.dll"
+		files.dynamic = "libiconv-2.dll"
+	end
+	return api.isinstalled(files)
+end
+
 function install()
-	build()
-	autotools.make("install")
-	if conf["host.system"] == "mingw" then
-		-- iconf.h is not installed under mingw
-		api.copy(api.makepath(path.src.dir, "include/iconv.h"), path.install.inc)
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		if conf["host.system"] == "mingw" then
+			-- iconf.h is not installed under mingw
+			api.copy(api.makepath(path.src.dir, "include/iconv.h"), path.install.inc)
+		end
+		assert(isinstalled(), "something wrong after libiconv install")
 	end
 end

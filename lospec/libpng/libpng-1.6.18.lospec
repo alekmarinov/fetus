@@ -9,6 +9,7 @@ package = {
 use "cmake"
 
 function prepare()
+	zlib.install()
 	api.download()
 	api.unarch()
 end
@@ -18,7 +19,22 @@ function build()
 	cmake.build()
 end
 
+function isinstalled()
+	local files = {
+		h = "libpng16/png.h",
+		static = {"png16"}
+	}
+	if conf["target.system"] == "mingw" then
+		table.insert(files.static, "png16.dll")
+		files.dynamic = "libpng16.dll"
+	end
+	return api.isinstalled(files)
+end
+
 function install()
-	build()
-	cmake.install()
+	if not isinstalled() then
+		build()
+		cmake.install()
+		assert(isinstalled(), "something wrong after libpng install")
+	end
 end

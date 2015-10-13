@@ -1,7 +1,7 @@
 png = assert(requires("libpng == 1.6.18"))
-ptreads = assert(requires("pthreads == 2.9.1"))
 pixman = assert(requires("pixman == 0.32.8"))
 freetype = assert(requires("freetype == 2.4.10"))
+pkgconfig = assert(requires("pkg-config == 0.29"))
 
 package = {
 	name     = "cairo",
@@ -12,10 +12,10 @@ package = {
 use "autotools"
 
 function prepare()
-	-- png:install()
-	-- ptreads:install()
-	-- pixman:install()
-	-- freetype:install()
+	png:install()
+	pixman:install()
+	freetype:install()
+	pkgconfig:install()
 	api.download()
 	api.unarch()
 end
@@ -31,7 +31,22 @@ function build()
 	autotools.make()
 end
 
+function isinstalled()
+	local files = {
+		h = "cairo/cairo.h",
+		static = {"cairo"}
+	}
+	if conf["target.system"] == "mingw" then
+		files.dynamic = {"libcairo-2", "libcairo-gobject-2"}
+		table.insert(files.static, "cairo.dll")
+	end
+	return api.isinstalled(files)
+end
+
 function install()
-	build()
-	autotools.make("install")
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after cairo install")
+	end
 end

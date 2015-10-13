@@ -17,7 +17,22 @@ function build()
 	autotools.make()
 end
 
+function isinstalled()
+	local files = {
+		h = "pixman-1/pixman.h",
+		static = {"pixman-1"}
+	}
+	if conf["target.system"] == "mingw" then
+		table.insert(files.static, "pixman-1.dll")
+		files.dynamic = "libpixman-1-0.dll"
+	end
+	return api.isinstalled(files)
+end
+
 function install()
-	build()
-	autotools.make("install")
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after pixman install")
+	end
 end

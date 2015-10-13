@@ -1,4 +1,3 @@
-pthreads = assert(requires("pthreads == 2.9.1"))
 iconv = assert(requires("libiconv == 1.14"))
 
 package = {
@@ -10,8 +9,7 @@ package = {
 use "autotools"
 
 function prepare()
-	-- pthreads:install()
-	-- iconv:install()
+	iconv:install()
 	api.download()
 	api.unarch()
 end
@@ -21,14 +19,44 @@ function build()
 
 	if conf["host.system"] == "mingw" then
 		-- solves unresolved pthread functions
-		autotools.configure("\"LDFLAGS=-L"..path.install.lib.." -lpthread\"")
+		autotools.configure{["--enable-threads"]="windows", LDFLAGS="-liconv", CFLAGS="-O2", CXXFLAGS="-O2"}
+
+		if conf["target.arch"] == 32 then
+			-- add windres option for 32-bit arch
+			assert(api.catfile(api.makepath(path.src.dir, "windows/windres-options"), "echo \"--target=pe-i386\"", "a"))
+
+			-- patch gettext-runtime/intl/Makefile to use windres --target=pe-i386 for 32 bit arch
+			local mkfile = api.makepath(path.src.dir, "gettext-runtime/intl/Makefile")
+			api.gsubfile(mkfile, "$%(RC%)", "$(RC) --target=pe-i386")
+
+			-- patch gettext-tools/intl/Makefile to use windres --target=pe-i386 for 32 bit arch
+			mkfile = api.makepath(path.src.dir, "gettext-tools/intl/Makefile")
+			api.gsubfile(mkfile, "$%(RC%)", "$(RC) --target=pe-i386")
+		end
 	else
 		autotools.configure()
 	end
 	autotools.make()
 end
 
+function isinstalled()
+	local files = {
+		h = {"libintl.h", "gettext-po.h"},
+		static = {"gettextpo"}
+	}
+	if conf["target.system"] == "mingw" then
+		table.insert(files.static, "gettextlib.dll")
+		table.insert(files.static, "gettextpo.dll")
+		table.insert(files.static, "gettextsrc.dll")
+		files.dynamic = {"libgettextlib-0-19-6.dll", "libgettextsrc-0-19-6.dll", "libgettextpo-0.dll"}
+	end
+	return api.isinstalled(files)
+end
+
 function install()
-	build()
-	autotools.make("install")
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after gettext install")
+	end
 end

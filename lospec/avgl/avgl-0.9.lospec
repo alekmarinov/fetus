@@ -1,4 +1,5 @@
-sdl = assert(requires("sdl ~> 2.0"))
+sdl = assert(requires("sdl ~> 1.2"))
+cairo = assert(requires("cairo ~> 1.14"))
 
 package = {
 	name = "avgl",
@@ -9,7 +10,8 @@ package = {
 use "cmake"
 
 function prepare()
-	-- sdl:install()
+	sdl:install()
+	cairo:install()
 	api.download()
 	api.unarch()
 end
@@ -19,7 +21,24 @@ function build()
 	cmake.build()
 end
 
+function isinstalled()
+	local files = {
+		h = "avgl/avgl.h"
+	}
+	if conf["target.system"] == "mingw" then
+		files.dynamic = "libavgl.dll"
+		files.static = "avgl.dll"
+	end
+	return api.isinstalled(files)
+end
+
 function install()
-	build()
-	cmake.install()
+	if not isinstalled() then
+		build()
+		cmake.install()
+		if conf["target.system"] == "mingw" then
+			api.executein(path.install.bin, "strip", nil, "libavgl.dll")
+		end
+		assert(isinstalled(), "something is wrong after avgl install")
+	end
 end

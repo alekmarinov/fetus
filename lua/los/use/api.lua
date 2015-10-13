@@ -12,6 +12,22 @@
 
 local api = {}
 
+function api.map(f, ...)
+	local res = {}
+	for _, v in ipairs{...} do
+		table.insert(res, f(v))
+	end
+	return unpack(res)
+end
+
+function api.reduce(f, ...)
+	local res = nil
+	for _, v in ipairs{...} do
+		res = f(res, v)
+	end
+	return res
+end
+
 function api.download()
 	local url = path.src.url
 	log.i("download", url)
@@ -90,11 +106,11 @@ function api.makepathdir(...)
 	return lfs.addpathsep(api.makepath(...))
 end
 
-function api.catfile(file, text)
+function api.catfile(file, text, opentype)
 	assert(type(file) == "string")
 	assert(type(text) == "string")
 
-	local fd, err = io.open(file, "w")
+	local fd, err = io.open(file, opentype or "w")
 	if not fd then
 		return nil, err
 	end
@@ -144,7 +160,125 @@ function api.copy(src, dst)
 	rollback.pop()
 end
 
+function api.executein(dir, filename, env, ...)
+	assert(not dir or type(dir) == "string", "expected string for argument 1, got "..type(dir))
+	assert(type(filename) == "string", "expected string for argument 2, got "..type(filename))
+	assert(not env or type(env) == "table", "expected table for argument 3, got "..type(env))
+
+	local cdir = lfs.currentdir()
+	if dir then
+		lfs.chdir(dir)
+	end
+	local cmd = table.concat({filename, api.map(function(v) return lfs.Q(v) end, ...)}, " ")
+	log.i(dir..":", cmd)
+	local pid = assert(os.spawn(filename, {args={...}, env=env}))
+	lfs.chdir(cdir)
+	local exitcode = pid:wait(pid)
+	if exitcode ~= 0 then
+		error("Command "..cmd.." failed")
+	end
+	return true
+end
+
+function api.execute(...)
+	return api.executein(nil, ...)
+end
+
+function api.isinstalled(files)
+	local installed = true
+	for filetype, instfiles in pairs(files) do
+		if type(instfiles) == "string" then
+			instfiles = {instfiles}
+		end
+		for _, file in ipairs(instfiles) do
+			-- if file specified as absolute path
+			if not lfs.isfile(file) then
+				local instdir, filex
+				if filetype == "h" then
+					instdir = path.install.inc
+				elseif filetype == "dynamic" then
+					if conf["target.system"] == "mingw" then
+						instdir = path.install.bin
+					else
+						instdir = path.install.lib
+					end
+					filex = string.format(conf["target.dynamic.format"], file)
+				elseif filetype == "static" then
+					instdir = path.install.lib
+					filex = string.format(conf["target.static.format"], file)
+				elseif filetype == "exec" then
+					instdir = path.install.bin
+					filex = string.format(conf["target.exec.format"], file)
+				end
+
+				if instdir then
+					local instfile = lfs.concatfilenames(instdir, file)
+					local instfilex
+					if filex then
+						instfilex = lfs.concatfilenames(instdir, filex)
+					end
+					if not (lfs.isfile(instfile) or (instfilex and lfs.isfile(instfilex))) then
+						if instfilex then
+							instfile = instfile.." or "..instfilex
+						end
+						log.d(filetype.." file "..instfile.." is not installed")
+						installed = false
+					end
+				else
+					log.w("Unknown file type "..filetype.." for file "..file)
+				end
+			end
+		end
+	end
+	return installed
+end
+
 api.makepath = lfs.concatfilenames
 api.system = lfs.osname
 
-return api
+function api.staticname(name)
+	return string.format(conf["target.static.format"], name)
+end
+
+function api.dynamicname(name)
+	return string.format(conf["target.dynamic.format"], name)
+end
+
+function api.execname(name)
+	return string.format(conf["target.exec.format"], name)
+end
+
+function api.gsubfile(filename, ...)
+	local args = {...}
+	local gsubargs = {}
+	if type(args[1]) == "table" then
+		gsubargs = args
+	else
+		gsubargs = {args}
+	end
+	for _, a in ipairs(gsubargs) do
+		assert(type(a) == "table")
+	end
+
+	local linesiter, err = io.lines(filename)
+	if not linesiter then
+		return nil, err
+	end
+	local tmpname = os.tmpname()
+	local tmp, err = io.open(tmpname, "w")
+	if not tmp then
+		return nil, err
+	end
+	for line in linesiter do
+		for _, gsuba in ipairs(gsubargs) do
+			line = string.gsub(line, unpack(gsuba))
+		end
+		tmp:write(line)
+		tmp:write("\n")
+	end
+	tmp:close()
+	lfs.delete(filename)
+	lfs.move(tmpname, filename)
+end
+
+return api 

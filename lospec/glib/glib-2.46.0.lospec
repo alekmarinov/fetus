@@ -11,9 +11,9 @@ package = {
 use "autotools"
 
 function prepare()
-	-- zlib:install()
-	-- ffi:install()
-	-- gettext:install()
+	zlib:install()
+	ffi:install()
+	gettext:install()
 	api.download()
 	api.unarch()
 end
@@ -21,19 +21,37 @@ end
 function build()
 	prepare()
 
-	local confargs = {}
-	if conf["host.system"] == "mingw" then
-		-- under mingw install prefix is not enough to detect some dependent libs
-		table.insert(confargs, "CFLAGS=-I"..path.install.inc)
-		table.insert(confargs, "LDFLAGS=-L"..path.install.lib)
-		table.insert(confargs, "LIBFFI_CFLAGS="..path.install.inc)
-		table.insert(confargs, "LIBFFI_LIBS=-lffi")
+	-- patch removing python dependency
+	api.gsubfile(api.makepath(path.src.dir, "gio/Makefile.in"), "SUBDIRS = gdbus%-2%.0/codegen", "SUBDIRS = ")
+
+	autotools.configure({
+		CFLAGS="-Wno-error=implicit-function-declaration"
+	}, {
+		-- include installed gettext utilities in the search path
+		PATH=os.getenv("PATH")..":"..path.install.bin
+	})
+
+	if conf["host.system"] == "mingw" and conf["target.arch"] == 32 then
+		autotools.make("WINDRES=windres --target=pe-i386")
+	else
+		autotools.make()
 	end
-	autotools.configure(unpack(confargs))
-	autotools.make()
+end
+
+function isinstalled()
+	local files = {
+		h = {"glib-2.0/glib.h", "glib-2.0/gobject/gobject.h", "glib-2.0/gio/gio.h"}
+	}
+	if conf["target.system"] == "mingw" then
+		files.dynamic = {"libglib-2.0-0.dll", "libgio-2.0-0.dll", "libgmodule-2.0-0.dll", "libgobject-2.0-0.dll", "libgthread-2.0-0.dll"}
+	end
+	return api.isinstalled(files)
 end
 
 function install()
-	build()
-	autotools.make("install")
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after glib install")
+	end
 end
