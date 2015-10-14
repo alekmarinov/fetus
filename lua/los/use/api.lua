@@ -281,4 +281,9 @@ function api.gsubfile(filename, ...)
 	lfs.move(tmpname, filename)
 end
 
+function isarch32(arch)
+	arch = tostring(arch)
+	return arch == "i686" or arch == "32"
+end
+
 return api 
