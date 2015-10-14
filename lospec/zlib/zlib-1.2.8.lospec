@@ -22,7 +22,7 @@ function build()
 			api.executein(path.src.dir, conf["host.make"], nil, "all", "RCFLAGS=--define GCC_WINDRES", "LOC=-DASMV", "OBJA=match.o", "-fwin32/Makefile.gcc")
 		end
 	else
-		autotools.configure()
+		api.executein(path.src.dir, "sh", {CFLAGS=conf["gcc.cflags"]}, "--prefix="..path.insta.dir)
 		autotools.make()
 	end
 end

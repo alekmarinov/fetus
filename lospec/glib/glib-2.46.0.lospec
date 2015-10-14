@@ -25,14 +25,15 @@ function build()
 	api.gsubfile(api.makepath(path.src.dir, "gio/Makefile.in"), "SUBDIRS = gdbus%-2%.0/codegen", "SUBDIRS = ")
 
 	local ffild = "-L"..path.install.lib
-	if conf["target.arch"] == "32" then
+	if conf["target.arch"] == 32 then
 		ffild = ffild.."32"
 	end
-	autotools.configure({
+	local confargs = {
 		CFLAGS="-Wno-error=implicit-function-declaration",
 		LIBFFI_CFLAGS="-I"..api.makepath(path.install.lib, ffi.package.name.."-"..ffi.package.version.string, "include"),
 		LIBFFI_LIBS=ffild.." -lffi"
-	}, {
+	}
+	autotools.configure(confargs, {
 		-- include installed gettext utilities in the search path
 		PATH=os.getenv("PATH")..":"..path.install.bin
 	})
