@@ -14,7 +14,11 @@ end
 function build()
 	prepare()
 	autotools.configure()
-	autotools.make()
+	if conf["host.system"] == "mingw" and conf["target.arch"] == 32 then
+		autotools.make("WINDRES=windres --target=pe-i386")
+	else
+		autotools.make()
+	end
 end
 
 function isinstalled()
