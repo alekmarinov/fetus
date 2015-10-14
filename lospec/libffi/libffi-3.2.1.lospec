@@ -25,7 +25,7 @@ function isinstalled()
 		libdir = api.makepath(path.install.dir, "lib64")
 	end
 	local files = {
-		h = api.makepath(path.install.lib, package.name.."-"..package.version, "include/ffi.h"),
+		h = api.makepath(path.install.lib, package.name.."-"..package.version.string, "include/ffi.h"),
 		static = { api.makepath(libdir, "libffi.a") }
 	}
 	if conf["target.system"] == "mingw" then
