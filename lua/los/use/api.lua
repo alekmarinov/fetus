@@ -221,7 +221,7 @@ function api.isinstalled(files)
 						if instfilex then
 							instfile = instfile.." or "..instfilex
 						end
-						log.d(filetype.." file "..instfile.." is not installed")
+						log.d(filetype.." file "..file.." or "..instfile.." is not installed")
 						installed = false
 					end
 				else
