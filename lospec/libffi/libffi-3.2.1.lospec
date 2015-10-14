@@ -19,7 +19,7 @@ end
 
 function isinstalled()
 	local libdir
-	if api.isarch32() then
+	if api.isarch32(conf["target.arch"]) then
 		if conf["target.system"] == "mingw" then
 			libdir = api.makepath(path.install.dir, "lib32")
 		else
