@@ -217,7 +217,7 @@ function api.isinstalled(files)
 					if filex then
 						instfilex = lfs.concatfilenames(instdir, filex)
 					end
-					if not (lfs.isfile(instfile) or (instfilex and lfs.isfile(instfilex))) then
+					if not (lfs.isfile(file) or lfs.isfile(instfile) or (instfilex and lfs.isfile(instfilex))) then
 						if instfilex then
 							instfile = instfile.." or "..instfilex
 						end
