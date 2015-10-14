@@ -4,8 +4,6 @@ package = {
 	source   = "$(repo.opensource)/termcap-1.3.1.tar.gz"
 }
 
-use "autotools"
-
 function prepare()
 	api.download()
 	api.unarch()
@@ -13,10 +11,9 @@ end
 
 function build()
 	prepare()
-	api.executein(path.src.dir, "sh", nil, "configure", "--prefix="..path.install.dir)
-	autotools.make()
+	lfs.executein(path.src.dir, "sh", "configure", "--prefix="..path.install.dir)
+	lfs.executein(path.src.dir, "make", "CFLAGS="..conf["gcc.cflags"])
 end
-
 
 function isinstalled()
 	return api.isinstalled{
@@ -28,7 +25,7 @@ end
 function install()
 	if not isinstalled() then
 		build()
-		autotools.make("install")
+		lfs.executein(path.src.dir, "make", "install")
 		assert(isinstalled(), "something wrong after termcap install")
 	end
 end
