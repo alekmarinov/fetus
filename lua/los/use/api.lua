@@ -148,7 +148,6 @@ function api.copy(src, dst)
 	assert(type(src) == "string")
 	assert(type(dst) == "string")
 
-	rollback.push(lfs.delete, dst)
 	if lfs.isfile(src) then
 		lfs.mkdir(lfs.dirname(dst))
 	else
@@ -157,7 +156,6 @@ function api.copy(src, dst)
 
 	log.i("copy ", src, dst)
 	assert(lfs.copy(src, dst))
-	rollback.pop()
 end
 
 function api.executein(dir, filename, env, ...)
@@ -170,6 +168,15 @@ function api.executein(dir, filename, env, ...)
 		lfs.chdir(dir)
 	end
 	local cmd = table.concat({filename, api.map(function(v) return lfs.Q(v) end, ...)}, " ")
+	-- log environment
+	if env then
+		local envlog = {}
+		for i, v in pairs(env) do
+			table.insert(envlog, i.."="..v)
+		end
+		log.d("env: "..table.concat(envlog, ";;"))
+	end
+
 	log.i(dir..":", cmd)
 	local pid = assert(os.spawn(filename, {args={...}, env=env}))
 	lfs.chdir(cdir)

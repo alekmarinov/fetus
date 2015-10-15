@@ -20,7 +20,7 @@ makeunixpath()
 	echo "/$1" | sed -e 's/\\/\//g' -e 's/://' -e 's/\/\//\//'
 }
 
-this_script=$(makeunixpath $0)
+this_script=$(makeunixpath $(readlink -f $0))
 
 makepath()
 {
@@ -129,7 +129,7 @@ pathmunge()
 ## entry point
 
 # default parameters
-DEFAULT_LOS_ROOT=$(makepath $(dirname $(readlink -f $(script_name))))
+DEFAULT_LOS_ROOT="$HOME/los"
 
 USAGE="
 LOS bootstrap utility
@@ -138,8 +138,8 @@ SYNOPSIS
 	$(basename "$(script_name)") [--repo-base=...] [--repo-opensource=...] [--repo-rocks=...] [--repo-bootstrap=...] [--los-root=...] [--luarocks-root=...] [--luarocks-rocks=...] [-h | --help]
 
 OPTIONS
-    --repo-user=<username>        username to main los repository
-    --repo-pass=<password>        password to main los repository
+    --repo-user=<username>        username to main los repository, default guest
+    --repo-pass=<password>        password to main los repository, default guest
     --repo-base=<url>             base url to los repository, default 
                                   http://<repo_user>:<repo_pass>@storage.intelibo.com/los
     --repo-opensource=<url>       url to los opensource files, default
@@ -208,12 +208,9 @@ done
 
 ## configure variables
 
-if [ -z "$URL_REPO_BASE" ]; then
-	[ -z "$REPO_USER" ] && die "--repo-user parameter required for the main los repository"
-	[ -z "$REPO_PASS" ] && die "--repo-pass parameter required for the main los repository"
-	URL_REPO_BASE="http://${REPO_USER}:${REPO_PASS}@storage.intelibo.com/los"
-fi
-
+REPO_USER=${REPO_USER:-"guest"}
+REPO_PASS=${REPO_USER:-"guest"}
+URL_REPO_BASE=${URL_REPO_BASE:-"http://${REPO_USER}:${REPO_PASS}@storage.intelibo.com/los"}
 URL_REPO_OPENSOURCE=${URL_REPO_OPENSOURCE:-"$URL_REPO_BASE/opensource"}
 URL_REPO_ROCKS=${URL_REPO_ROCKS:-"$URL_REPO_BASE/rocks"}
 URL_REPO_BOOTSTRAP=${URL_REPO_BOOTSTRAP:-"$URL_REPO_BASE/bootstrap"}
@@ -516,6 +513,13 @@ if [[ "$WINDIR" != "" ]]; then
 	echo "set PATH=$winpath" >> $LOS_ROOT/losvars.cmd
 	echo "set LUA_PATH=$(makewinpath "$LUAROCKS_LUA/?.lua")" >> $LOS_ROOT/losvars.cmd
 	info "Run $(makewinpath "$LOS_ROOT/losvars.cmd") to set your environment"
+else
+	pathmunge $LUAROCKS_BIN
+	pathmunge $LUAROCKS_TREE_DIR/bin
+	echo "#!/bin/sh" > $LOS_ROOT/losvars.sh
+	echo "export PATH=$PATH" >> $LOS_ROOT/losvars.sh
+	echo "export LUA_PATH=$LUAROCKS_LUA/?.lua" >> $LOS_ROOT/losvars.sh
+	info "source $LOS_ROOT/losvars.sh to set your environment"
 fi
 
 echo "Bootstrap SUCCESS!"

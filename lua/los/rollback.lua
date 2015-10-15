@@ -8,8 +8,8 @@
 --                                                                   --
 -----------------------------------------------------------------------
 
-local assert, type, table, unpack =
-	  assert, type, table, unpack
+local _G, assert, type, table, unpack, tostring, print =
+	  _G, assert, type, table, unpack, tostring, print
 
 module "los.rollback"
 
@@ -30,6 +30,8 @@ end
 function execute()
    for i = #rollbacks, 1, -1 do
       local item = rollbacks[i]
+      print(_G._log.d)
+      _G._log:debug("rollbacks "..tostring(item.fn))
       item.fn(unpack(item.args))
    end
 end

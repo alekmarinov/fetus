@@ -1,0 +1,41 @@
+
+package = {
+	name     = "ncurses",
+	version  = "6.0",
+	source   = "$(repo.opensource)/ncurses-6.0.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+	api.patch()
+end
+
+function build()
+	prepare()
+	autotools.configure("--enable-term-driver", "--enable-sp-funcs", "--with-shared")
+	autotools.make()
+end
+
+function isinstalled()
+	local files = {
+		h = {"ncurses/ncurses.h"},
+		static = "ncurses"
+	}
+	if conf["target.system"] == "mingw" then
+		files.dynamic = "libncurses6"
+	else
+		files.dynamic = "ncurses"
+	end
+	return api.isinstalled(files)
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after ncurses install")
+	end
+end

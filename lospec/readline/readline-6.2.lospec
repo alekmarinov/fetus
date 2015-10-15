@@ -23,11 +23,16 @@ function build()
 end
 
 function isinstalled()
-	return api.isinstalled {
+	local files = {
 		h = {"readline/readline.h", "readline/history.h"},
-		dynamic = "libreadline6",
 		static = "readline"
 	}
+	if conf["target.system"] == "mingw" then
+		files.dynamic = "libreadline6"
+	else
+		files.dynamic = "readline"
+	end
+	return api.isinstalled(files)
 end
 
 function install()

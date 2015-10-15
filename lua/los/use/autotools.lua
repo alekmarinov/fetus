@@ -60,7 +60,9 @@ local installdirs = {"bin", "lib", "include", "man/man1"}
 
 local function createinstalldirs()
 	for _, dir in ipairs(installdirs) do
-		local ok, err = lfs.mkdir(lfs.concatfilenames(path.install.dir, dir))
+		local directory = lfs.concatfilenames(path.install.dir, dir)
+		log.d("deleteifempty", directory)
+		local ok, err = lfs.mkdir(directory)
 		if not ok then
 			return nil, err
 		end
@@ -69,6 +71,8 @@ end
 
 local function deleteinstalldirsifempty()
 	for _, dir in ipairs(installdirs) do
+		local directory = lfs.concatfilenames(path.install.dir, dir)
+		log.d("deleteifempty", directory)
 		lfs.deleteifempty(lfs.concatfilenames(path.install.dir, dir))
 	end
 end

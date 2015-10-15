@@ -18,13 +18,28 @@ https://git-scm.com/download/win
 
 Edit bootstrap.cmd and fix the following variables if necessary
 SET GIT_BIN=C:\Program Files (x86)\Git\bin
-SET MINGW64_DIR=C:\TDM-GCC-64
+SET MINGW_DIR=C:\TDM-GCC-64
 
 Run bootstrap.cmd
+
+set PATH and LUA_PATH environment vars by calling losvars.cmd from los root directory (default %USERPROFILE%\los)
+
+luarocks install los
 
 -- Install for Linux
 
 Prepare the following requsites:
-which, sh, readlink, unzip, tar, patch, wget, lua
+curl, which, sh, readlink, unzip, tar, patch, gcc, libgcc.i686, glibc-devel.i686, lua 5.1
+
+Note: You may need to install lua 5.1 from source:
+install readline development package
+curl http://guest:guest@storage.intelibo.com/los/opensource/lua-5.1.5.tar.gz > lua-5.1.5.tar.gz
+tar xvfz lua-5.1.5.tar.gz
+cd lua-5.1.5
+make linux "CFLAGS=-O2 -DLUA_USE_LINUX -fPIC"
+sudo make install
 
 Run run-bootstrap.sh
+
+set PATH and LUA_PATH environment vars by calling losvars.sh from los root directory (default $HOME/los)
+source $HOME/los/losvars.sh

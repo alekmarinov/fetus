@@ -2,8 +2,6 @@
 SET GIT_BIN=C:\Program Files\Git\bin
 SET MINGW_DIR=C:\TDM-GCC-64
 SET LOS_ROOT=%USERPROFILE%\los
-SET REPO_USER=guest
-SET REPO_PASS=guest
 
 SET MSYS_DIR=%MINGW_DIR%\msys\1.0
 SET MINGW_BIN=%MINGW_DIR%\bin
@@ -27,7 +25,7 @@ if not exist %MINGW_BIN%\lua.exe mingw-get install "lua<5.2"
 if not exist %MSYS_BIN%\which.exe copy %~dp0w32\tools\which.exe %MSYS_BIN%
 if not exist %MSYS_BIN%\make.exe copy %~dp0w32\tools\make.exe %MSYS_BIN%
 
-sh bootstrap.sh --los-root=%LOS_ROOT% --repo-user=%REPO_USER% --repo-pass=%REPO_PASS% %*
+sh bootstrap.sh --los-root=%LOS_ROOT% %*
 GOTO END
 
 :MINGW_NOT_EXIST
