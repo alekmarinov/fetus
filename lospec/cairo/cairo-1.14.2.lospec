@@ -36,7 +36,7 @@ function isinstalled()
 		h = "cairo/cairo.h",
 		static = {"cairo"}
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		files.dynamic = {"libcairo-2", "libcairo-gobject-2"}
 		table.insert(files.static, "cairo.dll")
 	end

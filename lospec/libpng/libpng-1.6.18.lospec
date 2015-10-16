@@ -24,7 +24,7 @@ function isinstalled()
 		h = "libpng16/png.h",
 		static = {"png16"}
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		table.insert(files.static, "png16.dll")
 		files.dynamic = "libpng16.dll"
 	end

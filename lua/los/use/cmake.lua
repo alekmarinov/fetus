@@ -45,9 +45,12 @@ function cmake.build(...)
 	for i, v in pairs(opts) do
 		table.insert(args, i.."="..v)
 	end
-	local env
+
+	local env = {
+		PATH = os.getenv("PATH")..pathsep..path.install.bin
+	}
 	if type(args[1]) == "table" then
-		env = args[1]
+		table.fastcopy(args[1], env)
 		table.remove(args, 1)
 	end
 

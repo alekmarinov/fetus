@@ -13,7 +13,7 @@ local function make(dir, ...)
 		table.insert(args, "\""..v.."\"")
 	end
 
-	local cmd = conf["host.make"].." "..table.concat(args, " ")
+	local cmd = conf["build.make"].." "..table.concat(args, " ")
 	log.i(cmd)
 	return assert(lfs.executein(dir, cmd))
 end
@@ -33,10 +33,10 @@ function build()
 	local ccflags
 	local lua_a
 	local lua_t
-	local luac_t = string.format(conf["target.exec.format"], "luac")
+	local luac_t = string.format(conf["host.exec.format"], "luac")
 	local ar
 	local ldlibs = " -L"..path.install.lib.." -lreadline -lhistory"
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		ccflags = "-DLUA_BUILD_AS_DLL -DLUA_USE_READLINE -I"..path.install.inc
 		lua_a = "lua51.dll"
 		lua_t = "lua.exe"
@@ -70,14 +70,14 @@ end
 
 local function dynamicname(v)
 	local name = package.name
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		name = name..package.version[1]..package.version[2]
 	end
 
-	local dynamic = string.format(conf["target.dynamic.format"], name)
+	local dynamic = string.format(conf["host.dynamic.format"], name)
 
 	v = v or 3
-	if conf["target.system"] == "mingw" or v == 0 then
+	if conf["host.system"] == "mingw" or v == 0 then
 		return dynamic
 	else
 		local vers = {}
@@ -91,7 +91,7 @@ end
 function isinstalled()
 	return api.isinstalled{
 		h = "lua.h",
-		exec = string.format(conf["target.exec.format"], package.name),
+		exec = string.format(conf["host.exec.format"], package.name),
 		static = package.name,
 		dynamic = dynamicname()
 	}

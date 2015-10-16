@@ -29,7 +29,7 @@ luarocks install los
 -- Install for Linux
 
 Prepare the following requsites:
-curl, which, sh, readlink, unzip, tar, patch, gcc, libgcc.i686, glibc-devel.i686, lua 5.1
+curl, which, sh, readlink, unzip, tar, patch, gcc, libgcc.i686, glibc-devel.i686, lua 5.1, cmake
 
 Note: You may need to install lua 5.1 from source:
 install readline development package

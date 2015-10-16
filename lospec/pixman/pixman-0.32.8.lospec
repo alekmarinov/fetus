@@ -22,7 +22,7 @@ function isinstalled()
 		h = "pixman-1/pixman.h",
 		static = {"pixman-1"}
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		table.insert(files.static, "pixman-1.dll")
 		files.dynamic = "libpixman-1-0.dll"
 	end

@@ -15,14 +15,14 @@ end
 function build()
 	prepare()
 	api.copy(api.makepath(path.src.dir, "contrib/asm686/match.S"), path.src.dir)
-	if conf["host.system"] == "mingw" then
-		if conf["target.arch"] == 32 then
-			api.executein(path.src.dir, conf["host.make"], nil, "all", "RCFLAGS=--define GCC_WINDRES --target=pe-i386", "ASFLAGS=-m32", "CFLAGS=-m32", "LDFLAGS=-m32", "LOC=-DASMV", "OBJA=match.o", "-fwin32/Makefile.gcc")
+	if conf["build.system"] == "mingw" then
+		if conf["host.arch"] == 32 then
+			api.executein(path.src.dir, conf["build.make"], nil, "all", "RCFLAGS=--define GCC_WINDRES --target=pe-i386", "ASFLAGS=-m32", "CFLAGS=-m32", "LDFLAGS=-m32", "LOC=-DASMV", "OBJA=match.o", "-fwin32/Makefile.gcc")
 		else
-			api.executein(path.src.dir, conf["host.make"], nil, "all", "RCFLAGS=--define GCC_WINDRES", "LOC=-DASMV", "OBJA=match.o", "-fwin32/Makefile.gcc")
+			api.executein(path.src.dir, conf["build.make"], nil, "all", "RCFLAGS=--define GCC_WINDRES", "LOC=-DASMV", "OBJA=match.o", "-fwin32/Makefile.gcc")
 		end
 	else
-		api.executein(path.src.dir, "sh", {CFLAGS=conf["gcc.cflags"]}, "configure", "--prefix="..path.install.dir)
+		api.executein(path.src.dir, "sh", api.mkenv{CFLAGS=conf["gcc.cflags"]}, "configure", "--prefix="..path.install.dir)
 		autotools.make()
 	end
 end
@@ -32,7 +32,7 @@ function isinstalled()
 		h = "zlib.h",
 		static = {"z"}
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		files.static = {"z.dll"}
 		files.dynamic = "zlib1.dll"
 	end
@@ -43,7 +43,7 @@ function install()
 	if not isinstalled() then
 		build()
 		if conf["host.system"] == "mingw" then
-			api.executein(path.src.dir, conf["host.make"], nil, "install", "BINARY_PATH="..path.install.bin, "LIBRARY_PATH="..path.install.lib, "INCLUDE_PATH="..path.install.inc, "SHARED_MODE=1", "-fwin32/Makefile.gcc")
+			api.executein(path.src.dir, conf["build.make"], nil, "install", "BINARY_PATH="..path.install.bin, "LIBRARY_PATH="..path.install.lib, "INCLUDE_PATH="..path.install.inc, "SHARED_MODE=1", "-fwin32/Makefile.gcc")
 		else
 			autotools.make("install")
 		end

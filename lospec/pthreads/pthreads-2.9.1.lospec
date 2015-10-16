@@ -12,7 +12,7 @@ local function make(...)
 	for _, v in ipairs{"VERBOSE=1", ...} do
 		table.insert(args, "\""..v.."\"")
 	end
-	local cmd = conf["host.make"].." "..table.concat(args, " ")
+	local cmd = conf["build.make"].." "..table.concat(args, " ")
 	log.i(cmd)
 	return lfs.executein(path.src.dir, cmd)
 end

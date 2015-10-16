@@ -13,12 +13,6 @@
 local autotools = {}
 
 function autotools.envmake(target, env, ...)
-	if env then
-		local penv = os.environ()
-		for n, v in pairs(penv) do
-			env[n] = v
-		end
-	end
 	return api.executein(path.src.dir, conf["host.make"], env, target, ...)
 end
 
@@ -48,9 +42,17 @@ function autotools.configure(...)
 	for i, v in pairs(opts) do
 		table.insert(args, i.."="..v)
 	end
-	local env
+
+	local pathsep = ":"
+	if conf["build.system"] == "mingw" then
+		pathsep = ";"
+	end
+	local env = {
+		PATH = os.getenv("PATH")..pathsep..path.install.bin,
+		PKG_CONFIG_PATH = api.makepath(path.install.lib, "pkgconfig")
+	}
 	if type(args[1]) == "table" then
-		env = args[1]
+		table.fastcopy(args[1], env)
 		table.remove(args, 1)
 	end
 	return api.executein(path.src.dir, "sh", env, "configure", "--prefix="..path.install.dir, unpack(args))
@@ -75,6 +77,7 @@ local function deleteinstalldirsifempty()
 		log.d("deleteifempty", directory)
 		lfs.deleteifempty(lfs.concatfilenames(path.install.dir, dir))
 	end
+	return true
 end
 
 function autotools.install()
@@ -83,7 +86,7 @@ function autotools.install()
 	if not ok then
 		return nil, err
 	end
-	rollback.push(deleteinstalldirsifempty)
+	rollback.push("deleteinstalldirsifempty", deleteinstalldirsifempty)
 	local ok, err = createinstalldirs()
 	if not ok then
 		return nil, err

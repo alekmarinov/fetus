@@ -21,7 +21,7 @@ function build()
 		-- solves unresolved pthread functions
 		autotools.configure{["--enable-threads"]="windows", LDFLAGS="-liconv", CFLAGS="-O2", CXXFLAGS="-O2"}
 
-		if conf["target.arch"] == 32 then
+		if conf["host.arch"] == 32 then
 			-- add windres option for 32-bit arch
 			api.catfile(api.makepath(path.src.dir, "windows/windres-options"), "echo \"--target=pe-i386\"", "a")
 
@@ -34,21 +34,23 @@ function build()
 			api.gsubfile(mkfile, "$%(RC%)", "$(RC) --target=pe-i386")
 		end
 	else
-		autotools.configure()
+		autotools.configure{LT_SYS_LIBRARY_PATH = path.install.dir}
 	end
 	autotools.make()
 end
 
 function isinstalled()
 	local files = {
-		h = {"libintl.h", "gettext-po.h"},
+		h = {"gettext-po.h"},
 		static = {"gettextpo"}
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		table.insert(files.static, "gettextlib.dll")
 		table.insert(files.static, "gettextpo.dll")
 		table.insert(files.static, "gettextsrc.dll")
-		files.dynamic = {"libgettextlib-0-19-6.dll", "libgettextsrc-0-19-6.dll", "libgettextpo-0.dll"}
+		files.dynamic = {"libgettextlib-"..package.version.string..".dll", "libgettextsrc-"..package.version.string..".dll", "libgettextpo-0.dll"}
+	else
+		files.dynamic = {"gettextlib-"..package.version.string, "gettextsrc-"..package.version.string, "gettextpo"}
 	end
 	return api.isinstalled(files)
 end

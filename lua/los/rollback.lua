@@ -15,10 +15,11 @@ module "los.rollback"
 
 local rollbacks = {}
 
-function push(fn, ...)
+function push(description, fn, ...)
+	assert(type(description) == "string")
 	assert(type(fn) == "function")
 
-	local item = { fn = fn, args = {...} }
+	local item = { description = description, fn = fn, args = {...} }
 	table.insert(rollbacks, item)
 	return item
 end
@@ -30,8 +31,8 @@ end
 function execute()
    for i = #rollbacks, 1, -1 do
       local item = rollbacks[i]
-      print(_G._log.d)
-      _G._log:debug("rollbacks "..tostring(item.fn))
-      item.fn(unpack(item.args))
+      local ok = item.fn(unpack(item.args))
+      local result = ok and "ok" or "failed"
+      _G._log:debug(item.description.." "..result)
    end
 end

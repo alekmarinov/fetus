@@ -483,16 +483,16 @@ echo "repo.username=$REPO_USER" >> $LOCAL_CONF
 echo "repo.password=$REPO_PASS" >> $LOCAL_CONF
 if [[ "$WINDIR" != "" ]]; then
 	# default mingw 32 bit for windows
-	echo "host.system=mingw" >> $LOCAL_CONF
-	echo "host.arch=32" >> $LOCAL_CONF
+	echo "build.system=mingw" >> $LOCAL_CONF
+	echo "build.arch=32" >> $LOCAL_CONF
 else
 	# default linux/macos i686
 	OSNAME=$(uname | tr '[:upper:]' '[:lower:]')
 	if [[ $OSNAME == "darwin" ]]; then
 		OSNAME="macos"
 	fi
-	echo "host.system=$OSNAME" >> $LOCAL_CONF
-	echo "host.arch=i686" >> $LOCAL_CONF
+	echo "build.system=$OSNAME" >> $LOCAL_CONF
+	echo "build.arch=i686" >> $LOCAL_CONF
 fi
 
 if [[ "$WINDIR" != "" ]]; then

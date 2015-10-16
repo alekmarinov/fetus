@@ -19,8 +19,8 @@ end
 
 function isinstalled()
 	local libdir
-	if api.isarch32(conf["target.arch"]) then
-		if conf["target.system"] == "mingw" then
+	if api.isarch32(conf["host.arch"]) then
+		if conf["host.system"] == "mingw" then
 			libdir = api.makepath(path.install.dir, "lib32")
 		else
 			libdir = path.install.lib
@@ -32,7 +32,7 @@ function isinstalled()
 		h = api.makepath(path.install.lib, package.name.."-"..package.version.string, "include/ffi.h"),
 		static = { api.makepath(libdir, "libffi.a") }
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		files.dynamic = "libffi-6.dll"
 		table.insert(files.static, api.makepath(libdir, "libffi.dll.a"))
 	else

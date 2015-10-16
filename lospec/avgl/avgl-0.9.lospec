@@ -25,7 +25,7 @@ function isinstalled()
 	local files = {
 		h = "avgl/avgl.h"
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		files.dynamic = "libavgl.dll"
 		files.static = "avgl.dll"
 	end
@@ -36,7 +36,7 @@ function install()
 	if not isinstalled() then
 		build()
 		cmake.install()
-		if conf["target.system"] == "mingw" then
+		if conf["host.system"] == "mingw" then
 			api.executein(path.install.bin, "strip", nil, "libavgl.dll")
 		end
 		assert(isinstalled(), "something is wrong after avgl install")

@@ -32,7 +32,7 @@ function api.download()
 	local url = path.src.url
 	log.i("download", url)
 	local outfile = path.src.file
-	rollback.push(lfs.delete, outfile)
+	rollback.push("delete "..outfile, lfs.delete, outfile)
 	if not lfs.isfile(outfile) then
 		local ok, err = lfs.mkdir(lfs.dirname(outfile))
 		if not ok then
@@ -71,7 +71,7 @@ end
 
 function api.unarch()
 	log.i("unarch "..path.src.file)
-	rollback.push(lfs.delete, path.src.dir)
+	rollback.push("delete "..path.src.dir, lfs.delete, path.src.dir)
 	assert(extract.unarch(path.src.file, conf["dir.src"]))
 	rollback.pop()
 end
@@ -174,7 +174,7 @@ function api.executein(dir, filename, env, ...)
 		for i, v in pairs(env) do
 			table.insert(envlog, i.."="..v)
 		end
-		log.d("env: "..table.concat(envlog, ";;"))
+		cmd = table.concat(envlog, " ").." "..cmd
 	end
 
 	log.i(dir..":", cmd)
@@ -291,6 +291,19 @@ end
 function api.isarch32(arch)
 	arch = tostring(arch)
 	return arch == "i686" or arch == "32"
+end
+
+function api.mkenv(env)
+	if not env then
+		return nil
+	end
+	local penv = os.environ()
+	for n, v in pairs(penv) do
+		if not env[n] then
+			env[n] = v
+		end
+	end
+	return env
 end
 
 return api 

@@ -27,7 +27,7 @@ function isinstalled()
 		h = {"readline/readline.h", "readline/history.h"},
 		static = "readline"
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		files.dynamic = "libreadline6"
 	else
 		files.dynamic = "readline"

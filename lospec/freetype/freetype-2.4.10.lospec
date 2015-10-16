@@ -25,7 +25,7 @@ function isinstalled()
 		h = "freetype2/freetype/freetype.h",
 		static = {"freetype"}
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		table.insert(files.static, "freetype.dll")
 		files.dynamic = "libfreetype-6.dll"
 	end

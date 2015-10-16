@@ -26,7 +26,7 @@ function isinstalled()
 		h = {"jpeglib.h", "jconfig.h"},
 		static = {"jpeg"}
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		table.insert(files.static, "jpeg.dll")
 		files.dynamic = "libjpeg-8.dll"
 	end

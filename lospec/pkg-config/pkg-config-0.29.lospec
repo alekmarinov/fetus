@@ -16,15 +16,10 @@ end
 
 function build()
 	prepare()
-
-	if conf["host.system"] == "mingw" then
-		autotools.configure{
-			GLIB_CFLAGS="-I"..api.makepath(path.install.inc, "glib-2.0").." -I"..api.makepath(path.install.lib, "glib-2.0/include"),
-			GLIB_LIBS="-L"..path.install.lib.." -lglib-2.0"
-		}
-	else
-		autotools.configure()
-	end
+	autotools.configure{
+		GLIB_CFLAGS="-I"..api.makepath(path.install.inc, "glib-2.0").." -I"..api.makepath(path.install.lib, "glib-2.0/include"),
+		GLIB_LIBS="-L"..path.install.lib.." -lglib-2.0"
+	}
 	autotools.make()
 end
 

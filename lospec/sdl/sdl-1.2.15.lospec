@@ -14,7 +14,7 @@ end
 function build()
 	prepare()
 	autotools.configure()
-	if conf["host.system"] == "mingw" and conf["target.arch"] == 32 then
+	if conf["build.system"] == "mingw" and conf["host.arch"] == 32 then
 		autotools.make("WINDRES=windres --target=pe-i386")
 	else
 		autotools.make()
@@ -27,7 +27,7 @@ function isinstalled()
 		dynamic = "SDL",
 		static = {"SDL"}
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		table.insert(files.static, "SDL.dll")
 	end
 	return api.isinstalled(files)
