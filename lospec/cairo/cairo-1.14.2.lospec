@@ -39,6 +39,8 @@ function isinstalled()
 	if conf["host.system"] == "mingw" then
 		files.dynamic = {"libcairo-2", "libcairo-gobject-2"}
 		table.insert(files.static, "cairo.dll")
+	else
+		files.dynamic = package.name
 	end
 	return api.isinstalled(files)
 end

@@ -1,0 +1,31 @@
+package = {
+	name     = "xtrans",
+	version  = "1.2.7",
+	source   = "$(repo.opensource)/xtrans-1.2.7.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		h = "X11/Xtrans/Xtrans.h"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end

@@ -18,7 +18,11 @@ end
 
 function build()
 	prepare()
-	cmake.build()
+	local cmakeargs = {}
+	if conf["host.system"] ~= "mingw" then
+		cmakeargs.CFLAGS = "-DWITH_X11"
+	end
+	cmake.build(cmakeargs)
 end
 
 function isinstalled()

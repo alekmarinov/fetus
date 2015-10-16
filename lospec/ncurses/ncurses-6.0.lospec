@@ -24,7 +24,7 @@ function isinstalled()
 		h = {"ncurses/ncurses.h"},
 		static = "ncurses"
 	}
-	if conf["target.system"] == "mingw" then
+	if conf["host.system"] == "mingw" then
 		files.dynamic = "libncurses6"
 	else
 		files.dynamic = "ncurses"

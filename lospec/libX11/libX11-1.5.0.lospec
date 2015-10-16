@@ -1,0 +1,36 @@
+xtrans = requires "xtrans"
+
+package = {
+	name     = "libX11",
+	version  = "1.5.0",
+	source   = "$(repo.opensource)/libX11-1.5.0.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	xtrans:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		h = "X11/Xlib.h",
+		static = "X11",
+		dynamic = "X11"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end
