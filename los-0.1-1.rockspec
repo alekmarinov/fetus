@@ -35,7 +35,6 @@ build = {
       ["los.lospec.version"] = "lua/los/lospec/version.lua",
       ["los.use.api"] = "lua/los/use/api.lua",
       ["los.use.autotools"] = "lua/los/use/autotools.lua",
-      ["los.use.cmake"] = "lua/los/use/cmake.lua",
-      ["los.use.prebuilt"] = "lua/los/use/prebuilt.lua"
+      ["los.use.cmake"] = "lua/los/use/cmake.lua"
    }
 }
