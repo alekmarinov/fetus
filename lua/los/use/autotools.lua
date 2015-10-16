@@ -13,7 +13,7 @@
 local autotools = {}
 
 function autotools.envmake(target, env, ...)
-	return api.executein(path.src.dir, conf["host.make"], env, target, ...)
+	return api.executein(path.src.dir, conf["build.make"], env, target, ...)
 end
 
 function autotools.make(target, ...)
@@ -43,12 +43,8 @@ function autotools.configure(...)
 		table.insert(args, i.."="..v)
 	end
 
-	local pathsep = ":"
-	if conf["build.system"] == "mingw" then
-		pathsep = ";"
-	end
-	local env = {
-		PATH = os.getenv("PATH")..pathsep..path.install.bin,
+	local env = api.mkenv{
+		PATH = os.getenv("PATH")..conf["build.pathsep"]..path.install.bin,
 		PKG_CONFIG_PATH = api.makepath(path.install.lib, "pkgconfig")
 	}
 	if type(args[1]) == "table" then

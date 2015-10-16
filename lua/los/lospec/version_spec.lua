@@ -80,6 +80,7 @@ describe("Find best dependency", function()
 	end
 	local vstrings = {"1.0", "1.1", "1.1a", "1.1b", "2.0"}
 	local versions = map(version.parse, vstrings)
+	table.sort(versions)
 	local constring = "> 1.0, < 2"
 
 	it("should find best of "..table.concat(vstrings, ", ").." for constraints "..constring, function()

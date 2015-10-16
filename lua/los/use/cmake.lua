@@ -46,7 +46,8 @@ function cmake.build(...)
 		table.insert(args, i.."="..v)
 	end
 
-	local env = {
+	local pathsep = conf["build.pathsep"]
+	local env = api.mkenv{
 		PATH = os.getenv("PATH")..pathsep..path.install.bin
 	}
 	if type(args[1]) == "table" then

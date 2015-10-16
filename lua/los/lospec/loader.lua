@@ -178,20 +178,24 @@ function findfile(dep)
 	end
 
 	local lospecvers = {}
+	local lospecmap = {}
 	for _, lospecfile in ipairs(lospecfiles) do
 		local ver = assert(version.parsefromlospecfile(lospecfile))
 		if ver then
 			table.insert(lospecvers, ver)
+			lospecmap[ver] = lospecfile
 		else
 			_G._log:warn(_NAME..": failed version.parsefromlospecfile "..lospecfile)
 		end
 	end
 
+	table.sort(lospecvers)
 	local lospecveridx = version.bestindexof(lospecvers, dep.constraints)
 	if not lospecveridx then
 		return nil, "can't find los module matching "..dep.name
 	end
-	return lfs.concatfilenames(lospecdir, lospecfiles[lospecveridx]), lospecvers[lospecveridx]
+	local bestver = lospecvers[lospecveridx]
+	return lfs.concatfilenames(lospecdir, lospecmap[bestver]), bestver
 end
 
 -- loads lospec file

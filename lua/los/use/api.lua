@@ -204,18 +204,18 @@ function api.isinstalled(files)
 				if filetype == "h" then
 					instdir = path.install.inc
 				elseif filetype == "dynamic" then
-					if conf["target.system"] == "mingw" then
+					if conf["host.system"] == "mingw" then
 						instdir = path.install.bin
 					else
 						instdir = path.install.lib
 					end
-					filex = string.format(conf["target.dynamic.format"], file)
+					filex = string.format(conf["host.dynamic.format"], file)
 				elseif filetype == "static" then
 					instdir = path.install.lib
-					filex = string.format(conf["target.static.format"], file)
+					filex = string.format(conf["host.static.format"], file)
 				elseif filetype == "exec" then
 					instdir = path.install.bin
-					filex = string.format(conf["target.exec.format"], file)
+					filex = string.format(conf["host.exec.format"], file)
 				end
 
 				if instdir then
@@ -244,15 +244,15 @@ api.makepath = lfs.concatfilenames
 api.system = lfs.osname
 
 function api.staticname(name)
-	return string.format(conf["target.static.format"], name)
+	return string.format(conf["host.static.format"], name)
 end
 
 function api.dynamicname(name)
-	return string.format(conf["target.dynamic.format"], name)
+	return string.format(conf["host.dynamic.format"], name)
 end
 
 function api.execname(name)
-	return string.format(conf["target.exec.format"], name)
+	return string.format(conf["host.exec.format"], name)
 end
 
 function api.gsubfile(filename, ...)

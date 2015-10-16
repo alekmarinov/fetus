@@ -13,6 +13,7 @@
 local _G, assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string =
       _G, assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string
 
+local print = print
 module "los.lospec.version"
 
 local operators = {
@@ -300,10 +301,10 @@ function bestindexof(versions, constraints)
       -- bestindexof expects non empty table of versions
       return 0
    end
-   table.sort(versions)
    for i = #versions, 1, -1 do
       local ver = versions[i]
-      if matchconstraints(ver, constraints) then
+      local ok = matchconstraints(ver, constraints)
+      if ok then
          return i
       end
    end
