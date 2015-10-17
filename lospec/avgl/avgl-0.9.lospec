@@ -1,5 +1,6 @@
 sdl = assert(requires("sdl ~> 1.2"))
 cairo = assert(requires("cairo ~> 1.14"))
+libXv = requires("libXv)
 
 package = {
 	name = "avgl",
@@ -12,6 +13,9 @@ use "cmake"
 function prepare()
 	sdl:install()
 	cairo:install()
+	if conf["host.system"] ~= "mingw" then
+		libXv:install()
+	end
 	api.download()
 	api.unarch()
 end
@@ -19,9 +23,6 @@ end
 function build()
 	prepare()
 	local cmakeargs = {}
-	if conf["host.system"] ~= "mingw" then
-		cmakeargs.CFLAGS = "-DWITH_X11"
-	end
 	cmake.build(cmakeargs)
 end
 
@@ -32,6 +33,8 @@ function isinstalled()
 	if conf["host.system"] == "mingw" then
 		files.dynamic = "libavgl.dll"
 		files.static = "avgl.dll"
+	else
+		files.dynamic = "avgl"
 	end
 	return api.isinstalled(files)
 end
