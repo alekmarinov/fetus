@@ -1,0 +1,31 @@
+package = {
+	name     = "kbproto",
+	version  = "1.0.6",
+	source   = "$(repo.opensource)/kbproto-1.0.6.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		pc = "kbproto"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end

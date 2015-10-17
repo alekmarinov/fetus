@@ -1,0 +1,36 @@
+util_macros = requires "util-macros"
+xproto = requires "xproto"
+
+package = {
+	name     = "libXau",
+	version  = "1.0.7",
+	source   = "$(repo.opensource)/libXau-1.0.7.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	util_macros:install()
+	xproto:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		pc = "xau"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end

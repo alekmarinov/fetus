@@ -48,7 +48,7 @@ function isinstalled()
 		table.insert(files.static, "gettextlib.dll")
 		table.insert(files.static, "gettextpo.dll")
 		table.insert(files.static, "gettextsrc.dll")
-		files.dynamic = {"libgettextlib-"..package.version.string..".dll", "libgettextsrc-"..package.version.string..".dll", "libgettextpo-0.dll"}
+		files.dynamic = {"libgettextlib-"..table.concat(package.version, "-")..".dll", "libgettextsrc-"..table.concat(package.version, "-")..".dll", "libgettextpo-0.dll"}
 	else
 		files.dynamic = {"gettextlib-"..package.version.string, "gettextsrc-"..package.version.string, "gettextpo"}
 	end

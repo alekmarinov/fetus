@@ -1,3 +1,5 @@
+libXext = requires "libXext"
+
 package = {
 	name = "sdl",
 	version = "1.2.15",
@@ -7,13 +9,19 @@ package = {
 use "autotools"
 
 function prepare()
+	if conf["host.system"] ~= "mingw" then
+		libXext:install()
+	end
 	api.download()
 	api.unarch()
 end
 
 function build()
 	prepare()
-	autotools.configure()
+	autotools.configure(nil, {
+		-- fix X11 detection which is searched in standard paths
+		CC = "gcc -I"..path.install.inc.." -L"..path.install.lib
+	})
 	if conf["build.system"] == "mingw" and conf["host.arch"] == 32 then
 		autotools.make("WINDRES=windres --target=pe-i386")
 	else

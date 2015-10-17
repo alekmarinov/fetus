@@ -1,0 +1,46 @@
+xtrans = requires "xtrans"
+libxcb = requires "libxcb"
+xextproto = requires "xextproto"
+kbproto = requires "kbproto"
+inputproto = requires "inputproto"
+
+package = {
+	name     = "libX11",
+	version  = "1.6.3",
+	source   = "$(repo.opensource)/libX11-1.6.3.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	xtrans:install()
+	libxcb:install()
+	xextproto:install()
+	kbproto:install()
+	inputproto:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure{
+		CFLAGS="-Wno-error=cpp"
+	}
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		h = "X11/Xlib.h",
+		static = "X11",
+		dynamic = "X11"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end

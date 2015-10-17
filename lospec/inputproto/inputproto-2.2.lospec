@@ -1,0 +1,31 @@
+package = {
+	name     = "inputproto",
+	version  = "2.2",
+	source   = "$(repo.opensource)/inputproto-2.2.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		pc = "inputproto"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end

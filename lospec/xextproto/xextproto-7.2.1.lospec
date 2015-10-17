@@ -1,0 +1,31 @@
+package = {
+	name     = "xextproto",
+	version  = "7.2.1",
+	source   = "$(repo.opensource)/xextproto-7.2.1.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		pc = "xextproto"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end

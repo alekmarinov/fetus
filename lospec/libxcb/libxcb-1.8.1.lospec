@@ -1,0 +1,42 @@
+xcb_proto = requires "xcb-proto"
+libpthread_stubs = requires "libpthread-stubs"
+libXau = requires "libXau"
+
+package = {
+	name     = "libxcb",
+	version  = "1.8.1",
+	source   = "$(repo.opensource)/libxcb-1.8.1.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	xcb_proto:install()
+	libpthread_stubs:install()
+	libXau:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure{
+		CFLAGS="-Wcpp"
+	}
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		h = "X11/Xlib-xcb.h",
+		static = "xcb",
+		dynamic = "xcb"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end

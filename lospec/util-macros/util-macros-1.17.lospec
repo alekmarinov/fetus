@@ -1,15 +1,12 @@
-xtrans = requires "xtrans"
-
 package = {
-	name     = "libX11",
-	version  = "1.5.0",
-	source   = "$(repo.opensource)/libX11-1.5.0.tar.bz2"
+	name     = "util-macros",
+	version  = "0.3",
+	source   = "$(repo.opensource)/util-macros-1.17.tar.bz2"
 }
 
 use "autotools"
 
 function prepare()
-	xtrans:install()
 	api.download()
 	api.unarch()
 end
@@ -22,9 +19,7 @@ end
 
 function isinstalled()
 	return api.isinstalled{
-		h = "X11/Xlib.h",
-		static = "X11",
-		dynamic = "X11"
+		pc = "xorg-macros"
 	}
 end
 

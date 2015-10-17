@@ -1,0 +1,36 @@
+libX11 = requires "libX11 >= 1.6"
+videoproto = requires "videoproto"
+
+package = {
+	name     = "libXv",
+	version  = "1.0.7",
+	source   = "$(repo.opensource)/libXv-1.0.7.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	libX11:install()
+	videoproto:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		pc = "xv"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end

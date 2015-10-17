@@ -38,6 +38,10 @@ function autotools.configure(...)
 			end
 		end
 		table.remove(args, 1)
+	elseif not extra then
+		table.remove(args, 1)
+	else
+		assert(type(extra) == "string")
 	end
 	for i, v in pairs(opts) do
 		table.insert(args, i.."="..v)
@@ -45,11 +49,15 @@ function autotools.configure(...)
 
 	local env = api.mkenv{
 		PATH = os.getenv("PATH")..conf["build.pathsep"]..path.install.bin,
-		PKG_CONFIG_PATH = api.makepath(path.install.lib, "pkgconfig")
+		PKG_CONFIG_PATH = api.makepath(path.install.lib, "pkgconfig")..":"..api.makepath(path.install.dir, "share/pkgconfig")
 	}
 	if type(args[1]) == "table" then
 		table.fastcopy(args[1], env)
 		table.remove(args, 1)
+	elseif not args[1] then
+		table.remove(args, 1)
+	else
+		assert(type(args[1]) == "string")
 	end
 	return api.executein(path.src.dir, "sh", env, "configure", "--prefix="..path.install.dir, unpack(args))
 end

@@ -162,6 +162,9 @@ function api.executein(dir, filename, env, ...)
 	assert(not dir or type(dir) == "string", "expected string for argument 1, got "..type(dir))
 	assert(type(filename) == "string", "expected string for argument 2, got "..type(filename))
 	assert(not env or type(env) == "table", "expected table for argument 3, got "..type(env))
+	for i, v in ipairs{...} do
+		assert(type(v) == "string", "expected string for argument "..(i + 3)..", got "..type(v))
+	end
 
 	local cdir = lfs.currentdir()
 	if dir then
@@ -203,6 +206,12 @@ function api.isinstalled(files)
 				local instdir, filex
 				if filetype == "h" then
 					instdir = path.install.inc
+				elseif filetype == "pc" then
+					instdir = {
+						api.makepath(path.install.lib, "pkgconfig"),
+						api.makepath(path.install.dir, "share/pkgconfig")
+					}
+					filex = file..".pc"
 				elseif filetype == "dynamic" then
 					if conf["host.system"] == "mingw" then
 						instdir = path.install.bin
@@ -219,18 +228,26 @@ function api.isinstalled(files)
 				end
 
 				if instdir then
-					local instfile = lfs.concatfilenames(instdir, file)
-					local instfilex
-					if filex then
-						instfilex = lfs.concatfilenames(instdir, filex)
+					if type(instdir) == "string" then
+						instdir = {instdir}
 					end
-					if not (lfs.isfile(file) or lfs.isfile(instfile) or (instfilex and lfs.isfile(instfilex))) then
-						if instfilex then
-							instfile = instfile.." or "..instfilex
+					local any = false
+					for _, instdir in ipairs(instdir) do
+						local instfile = lfs.concatfilenames(instdir, file)
+						local instfilex
+						if filex then
+							instfilex = lfs.concatfilenames(instdir, filex)
 						end
-						log.d(filetype.." file "..file.." or "..instfile.." is not installed")
-						installed = false
+						if not (lfs.isfile(file) or lfs.isfile(instfile) or (instfilex and lfs.isfile(instfilex))) then
+							if instfilex then
+								instfile = instfile.." or "..instfilex
+							end
+							log.d(filetype.." file "..file.." or "..instfile.." is not installed")
+						else
+							any = true
+						end
 					end
+					installed = installed and any
 				else
 					log.w("Unknown file type "..filetype.." for file "..file)
 				end
