@@ -20,9 +20,7 @@ end
 
 function build()
 	prepare()
-	autotools.configure{
-		CFLAGS="-Wcpp"
-	}
+	autotools.configure()
 	autotools.make()
 end
 
