@@ -2,6 +2,7 @@ png = assert(requires("libpng == 1.6.18"))
 pixman = assert(requires("pixman == 0.32.8"))
 freetype = assert(requires("freetype == 2.4.10"))
 pkgconfig = assert(requires("pkg-config == 0.29"))
+libXext = requires("libXext")
 
 package = {
 	name     = "cairo",
@@ -16,6 +17,9 @@ function prepare()
 	pixman:install()
 	freetype:install()
 	pkgconfig:install()
+	if conf["host.system"] ~= "mingw" then
+		libXext:install()
+	end
 	api.download()
 	api.unarch()
 end
