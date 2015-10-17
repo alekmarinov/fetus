@@ -24,9 +24,7 @@ end
 
 function build()
 	prepare()
-	autotools.configure{
-		CFLAGS="-Wno-error=cpp"
-	}
+	autotools.configure()
 	autotools.make()
 end
 
