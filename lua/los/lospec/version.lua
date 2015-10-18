@@ -10,10 +10,12 @@
 --                                                                   --
 -----------------------------------------------------------------------
 
-local _G, assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string =
-      _G, assert, type, tonumber, setmetatable, math, ipairs, pairs, table, string
+local string = require "lrun.util.string"
 
-local print = print
+local _G, assert, type, tonumber, setmetatable, math, ipairs, pairs, table =
+      _G, assert, type, tonumber, setmetatable, math, ipairs, pairs, table
+
+local print=print
 module "los.lospec.version"
 
 local operators = {
@@ -211,6 +213,7 @@ end
 -- is converted to a table in the format
 -- {name = "foo", constraints = {{op = ">=", version={1,0}},
 -- {op = "<", version={2,0}}}}. Version tables use a metatable
+-- string foo@1.0 is interpreted as foo == 1.0
 -- allowing later comparison through relational operators.
 -- @param dep string: A dependency in string format
 -- as entered in rockspec files.
@@ -218,7 +221,7 @@ end
 -- or nil if the input string is invalid.
 function parsedep(dep)
    assert(type(dep) == "string")
-
+   dep = string.gsub(dep, "@", "==")
    local name, rest = dep:match("^%s*([a-zA-Z0-9][a-zA-Z0-9%.%-%_]*)%s*(.*)")
    if not name then return nil, "failed to extract dependency name from '"..tostring(dep).."'" end
    local constraints, err = parseconstraints(rest)

@@ -12,7 +12,7 @@ local lfs        = require "lrun.util.lfs"
 local config     = require "lrun.util.config"
 local string     = require "lrun.util.string"
 local table      = require "lrun.util.table"
-local lospecload = require "los.lospec.loader"
+local loader     = require "los.lospec.loader"
 local version    = require "los.lospec.version"
 
 local _G, ipairs, pairs, type, package, tostring, assert, error =
@@ -38,7 +38,7 @@ requires = function (depstring)
 	end
 
 	-- locates lospec file definition by required dependency description
-	local lospecfile, versionorerr = lospecload.findfile(dep)
+	local lospecfile, versionorerr = loader.findfile(dep)
 	if not lospecfile then
 		_G._log:error(_NAME..": "..(err or "can't find lospec for "..depstring))
 		return nil, versionorerr
@@ -55,7 +55,7 @@ requires = function (depstring)
 	table.insert(requirestack, dep)
 
 	-- loads lospec as module
-	local lomod, err = lospecload.load(lospecfile)
+	local lomod, err = loader.load(lospecfile)
 	if not lomod then
 		_G._log:error(_NAME..": "..err)
 		return nil, err
@@ -65,7 +65,7 @@ requires = function (depstring)
 	lomod.requires = requires
 
 	-- executes los module
-	local ok, err = lospecload.exec(lomod)
+	local ok, err = loader.exec(lomod)
 	if not ok then
 		_G._log:error(_NAME..": "..err)
 		return nil, err

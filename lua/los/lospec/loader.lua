@@ -159,6 +159,27 @@ function parselospecfilename(lospecfile)
 	return lfs.basename(lospecfile):gmatch("(.-)%-(.-)%.lospec")()
 end
 
+-- returns list with all available package names matching specified pattern
+-- @param pattern: string pattern to match against each package name
+function list(pattern)
+	local lospecsdir = config.get(_G._conf, "dir.lospec")
+	if not lfs.isdir(lospecsdir) then
+		return nil, lospecsdir.." doesn't exists"
+	end
+	local lospecfiles = {}
+	for depname in lfs.dir(lospecsdir) do
+		if not pattern or depname:match(pattern) then
+			for lospecfile in lfs.dir(lfs.concatfilenames(lospecsdir, depname)) do
+				if lfs.ext(lospecfile) == ".lospec" and string.starts(lospecfile, depname.."-", 1) then
+					local ver = assert(version.parsefromlospecfile(lospecfile))
+					table.insert(lospecfiles, depname.."@"..ver.string)
+				end
+			end
+		end
+	end
+	return lospecfiles
+end
+
 -- locates lospec file corresponding to specified parsed dependency
 -- returns the full file path to lospec file
 -- @param dep: table representing parsed dependency description

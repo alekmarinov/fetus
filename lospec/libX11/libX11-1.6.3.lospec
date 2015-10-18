@@ -24,7 +24,18 @@ end
 
 function build()
 	prepare()
-	autotools.configure()
+	local confargs = {}
+	if conf["build.system"] == "mingw" then
+		-- fixes BOOL type redefinition error
+		confargs.CFLAGS = "-D_NO_BOOL_TYPEDEF"
+	end
+	autotools.configure(confargs)
+	if conf["build.system"] == "mingw" then
+		-- fixes sed error
+		api.gsubfile(api.makepath(path.src.dir, "nls/Makefile"), "%-e '/\\@\\@$$/s/\\@\\@$$/\\\\/'", "")
+		-- man install fails, skipping
+		api.catfile(api.makepath(path.src.dir, "man/Makefile"), "all install:")
+	end
 	autotools.make()
 end
 

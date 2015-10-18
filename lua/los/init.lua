@@ -18,6 +18,7 @@ local string      = require "lrun.util.string"
 local table       = require "lrun.util.table"
 local requires    = require "los.requires"
 local rollback    = require "los.rollback"
+local loader      = require "los.lospec.loader"
 
 local los = {}
 
@@ -49,7 +50,8 @@ local longopts = {
 	quiet   = "q",
 	define  = "D",
 	config  = "c",
-	["config-dump"] = 0
+	["config-dump"] = 0,
+	["config-get"] = 1
 }
 
 local shortopts = "vhqD:c:"
@@ -80,6 +82,8 @@ end
 
 function createlogger(opts)
 	local logger = logging.console("[%level] %message\n")
+	-- avoid output "changing loglevel from DEBUG to FATAL"
+	logger.level = nil
 	if not opts.v then
 		if opts.q then
 			logger:setLevel(logging.FATAL)
@@ -144,6 +148,11 @@ function los.main(losdir, ...)
 		print()
 	end
 
+	if opts["config-get"] then
+		print(config.get(_conf, opts["config-get"]))
+		os.exit(0)
+	end
+
 	args = { select(cmdidx, unpack(args)) }
 
 	local command = table.remove(args, 1)
@@ -151,6 +160,14 @@ function los.main(losdir, ...)
 		usage("Missing COMMAND parameter")
 	end
 	command = command:lower()
+
+	if command == "list" then
+		for _, name in ipairs(loader.list(args[1])) do
+			print(name)
+		end
+		os.exit(0)
+	end
+
 	_log:info(los._NAME.." started with `"..command.." "..table.concat(args, " ").."'")
 
 	if #args == 0 then

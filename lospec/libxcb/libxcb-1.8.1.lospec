@@ -38,11 +38,13 @@ end
 
 function isinstalled()
 	local files = {
-		h = "X11/Xlib-xcb.h",
+		h = "xcb/xcb.h",
 		static = "xcb",
-		dynamic = "xcb"
 	}
 	if conf["host.system"] == "mingw" then
+		files.dynamic = "libxcb-1"
+	else
+		dynamic = "xcb"
 	end
 	return api.isinstalled(files)
 end
