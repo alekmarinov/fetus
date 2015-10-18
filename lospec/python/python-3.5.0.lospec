@@ -1,15 +1,12 @@
-python = requires "python"
-
 package = {
-	name     = "xcb-proto",
-	version  = "1.7.1",
-	source   = "$(repo.opensource)/xcb-proto-1.7.1.tar.bz2"
+	name     = "python",
+	version  = "3.5.0",
+	source   = "$(repo.opensource)/Python-3.5.0.tar.xz"
 }
 
 use "autotools"
 
 function prepare()
-	python:install()
 	api.download()
 	api.unarch()
 end
@@ -22,16 +19,18 @@ end
 
 function isinstalled()
 	return api.isinstalled{
-		pc = "xcb-proto"
+		pc = "python3",
+		exec = "python3"
 	}
 end
 
 function install()
 	if not isinstalled() then
-		build()
 		if conf["build.system"] == "mingw" then
-			api.gsubfile(api.makepath(path.src.dir, "xcbgen/Makefile"), "\\Lib\\", "/lib/")
+			log.e("python install is not supported under mingw")
+		else
+			build()
+			autotools.make("install")
 		end
-		autotools.make("install")
 	end
 end

@@ -1,0 +1,43 @@
+package = {
+	name     = "libxml",
+	version  = "2.9.2",
+	source   = "$(repo.opensource)/libxml2-sources-2.9.2.tar.gz",
+	archdir = "libxml2-2.9.2"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	local confargs = {}
+	autotools.configure({
+		-- fix to find zlib
+		CC = "gcc -I"..path.install.inc.." -L"..path.install.lib,
+	}, "--without-python")
+	autotools.make()
+end
+
+function isinstalled()
+	local files = {
+		h = "libxml2/libxml/SAX2.h",
+		pc = "libxml-2.0",
+		static = {"xml2"}
+	}
+	if conf["build.system"] == "mingw" then
+		files.dynamic = "libxml2-2"
+		table.insert(files.static, "xml2.dll")
+	end
+	return api.isinstalled(files)
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end

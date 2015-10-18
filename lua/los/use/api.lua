@@ -232,6 +232,7 @@ function api.isinstalled(files)
 						instdir = {instdir}
 					end
 					local any = false
+					local missing = {}
 					for _, instdir in ipairs(instdir) do
 						local instfile = lfs.concatfilenames(instdir, file)
 						local instfilex
@@ -242,10 +243,13 @@ function api.isinstalled(files)
 							if instfilex then
 								instfile = instfile.." or "..instfilex
 							end
-							log.d(filetype.." file "..file.." or "..instfile.." is not installed")
+							table.insert(missing, filetype.." file "..file.." or "..instfile.." is not installed")
 						else
 							any = true
 						end
+					end
+					if not any then
+						log.d(table.concat(missing, "\n"))
 					end
 					installed = installed and any
 				else

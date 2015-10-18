@@ -1,3 +1,4 @@
+pkg_config = requires "pkg-config"
 util_macros = requires "util-macros"
 xproto = requires "xproto"
 
@@ -10,6 +11,7 @@ package = {
 use "autotools"
 
 function prepare()
+	pkg_config:install()
 	util_macros:install()
 	xproto:install()
 	api.download()

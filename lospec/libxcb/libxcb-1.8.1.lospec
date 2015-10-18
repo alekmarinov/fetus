@@ -1,6 +1,8 @@
+libxslt = requires "libxslt"
 xcb_proto = requires "xcb-proto"
 libpthread_stubs = requires "libpthread-stubs"
 libXau = requires "libXau"
+pthreads = requires "pthreads"
 
 package = {
 	name     = "libxcb",
@@ -11,30 +13,44 @@ package = {
 use "autotools"
 
 function prepare()
+	libxslt:install()
 	xcb_proto:install()
 	libpthread_stubs:install()
 	libXau:install()
+	pthreads:install()
 	api.download()
 	api.unarch()
 end
 
 function build()
 	prepare()
-	autotools.configure()
+	if conf["build.system"] == "mingw" then
+		-- pthreads is statically linking in mingw
+		autotools.configure{LIBS = "-L"..path.install.lib.." -lpthreadGC2 -lws2_32", CFLAGS = "-DPTW32_STATIC_LIB"}
+		api.gsubfile(api.makepath(path.src.dir, "src/Makefile"),
+			{"Libsite%-packages", "/lib/site-packages"}
+		)
+	else
+		autotools.configure()
+	end
 	autotools.make()
 end
 
 function isinstalled()
-	return api.isinstalled{
+	local files = {
 		h = "X11/Xlib-xcb.h",
 		static = "xcb",
 		dynamic = "xcb"
 	}
+	if conf["host.system"] == "mingw" then
+	end
+	return api.isinstalled(files)
 end
 
 function install()
 	if not isinstalled() then
 		build()
 		autotools.make("install")
+		assert(isinstalled(), "something wrong after libxcb install")
 	end
 end

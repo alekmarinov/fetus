@@ -12,12 +12,14 @@
 
 local autotools = {}
 
-function autotools.envmake(target, env, ...)
-	return api.executein(path.src.dir, conf["build.make"], env, target, ...)
-end
-
-function autotools.make(target, ...)
-	return autotools.envmake(target, nil, ...)
+function autotools.make(...)
+	local args = {...}
+	local env
+	if type(args[1]) == "table" then
+		env = api.mkenv(args[1])
+		table.remove(args, 1)
+	end
+	return api.executein(path.src.dir, conf["build.make"], env, unpack(args))
 end
 
 function autotools.configure(...)

@@ -26,10 +26,19 @@ set PATH and LUA_PATH environment vars by calling losvars.cmd from los root dire
 
 luarocks install los
 
+-- Install for Windows/msys64
+
+Install msys2-x86_64-20150916.exe to c:\msys64
+run c:\msys64\msys2_shell.bat
+$pacman --needed -Sy bash pacman pacman-mirrors msys2-runtime
+restart msys2_shell.bat
+$pacman -Su
+pacman -S git unzip tar patch make mingw-w64-i686-toolchain mingw-w64-x86_64-toolchain 
+
 -- Install for Linux
 
 Prepare the following requsites:
-curl, which, sh, readlink, unzip, bzip2, tar, patch, gcc, gcc-c++, libgcc.i686, glibc-devel.i686, xsltproc (libxslt), cmake, lua 5.1, python
+curl, which, sh, readlink, unzip, bzip2, tar, patch, gcc, gcc-c++, libgcc.i686, glibc-devel.i686, cmake, lua-5.1
 
 Note: You may need to install lua 5.1 from source:
 install readline development package

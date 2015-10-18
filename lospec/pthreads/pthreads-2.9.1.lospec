@@ -7,16 +7,6 @@ package = {
 	}
 }
 
-local function make(...)
-	local args = {}
-	for _, v in ipairs{"VERBOSE=1", ...} do
-		table.insert(args, "\""..v.."\"")
-	end
-	local cmd = conf["build.make"].." "..table.concat(args, " ")
-	log.i(cmd)
-	return lfs.executein(path.src.dir, cmd)
-end
-
 function prepare()
 	if conf["host.system"] == "mingw" then
 		api.download()
@@ -27,8 +17,30 @@ end
 function build()
 	prepare()
 	if conf["host.system"] == "mingw" then
-		make("GC")
-		lfs.executein(path.src.dir, "dlltool", "-d", "pthread.def", "-l", "libpthreadGC2.dll.a")
+		-- make
+		local makeargs = {
+			"GC"
+		}
+		if api.isarch32(conf["host.arch"]) then
+			table.insert(makeargs, "CC=gcc -m32")
+			table.insert(makeargs, "RC=windres --target=pe-i386")
+			table.insert(makeargs, "DLLTOOL=dlltool --as-flags=--32 -m i386:x86-64")
+		end
+		api.executein(
+			path.src.dir,
+			conf["build.make"],
+			nil,
+			unpack(makeargs)
+		)
+		local dlltoolargs = {}
+		if api.isarch32(conf["host.arch"]) then
+			dlltoolargs = {
+				"--as-flags=--32",
+				"-m",
+				"i386:x86-64"
+			}
+		end
+		lfs.executein(path.src.dir, "dlltool", "-d", "pthread.def", "-l", "libpthreadGC2.dll.a", unpack(dlltoolargs))
 	end
 end
 

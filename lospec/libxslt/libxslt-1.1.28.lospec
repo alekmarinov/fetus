@@ -1,0 +1,50 @@
+libxml = requires "libxml"
+
+package = {
+	name     = "libxslt",
+	version  = "1.1.28",
+	source   = "$(repo.opensource)/libxslt-1.1.28.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	libxml:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	local confargs = {}
+	autotools.configure("--without-python")
+	if conf["host.system"] == "mingw" then
+		api.gsubfile(api.makepath(path.src.dir, "libxslt/security.c"),
+			"mkdir%(directory, 0755%)", "mkdir(directory)")
+	end
+	
+	autotools.make()
+end
+
+function isinstalled()
+	local files = {
+		h = "libxslt/xslt.h",
+		exec = "xsltproc",
+		pc = "libxslt",
+		static = {"xslt"}
+	}
+	if conf["host.system"] == "mingw" then
+		files.dynamic = "libxslt-1"
+		table.insert(files.static, "xslt.dll")
+	else
+		files.dynamic = "xslt"
+	end
+	return api.isinstalled(files)
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+	end
+end
