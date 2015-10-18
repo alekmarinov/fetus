@@ -9,6 +9,7 @@
 ##																##
 ##################################################################
 
+STATUS=0
 DIR_INSTALL=$(los --config-get dir.install)
 mkdir -p $DIR_INSTALL
 los list | while read name
@@ -20,5 +21,7 @@ do
 		echo "OK"
 	else
 		echo "FAILED"
+		STATUS=1
 	fi
 done
+exit $STATUS
