@@ -45,11 +45,15 @@ function build()
 end
 
 function isinstalled()
-	return api.isinstalled{
-		h = "pthread.h",
-		static = {"pthreadGC2"},
-		dynamic = "pthreadGC2"
-	}
+	if conf["host.system"] == "mingw" then
+		return api.isinstalled{
+			h = "pthread.h",
+			static = {"pthreadGC2"},
+			dynamic = "pthreadGC2"
+		}
+	else
+		return true
+	end
 end
 
 function install()
