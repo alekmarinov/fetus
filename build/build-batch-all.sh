@@ -16,9 +16,8 @@ cat list.test | while read name
 do
 	dirname=$(echo $name | sed -e "s/@/_/")
 	dir_install=$DIR_INSTALL/$dirname
-	echo -n "Regenerating $name..."
-
-	echo los -Ddir.install=$dir_install install $name > $DIR_INSTALL/$name.log 2>&1
+	echo "Regenerating $name..."
+	los -Ddir.install=$dir_install install $name > $DIR_INSTALL/$name.log 2>&1
 	if [[ $? == 0 ]]; then
 		echo "OK"
 	else
