@@ -12,7 +12,7 @@
 STATUS=0
 DIR_INSTALL=$(los --config-get dir.install)
 mkdir -p $DIR_INSTALL
-cat list.test | while read name
+los list | while read name
 do
 	dirname=$(echo $name | sed -e "s/@/_/")
 	dir_install=$DIR_INSTALL/$dirname
