@@ -9,20 +9,4 @@
 ##																##
 ##################################################################
 
-STATUS=0
-DIR_INSTALL=$(los --config-get dir.install)
-mkdir -p $DIR_INSTALL
-los list | while read name
-do
-	dirname=$(echo $name | sed -e "s/@/_/")
-	dir_install=$DIR_INSTALL/$dirname
-	echo "Regenerating $name..."
-	los -Ddir.install=$dir_install install $name > $DIR_INSTALL/$name.log 2>&1
-	if [[ $? == 0 ]]; then
-		echo "OK"
-	else
-		echo "FAILED"
-		STATUS=1
-	fi
-done
-exit $STATUS
+los -q -e build_batch_all.lua
