@@ -236,10 +236,13 @@ echo "CMAKE_PACKAGE=$CMAKE_PACKAGE"
 echo "LUA_EX_API_NAME=$LUA_EX_API_NAME"
 echo "LUA_EX_API_PACKAGE=$LUA_EX_API_PACKAGE"
 
-#ZLIB_NAME="zlib-1.2.8"
-#ZLIB_PACKAGE="zlib128.zip"
-#ZZIPLIB_NAME="zziplib-0.13.62"
-#ZZIPLIB_PACKAGE="$ZZIPLIB_NAME.tar.bz2"
+if [[ "$WINDIR" != "" ]]; then
+	LUAROCKS_BIN=$LUAROCKS_ROOT/2.2
+	LUAROCKS_LUA=$LUAROCKS_ROOT/2.2/lua
+else
+	LUAROCKS_BIN=$LUAROCKS_ROOT/bin
+	LUAROCKS_LUA=$LUAROCKS_ROOT/share/lua/5.1
+fi
 
 echo "Prepare bootstrap in $LOS_ROOT"
 
@@ -272,20 +275,16 @@ fi
 
 # locate and test tar
 check_program tar
-tar --help > /dev/null
-check_status "tar execution test failed"
 
 # locate and test patch
 check_program patch
-patch --help > /dev/null
-check_status "patch execution test failed"
 
 # cleanup installation dir
 mkdir -p $LOS_ROOT
 check_status "creating directory $LOS_ROOT"
 
 # cleanup polluted luarocks files from previous installs
-rm -rf $LOS_ROOT/{$LUAROCKS_PACKAGE,$LUAROCKS_NAME,$LUAROCKS_ROOT}
+rm -rf $LOS_ROOT/$LUAROCKS_PACKAGE $LOS_ROOT/$LUAROCKS_NAME $LOS_ROOT/$LUAROCKS_ROOT
 
 # download luarocks
 download_file "$URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE" "$LOS_ROOT/$LUAROCKS_PACKAGE"
@@ -333,6 +332,10 @@ if [[ "$WINDIR" == "" ]]; then
 	info "install $LOS_ROOT/$LUAROCKS_NAME"
 	make install > /dev/null
 	check_status "installing luarocks"
+
+	# remove --tries=1 from wget params to satisfy wget from busybox
+	sed -i "s/\.\.\" --tries=1 \"//" $LUAROCKS_LUA/luarocks/fs/unix/tools.lua
+	sed -i "s/ok = fs\.execute_quiet(wget_cmd\.\.\" --timestamping \", url)/fs\.delete(filename) ok = fs\.execute_quiet(wget_cmd, url)/" $LUAROCKS_LUA/luarocks/fs/unix/tools.lua
 else
 	# start luarocks installer with the installed lua
 	LUA_DIR=$(dirname $(dirname $($COMSPEC /c "which lua")))
@@ -345,14 +348,14 @@ else
 	sed -i "s/LUALIB = .*/LUALIB = '-llua',\n    LUA_LIBDIR = '',/" $LUAROCKS_ROOT/config.lua
 
 	# patch cfg.lua getting rid of hardcoded path c:/external/
-	sed -i "s/\"c:\/external\/\"/\"$(echo $EXT_DIR | sed -e 's/\\\\/\\\//g')\"/" $LUAROCKS_ROOT/2.2/lua/luarocks/cfg.lua
+	sed -i "s/\"c:\/external\/\"/\"$(echo $EXT_DIR | sed -e 's/\\\\/\\\//g')\"/" $LUAROCKS_LUA/luarocks/cfg.lua
 	EXT_DIR=$(echo $EXT_DIR | sed -e 's/\\\\/\//g')
 
 	# install cmake for windows
 	if [ -f $EXT_DIR/bin/cmake.exe ]; then
 		info "$CMAKE_NAME is already installed in $EXT_DIR"
 	else
-		rm -rf $LOS_ROOT/{$CMAKE_PACKAGE,$CMAKE_NAME}
+		rm -rf $LOS_ROOT/$CMAKE_PACKAGE $LOS_ROOT/$CMAKE_NAME
 		download_file "$URL_REPO_OPENSOURCE/$CMAKE_PACKAGE" "$LOS_ROOT/$CMAKE_PACKAGE"
 		check_status "downloading $URL_REPO_OPENSOURCE/$CMAKE_PACKAGE"
 		info "extracting $CMAKE_NAME..."
@@ -360,57 +363,8 @@ else
 		info "installing $CMAKE_NAME to $EXT_DIR..."
 		cp -rf --remove-destination $(makeunixpath $LOS_ROOT/$CMAKE_NAME/*) $EXT_DIR
 		check_program cmake
-		rm -rf $LOS_ROOT/{$CMAKE_PACKAGE,$CMAKE_NAME}
+		rm -rf $LOS_ROOT/$CMAKE_PACKAGE $LOS_ROOT/$CMAKE_NAME
 	fi
-
-	# build zlib for mingw32
-
-	#if [ -f $EXT_DIR/lib/libz.dll.a ]; then
-	#	info "$ZLIB_NAME is already installed in $EXT_DIR"
-	#else
-		# cleanup polluted files from previous installs
-	#	rm -rf $LOS_ROOT/{build,$ZLIB_NAME,$ZLIB_PACKAGE}
-
-	#	download_file "$URL_REPO_OPENSOURCE/$ZLIB_PACKAGE" "$LOS_ROOT/$ZLIB_PACKAGE"
-	#	check_status "downloading $URL_REPO_OPENSOURCE/$ZLIB_PACKAGE"
-	#	unzip $LOS_ROOT/$ZLIB_PACKAGE -d $LOS_ROOT
-	#	cd "$LOS_ROOT/$ZLIB_NAME"
-
-	#	# skip stripping zlib1.dll since it is losing symbol information for the nm utility
-	#	sed -i "s/\$(STRIP) \$@//g" win32/Makefile.gcc
-
-	#	mingw32-make zlib1.dll RCFLAGS="-DGCC_WINDRES --output-format=coff --target=pe-i386" "LDFLAGS=-m32" "CFLAGS=-DZLIB_DLL -m32" -f win32/Makefile.gcc
-	#	check_status "make $ZLIB_NAME"
-	#	mingw32-make INCLUDE_PATH=$EXT_DIR/include LIBRARY_PATH=$EXT_DIR/lib BINARY_PATH=$EXT_DIR/bin -f win32/Makefile.gcc install SHARED_MODE=1
-	#	check_status "make install $ZLIB_NAME"
-	#fi
-
-	# build zziplib for mingw32
-	#if [ -f $EXT_DIR/lib/libzzip.a ]; then
-	#	info "$ZZIPLIB_NAME is already installed in $EXT_DIR"
-	#else
-		# cleanup polluted files from previous installs
-	#	rm -rf $LOS_ROOT/{build,$ZZIPLIB_NAME,$ZZIPLIB_PACKAGE}
-
-	#	download_file "$URL_REPO_OPENSOURCE/$ZZIPLIB_PACKAGE" "$LOS_ROOT/$ZZIPLIB_PACKAGE"
-	#	check_status "downloading $URL_REPO_OPENSOURCE/$ZZIPLIB_PACKAGE"
-	#	tar xfj $LOS_ROOT/$ZZIPLIB_PACKAGE -C $LOS_ROOT
-	#	mkdir -p "$LOS_ROOT/build"
-	#	cd "$LOS_ROOT/build"
-	#	sh ../$ZZIPLIB_NAME/configure CFLAGS=-m32 LDFLAGS=-m32 --disable-mmap --disable-builddir --prefix=$EXT_DIR
-	#	check_status "configure $ZZIPLIB_NAME"
-		# only the lib is needed to provide
-	#	sed -i "s/^SUBDIRS = .*/SUBDIRS = zzip/" Makefile
-	#	mingw32-make
-	#	check_status "make $ZZIPLIB_NAME"
-
-	#	mingw32-make install
-	#	check_status "make install $ZZIPLIB_NAME"
-	#	cd $LOS_ROOT
-
-		# zzip sources are no longer needed, cleaning up
-	#	rm -rf $LOS_ROOT/{build,$ZZIPLIB_NAME,$ZZIPLIB_PACKAGE}
-	#fi
 fi
 
 cd $LOS_ROOT
@@ -419,24 +373,19 @@ rm -rf $LOS_ROOT/$LUAROCKS_NAME
 # check luarocks config
 expect_file $LUAROCKS_CONFIG_LUA
 
-if [[ "$WINDIR" != "" ]]; then
-	LUAROCKS_BIN=$LUAROCKS_ROOT/2.2
-	LUAROCKS_LUA=$LUAROCKS_ROOT/2.2/lua
-else
-	LUAROCKS_BIN=$LUAROCKS_ROOT/bin
-	LUAROCKS_LUA=$LUAROCKS_ROOT/share/lua/5.1
-fi
-
 # configure luarocks repository
 info "set luarocks server to $URL_REPO_ROCKS"
 echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
 check_status "Editing $LUAROCKS_CONFIG_LUA"
 
+sed -i "s/https/http/" $LUAROCKS_CONFIG_LUA
+check_status "Patching $LUAROCKS_CONFIG_LUA"
+
 echo -e "luarocks installation finished."
 
 # installing lua-ex-api
 
-rm -rf $LOS_ROOT/{$LUA_EX_API_PACKAGE,$LUA_EX_API_NAME}
+rm -rf $LOS_ROOT/$LUA_EX_API_PACKAGE $LOS_ROOT/$LUA_EX_API_NAME
 download_file "$URL_REPO_OPENSOURCE/$LUA_EX_API_PACKAGE" "$LOS_ROOT/$LUA_EX_API_PACKAGE"
 check_status "downloading $URL_REPO_OPENSOURCE/$LUA_EX_API_PACKAGE"
 info "extracting $LUA_EX_API_NAME..."
@@ -455,12 +404,12 @@ if [[ "$WINDIR" != "" ]]; then
 	[ -f $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll ] || die "Failed compiling ex.dll"
 	cp $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll $LUAROCKS_TREE_DIR/lib/lua/5.1
 else
-	CC=gcc make linux CFLAGS=-fpic
+	CC="gcc -m32" make linux "CFLAGS=-fpic -I/include" "LDFLAGS=-L/lib"
 	[ -f $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so ] || die "Failed compiling ex.so"
 	cp $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so $LUAROCKS_TREE_DIR/lib/lua/5.1
 fi
 cd $LOS_ROOT
-rm -rf $LOS_ROOT/{$LUA_EX_API_PACKAGE,$LUA_EX_API_NAME}
+rm -rf $LOS_ROOT/$LUA_EX_API_PACKAGE $LOS_ROOT/$LUA_EX_API_NAME
 
 # create los-local.conf
 mkdir -p "$(dirname $LOCAL_CONF)"

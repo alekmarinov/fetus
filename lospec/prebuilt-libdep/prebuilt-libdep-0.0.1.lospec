@@ -15,5 +15,5 @@ end
 
 function install()
 	prepare()
-	api.copy(api.makepathdir(path.src.dir, lfs.cpuarch().."-libdep"), path.install.dir)
+	api.copy(api.makepathdir(path.src.dir, conf["host.arch"].."-libdep"), path.install.dir)
 end

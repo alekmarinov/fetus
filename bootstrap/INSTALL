@@ -38,7 +38,7 @@ pacman -S git unzip tar patch make mingw-w64-i686-toolchain mingw-w64-x86_64-too
 -- Install for Linux
 
 Prepare the following requsites:
-curl, which, sh, readlink, unzip, bzip2, tar, patch, gcc, gcc-c++, libgcc.i686, glibc-devel.i686, cmake, lua-5.1
+curl, which, sh, readlink, unzip, bzip2, xz, tar, patch, gcc, gcc-c++, libgcc.i686, glibc-devel.i686, cmake, lua-5.1
 
 Note: You may need to install lua 5.1 from source:
 install readline development package
