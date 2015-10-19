@@ -15,11 +15,30 @@ function prepare()
 	api.unarch()
 end
 
-function install()
+function build()
 	prepare()
+	if conf["build.system"] ~= "mingw" then
+		lfs.executein(path.src.dir, "sh", "configure", "--prefix="..path.install.dir)
+		lfs.executein(path.src.dir, "make")
+	end
+end
+
+function isinstalled()
 	if conf["build.system"] == "mingw" then
-		lfs.executein(path.src.dir, path.install.bin.."/lua", "install.bat", "/NOADMIN", "/LUA", path.install.dir)
+		return api.isinstalled{exec = "../2.2/luarocks.bat"}
 	else
-		error(conf["build.system"].." is not configured yet")
+		return api.isinstalled{exec = "luarocks"}
+	end
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		if conf["build.system"] == "mingw" then
+			api.executein(path.src.dir, path.install.bin.."/lua", nil, "install.bat", "/Q", "/F", "/NOADMIN", "/LUA", path.install.dir, "/P", path.install.dir)
+		else
+			api.executein(path.src.dir, "make", nil, "install")
+		end
+		assert(isinstalled(), "something wrong after luarocks install")
 	end
 end
