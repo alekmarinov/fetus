@@ -8,4 +8,5 @@ package = {
 use("autotools")
 
 function install()
+	error("not supported yet")
 end
