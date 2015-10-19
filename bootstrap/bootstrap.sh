@@ -404,7 +404,7 @@ if [[ "$WINDIR" != "" ]]; then
 	[ -f $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll ] || die "Failed compiling ex.dll"
 	cp $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll $LUAROCKS_TREE_DIR/lib/lua/5.1
 else
-	CC="gcc -m32" make linux "CFLAGS=-fpic -I/include" "LDFLAGS=-L/lib"
+	CC="gcc" make linux "CFLAGS=-fpic -I/include" "LDFLAGS=-L/lib"
 	[ -f $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so ] || die "Failed compiling ex.so"
 	cp $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so $LUAROCKS_TREE_DIR/lib/lua/5.1
 fi
