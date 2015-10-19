@@ -1,6 +1,6 @@
 sdl = assert(requires("sdl ~> 1.2"))
 cairo = assert(requires("cairo ~> 1.14"))
-libXv = requires("libXv)
+libXv = requires("libXv")
 
 package = {
 	name = "avgl",

@@ -1,3 +1,9 @@
+
+package = {
+	name = "prebuilt-all",
+	version = "0.0.1"
+}
+
 function install()
 	assert(requires("linux-minifs")):install()
 	assert(requires("prebuilt-busybox")):install()

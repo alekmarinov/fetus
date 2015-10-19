@@ -9,4 +9,4 @@
 ##																##
 ##################################################################
 
-los -q -e build_batch_all.lua
+los -q -e $(dirname $(readlink -f $0))/build_batch_all.lua

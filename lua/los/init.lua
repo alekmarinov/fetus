@@ -16,11 +16,9 @@ local lfs         = require "lrun.util.lfs"
 local config      = require "lrun.util.config"
 local string      = require "lrun.util.string"
 local table       = require "lrun.util.table"
-local requires    = require "los.requires"
 local rollback    = require "los.rollback"
 local loader      = require "los.lospec.loader"
-
-local los = {}
+require "los.requires"
 
 los._NAME = "los"
 los._VERSION = "0.1"
@@ -50,11 +48,12 @@ local longopts = {
 	quiet   = "q",
 	define  = "D",
 	config  = "c",
+	execute = "e",
 	["config-dump"] = 0,
 	["config-get"] = 1
 }
 
-local shortopts = "vhqD:c:"
+local shortopts = "vhqD:c:e:"
 
 --- exit with usage information when the application arguments are wrong
 local function usage(errmsg)
@@ -74,7 +73,7 @@ local function exiterror(errmsg)
 end
 
 --- exit with success
-local function success()
+local function exitsuccess()
 	io.stderr:write("SUCCESS!\n")
 	rollback.execute()
 	os.exit(0)
@@ -151,6 +150,25 @@ function los.main(losdir, ...)
 	if opts["config-get"] then
 		print(config.get(_conf, opts["config-get"]))
 		os.exit(0)
+	elseif opts.e then
+		local chunk, err
+		if lfs.isfile(opts.e) then
+			chunk, err = loadfile(opts.e)
+		else
+			chunk, err = load(function() local temp = opts.e opts.e = nil return temp end)
+		end
+		if not chunk then
+			exiterror(err)
+		else
+			setfenv(chunk, _G)
+			_, ok, err = xpcall(function()
+				chunk()
+			end, function(err) exiterror(debug.traceback(err, 2)) end)
+			if not ok and err then
+				exiterror(err)
+			end
+			os.exit(0)
+		end
 	end
 
 	args = { select(cmdidx, unpack(args)) }
@@ -174,7 +192,7 @@ function los.main(losdir, ...)
 		exiterror("package [version] argument is missing")
 	end
 
-	local lomod, err = requires(unpack(args))
+	local lomod, err = los.requires(unpack(args))
 	if not lomod then
 		exiterror(err)
 	end
@@ -184,14 +202,14 @@ function los.main(losdir, ...)
 	end
 
 	_, ok, err = xpcall(function()
-		local ok, err = lomod[command](lomod)
+		lomod[command](lomod)
 	end, function(err) exiterror(debug.traceback(err, 2)) end)
 
 	if not ok and err then
 		exiterror(err)
 	end
 
-	return success()
+	exitsuccess()
 end
 
 return los

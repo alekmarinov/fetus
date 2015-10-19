@@ -1,7 +1,14 @@
-requires("gmp", "4.3.2"):install()
-requires("mpfr", "2.4.2"):install()
-requires("mpc", "0.8.1"):install()
+requires "gmp == 4.3.2"
+requires "mpfr == 2.4.2"
+requires "mpc == 0.8.1"
 
-version="4.7.1"
-source="http://gcc.igor.onlinedirect.bg/releases/gcc-"..version.."/gcc-"..version..".tar.bz2"
+package = {
+	name    = "gcc",
+	version ="4.7.1",
+	source  ="http://gcc.igor.onlinedirect.bg/releases/gcc-4.7.1/gcc-4.7.1.tar.bz2"
+}
+
 use("autotools")
+
+function install()
+end

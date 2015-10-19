@@ -20,8 +20,8 @@ local package    = require "los.lospec.package"
 local md5        = require "md5"
 require "ex"
 
-local _G, assert, setfenv, loadfile, ipairs, pairs, unpack, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io, os =
-	  _G, assert, setfenv, loadfile, ipairs, pairs, unpack, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io, os
+local _G, assert, setfenv, ipairs, pairs, unpack, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io, os =
+	  _G, assert, setfenv, ipairs, pairs, unpack, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io, os
 
 local loaders = _G.package.loaders
 
@@ -220,13 +220,13 @@ function findfile(dep)
 end
 
 -- loads lospec file
-function load(lospecfile)
+function loadfile(lospecfile)
 	-- prepare environment
 	local lomod = {
 		lospecfile = lospecfile
 	}
 
-	_G._log:info(_NAME..": .load: "..lospecfile)
+	_G._log:info(_NAME..": .loadfile: "..lospecfile)
 
 	local function importfunc(name, func)
 		lomod[name] = func
@@ -260,6 +260,22 @@ function load(lospecfile)
 	setmetatable(lomod, lomod_mt)
 
 	return lomod
+end
+
+function load(depstring)
+	_G._log:info(_NAME..": .load: "..depstring)
+
+	local dep, err = version.parsedep(depstring)
+	if not dep then
+		_G._log:error(_NAME..": "..(err or "can't parse "..depstring))
+		return nil, err
+	end
+
+	local file, err = findfile(dep)
+	if not file then
+		return nil, err
+	end
+	return loadfile(file)
 end
 
 -- executes los module

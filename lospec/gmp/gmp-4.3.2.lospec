@@ -1,8 +1,10 @@
-version  = "4.3.2"
-source   = "http://gcc.igor.onlinedirect.bg/infrastructure/gmp-"..version..".tar.bz2"
+package = {
+	name     = "gmp",
+	version  = "4.3.2",
+	source   = "http://gcc.igor.onlinedirect.bg/infrastructure/gmp-4.3.2.tar.bz2"
+}
 
 use "autotools"
 
-function buildafter()
-	make "check"
+function install()
 end

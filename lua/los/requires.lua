@@ -21,15 +21,14 @@ local _G, ipairs, pairs, type, package, tostring, assert, error =
 -- debug
 local print = print
 
-module "los.requires"
+module "los"
 
 local requirestack = {}
 
 -- loads los module specified by dependency description
 -- returns the loaded module as a table and its environment
 -- @param depstring: string representation of dependency, e.g. "foo >= 1.2, foo < 2"
-local requires
-requires = function (depstring)
+function requires(depstring)
 	_G._log:info(_NAME..": "..depstring)
 	local dep, err = version.parsedep(depstring)
 	if not dep then
@@ -55,7 +54,7 @@ requires = function (depstring)
 	table.insert(requirestack, dep)
 
 	-- loads lospec as module
-	local lomod, err = loader.load(lospecfile)
+	local lomod, err = loader.loadfile(lospecfile)
 	if not lomod then
 		_G._log:error(_NAME..": "..err)
 		return nil, err
@@ -77,4 +76,3 @@ requires = function (depstring)
 	return lomod
 end
 
-return requires
