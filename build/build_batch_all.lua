@@ -1,13 +1,19 @@
 loader = require "los.lospec.loader"
+events = require "los.events"
 require "los.requires"
+
+rebuild_packages = {"gettext"}
+
+events.register("requires", function(mod)
+	if lrun.util.table.indexof(rebuild_packages, mod.package.name) then
+		mod.lfs.delete(mod.path.src.dir)
+	end
+end)
 
 for _, name in ipairs(los.lospec.loader.list()) do
 	local mod = assert(los.requires(name))
 	print(string.format("install %s...", name))
 	io.stdout:flush()
-	if mod.package.name == "gettext" then
-		mod.lfs.delete(mod.path.src.dir)
-	end
 	local instdir = mod.path.install.dir
 	lfs.mkdir(instdir)
 	local prefix = mod.api.makepath(instdir, name)

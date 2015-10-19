@@ -30,6 +30,7 @@ build = {
    modules = {
       ["los.init"] = "lua/los/init.lua",
       ["los.requires"] = "lua/los/requires.lua",
+      ["los.events"] = "lua/los/events.lua",
       ["los.lospec.loader"] = "lua/los/lospec/loader.lua",
       ["los.lospec.package"] = "lua/los/lospec/package.lua",
       ["los.lospec.version"] = "lua/los/lospec/version.lua",

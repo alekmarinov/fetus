@@ -14,6 +14,7 @@ local string     = require "lrun.util.string"
 local table      = require "lrun.util.table"
 local loader     = require "los.lospec.loader"
 local version    = require "los.lospec.version"
+local events     = require "los.events"
 
 local _G, ipairs, pairs, type, package, tostring, assert, error =
 	  _G, ipairs, pairs, type, package, tostring, assert, error
@@ -69,6 +70,8 @@ function requires(depstring)
 		_G._log:error(_NAME..": "..err)
 		return nil, err
 	end
+
+	events.trigger("requires", lomod)
 
 	-- remove from require stack
 	table.remove(requirestack)
