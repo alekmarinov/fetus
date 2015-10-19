@@ -10,6 +10,7 @@ events.register("requires", function(mod)
 	end
 end)
 
+exitcode = 0
 for _, name in ipairs(los.lospec.loader.list()) do
 	local mod = assert(los.requires(name))
 	print(string.format("install %s...", name))
@@ -22,6 +23,8 @@ for _, name in ipairs(los.lospec.loader.list()) do
 		print("OK")
 	else
 		print("FAILED")
+		exitcode = 1
 	end
 	io.stdout:flush()
 end
+os.exit(exitcode)
