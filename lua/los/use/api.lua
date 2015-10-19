@@ -95,7 +95,7 @@ end
 function api.dos2unix(dir, ...)
 	assert(type(dir) == "string")
 
-	local cmd = "dos2unix"
+	local cmd = "dos2unix -f"
 	if table.getn{...} == 0 then
 		cmd = cmd .. " *"
 	end
