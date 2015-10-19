@@ -2,7 +2,7 @@ loader = require "los.lospec.loader"
 events = require "los.events"
 require "los.requires"
 
-rebuild_packages = {"gettext"}
+rebuild_packages = {"gettext", "libxcb"}
 
 events.register("requires", function(mod)
 	if lrun.util.table.indexof(rebuild_packages, mod.package.name) then
