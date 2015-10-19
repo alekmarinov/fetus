@@ -3,7 +3,7 @@ make = assert(requires("prebuilt-make"))
 package = {
 	name = "prebuilt-cmake",
 	version  = "0.0.1",
-	source   = "$(repo.los)/prebuilt-toolchains/prebuilt-cmake-"..api.system().."-"..lfs.cpuarch()..".tar.bz2",
+	source   = "$(repo.los)/prebuilt-toolchains/prebuilt-cmake-"..conf["host.system"].."-"..conf["host.arch"]..".tar.bz2",
 	archdir = ""
 }
 
@@ -15,5 +15,5 @@ end
 
 function install()
 	prepare()
-	api.copy(api.makepathdir(path.src.dir, lfs.cpuarch().."-cmake"), path.install.dir)
+	api.copy(api.makepathdir(path.src.dir, conf["host.arch"].."-cmake"), path.install.dir)
 end

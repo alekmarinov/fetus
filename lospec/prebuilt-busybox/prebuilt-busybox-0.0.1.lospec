@@ -15,5 +15,5 @@ end
 
 function install()
 	prepare()
-	api.copy(api.makepath(path.src.dir, "busybox-"..lfs.cpuarch()), api.makepath(path.install.bin, "busybox"))
+	api.copy(api.makepath(path.src.dir, "busybox-"..conf["host.arch"]), api.makepath(path.install.bin, "busybox"))
 end

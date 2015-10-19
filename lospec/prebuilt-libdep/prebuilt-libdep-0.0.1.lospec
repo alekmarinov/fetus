@@ -3,7 +3,7 @@ busybox = assert(requires("prebuilt-busybox"))
 package = {
 	name = "prebuilt-libdep",
 	version  = "0.0.1",
-	source   = "$(repo.los)/prebuilt-toolchains/prebuilt-libdep-"..api.system().."-"..lfs.cpuarch()..".tar.bz2",
+	source   = "$(repo.los)/prebuilt-toolchains/prebuilt-libdep-"..conf["host.system"].."-"..conf["host.arch"]..".tar.bz2",
 	archdir = ""
 }
 

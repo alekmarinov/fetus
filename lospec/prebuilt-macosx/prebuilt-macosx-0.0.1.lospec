@@ -4,8 +4,8 @@ libdep = assert(requires("prebuilt-libdep"))
 package = {
 	name = "prebuilt-macosx",
 	version = "0.0.1",
-	source  = "$(repo.los)/prebuilt-toolchains/prebuilt-macosx-"..api.system().."-"..lfs.cpuarch()..".tar.bz2",
-	archdir = lfs.cpuarch().."-macosx"
+	source  = "$(repo.los)/prebuilt-toolchains/prebuilt-macosx-"..conf["host.system"].."-"..conf["host.arch"]..".tar.bz2",
+	archdir = conf["host.arch"].."-macosx"
 }
 
 function prepare()
@@ -17,6 +17,6 @@ end
 
 function install()
 	prepare()
-	api.copy(api.makepathdir(path.src.dir), api.makepathdir(path.install.dir, "usr", lfs.cpuarch().."-macosx"))
-	api.catfile(api.makepath(path.install.dir, "etc", "profile.d", lfs.cpuarch().."-macosx.ash"), "pathmunge /usr/"..lfs.cpuarch().."-macosx/bin after")
+	api.copy(api.makepathdir(path.src.dir), api.makepathdir(path.install.dir, "usr", conf["host.arch"].."-macosx"))
+	api.catfile(api.makepath(path.install.dir, "etc", "profile.d", conf["host.arch"].."-macosx.ash"), "pathmunge /usr/"..conf["host.arch"].."-macosx/bin after")
 end

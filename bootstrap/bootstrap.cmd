@@ -18,6 +18,7 @@ if not exist %MSYS_BIN%\sh.exe mingw-get install sh
 if not exist %MSYS_BIN%\readlink.exe mingw-get install msys-coreutils
 if not exist %MSYS_BIN%\find.exe mingw-get install msys-findutils
 if not exist %MSYS_BIN%\unzip.exe mingw-get install msys-unzip
+if not exist %MSYS_BIN%\bzip2.exe mingw-get install msys-bzip2
 if not exist %MSYS_BIN%\tar.exe mingw-get install msys-tar
 if not exist %MSYS_BIN%\patch.exe mingw-get install msys-patch
 if not exist %MSYS_BIN%\wget.exe mingw-get install msys-wget

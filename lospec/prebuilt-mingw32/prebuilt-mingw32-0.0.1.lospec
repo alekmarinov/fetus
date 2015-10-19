@@ -4,8 +4,8 @@ libdep = assert(requires("prebuilt-libdep"))
 package = {
 	name = "prebuilt-mingw32",
 	version = "0.0.1",
-	source  = "$(repo.los)/prebuilt-toolchains/prebuilt-mingw32-"..api.system().."-"..lfs.cpuarch()..".tar.bz2",
-	archdir = lfs.cpuarch().."-mingw32"
+	source  = "$(repo.los)/prebuilt-toolchains/prebuilt-mingw32-"..conf["host.system"].."-"..conf["host.arch"]..".tar.bz2",
+	archdir = conf["host.arch"].."-mingw32"
 }
 
 function prepare()
@@ -17,6 +17,6 @@ end
 
 function install()
 	prepare()
-	api.copy(api.makepathdir(path.src.dir), api.makepathdir(path.install.dir, "usr", lfs.cpuarch().."-mingw32"))
-	api.catfile(api.makepath(path.install.dir, "etc", "profile.d", lfs.cpuarch().."-mingw32.ash"), "pathmunge /usr/"..lfs.cpuarch().."-mingw32/bin after")
+	api.copy(api.makepathdir(path.src.dir), api.makepathdir(path.install.dir, "usr", conf["host.arch"].."-mingw32"))
+	api.catfile(api.makepath(path.install.dir, "etc", "profile.d", conf["host.arch"].."-mingw32.ash"), "pathmunge /usr/"..conf["host.arch"].."-mingw32/bin after")
 end
