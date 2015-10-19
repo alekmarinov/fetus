@@ -3,8 +3,7 @@ require "los.requires"
 
 for _, name in ipairs(los.lospec.loader.list()) do
 	local mod = assert(los.requires(name))
-	io.stdout:write(string.format("install %s...", name))
-	io.stdout:flush()
+	print(string.format("install %s...", name))
 	if mod.package.name == "gettext" then
 		mod.lfs.delete(mod.path.src.dir)
 	end
