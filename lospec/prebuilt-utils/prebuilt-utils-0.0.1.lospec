@@ -1,0 +1,19 @@
+busybox = assert(requires("prebuilt-busybox"))
+
+package = {
+	name = "prebuilt-utils",
+	version  = "0.0.1",
+	source   = "$(repo.los)/prebuilt-toolchains/prebuilt-utils-"..conf["host.system"].."-"..conf["host.arch"]..".tar.bz2",
+	archdir = ""
+}
+
+function prepare()
+	busybox:install()
+	api.download()
+	api.unarch()
+end
+
+function install()
+	prepare()
+	api.copy(api.makepathdir(path.src.dir, conf["host.arch"].."-utils"), path.install.dir)
+end
