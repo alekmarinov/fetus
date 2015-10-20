@@ -1,4 +1,5 @@
 libX11 = requires "libX11 >= 1.6"
+libXext = requires "libXext"
 videoproto = requires "videoproto"
 
 package = {
@@ -11,6 +12,7 @@ use "autotools"
 
 function prepare()
 	libX11:install()
+	libXext:install()
 	videoproto:install()
 	api.download()
 	api.unarch()

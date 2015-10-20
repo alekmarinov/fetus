@@ -470,5 +470,6 @@ else
 	echo "export LUA_PATH=$LUAROCKS_LUA/?.lua" >> $LOS_ROOT/losvars.sh
 	info "source $LOS_ROOT/losvars.sh to set your environment"
 fi
+info "and then you can type luarocks install los"
 
 echo "Bootstrap SUCCESS!"
