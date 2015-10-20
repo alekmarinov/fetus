@@ -15,7 +15,7 @@ function build()
 	prepare()
 	autotools.configure()
 	-- fixing "skipping incompatible /usr/lib64/libpng12.so when searching for -lpng12"
-	api.catfile(api.makepath(path.src.dir, "test"), "all install:")
+	api.catfile(api.makepath(path.src.dir, "test/Makefile"), "all install:")
 	autotools.make()
 end
 
