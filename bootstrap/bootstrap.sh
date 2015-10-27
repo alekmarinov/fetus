@@ -468,6 +468,8 @@ else
 	echo "#!/bin/sh" > $LOS_ROOT/losvars.sh
 	echo "export PATH=$PATH" >> $LOS_ROOT/losvars.sh
 	echo "export LUA_PATH=$LUAROCKS_LUA/?.lua" >> $LOS_ROOT/losvars.sh
+	. $LOS_ROOT/losvars.sh
+	los install unzip
 	info "source $LOS_ROOT/losvars.sh to set your environment"
 fi
 info "and then you can type luarocks install los"
