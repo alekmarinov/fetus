@@ -1,0 +1,44 @@
+package = {
+	name     = "unzip",
+	version  = "6.0",
+	source   = "$(repo.opensource)/unzip60.tar.gz"
+}
+
+local function make(...)
+	local args = {}
+	for _, v in ipairs{"VERBOSE=1", ...} do
+		table.insert(args, "\""..v.."\"")
+	end
+
+	local cmd = conf["build.make"].." "..table.concat(args, " ")
+	log.i(cmd)
+	return assert(lfs.executein(path.src.dir, cmd))
+end
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	local makeargs = {"-f", "unix/Makefile", "generic"}
+	if api.isarch32(conf["host.arch"]) then
+		table.insert(makeargs, "CC=gcc -m32")
+	end
+	api.executein(path.src.dir, conf["build.make"], nil, unpack(makeargs))
+	api.executein(path.src.dir, conf["build.make"], nil, "prefix="..path.install.dir, "-f", "unix/Makefile", "install")
+end
+
+function isinstalled()
+	return api.isinstalled{
+		exec = "unzip"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		assert(isinstalled(), "something wrong after unzip install")
+	end
+end

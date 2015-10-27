@@ -44,7 +44,7 @@ function build()
 	else
 		-- unlike mingw where readline is linked to termcap, in linux lua will link with ncurses
 		ldlibs = ldlibs.." -lncurses"
-		ccflags = "-DLUA_USE_LINUX"
+		ccflags = "-DLUA_USE_LINUX -I"..path.install.inc
 		local V = package.version[1].."."..package.version[2]
 		local R = V.."."..package.version[3]
 		lua_a = "liblua.so."..R
