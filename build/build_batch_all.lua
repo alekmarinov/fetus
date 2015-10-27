@@ -2,12 +2,9 @@ loader = require "los.lospec.loader"
 events = require "los.events"
 require "los.requires"
 
-rebuild_packages = {"gettext", "libxcb"}
-
 events.register("requires", function(mod)
-	if lrun.util.table.indexof(rebuild_packages, mod.package.name) then
-		mod.lfs.delete(mod.path.src.dir)
-	end
+	-- clean source directory of required dependency
+	mod.lfs.delete(mod.path.src.dir)
 end)
 
 exitcode = 0
