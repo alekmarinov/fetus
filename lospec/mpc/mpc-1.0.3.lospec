@@ -1,0 +1,30 @@
+
+package = {
+	name     = "mpc",
+	version  = "1.0.3",
+	source   = "$(repo.opensource)/mpc-1.0.3.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after mpc install") 
+	end
+end

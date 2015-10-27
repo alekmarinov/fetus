@@ -45,6 +45,7 @@ function autotools.configure(...)
 	else
 		assert(type(extra) == "string")
 	end
+	opts["--prefix"] = opts["--prefix"] or path.install.dir
 	for i, v in pairs(opts) do
 		table.insert(args, i.."="..v)
 	end
@@ -61,7 +62,7 @@ function autotools.configure(...)
 	else
 		assert(type(args[1]) == "string")
 	end
-	return api.executein(path.src.dir, "sh", env, "configure", "--prefix="..path.install.dir, unpack(args))
+	return api.executein(path.src.dir, "sh", env, "configure", unpack(args))
 end
 
 local installdirs = {"bin", "lib", "include", "man/man1"}

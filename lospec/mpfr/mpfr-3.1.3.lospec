@@ -1,0 +1,30 @@
+
+package = {
+	name     = "mpfr",
+	version  = "3.1.3",
+	source   = "$(repo.opensource)/mpfr-3.1.3.tar.xz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after mpfr install") 
+	end
+end

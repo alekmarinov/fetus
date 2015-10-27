@@ -1,0 +1,30 @@
+
+package = {
+	name     = "gmp",
+	version  = "6.0.0a",
+	source   = "$(repo.opensource)/gmp-6.0.0a.tar.xz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after gmp install") 
+	end
+end

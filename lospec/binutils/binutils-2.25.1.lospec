@@ -1,0 +1,34 @@
+package = {
+	name     = "binutils",
+	version  = "2.25.1",
+	source   = "$(repo.opensource)/binutils-2.25.1.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure({
+		["--prefix"] = api.makepath(path.install.dir, "tools"),
+		["--with-sysroot"] = path.install.dir,
+		["--with-lib-path"]= api.makepath(path.install.dir, "/tools/lib"),
+		["--target"]= conf["host.arch"].."-los-"..conf["host.system"]
+	}, "--disable-nls", "--disable-werror")
+	autotools.make()
+end
+
+function isinstalled()
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.make("install")
+		assert(isinstalled(), "something wrong after binutils install") 
+	end
+end
