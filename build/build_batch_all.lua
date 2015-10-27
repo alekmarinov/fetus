@@ -6,7 +6,7 @@ for _, name in ipairs(los.lospec.loader.list()) do
 	local mod = assert(los.requires(name))
 	print(string.format("install %s...", name))
 	io.stdout:flush()
-	lfs.remove(lrun.util.lfs.dirname(mod.path.src.dir))
+	lrun.util.lfs.delete(lrun.util.lfs.dirname(mod.path.src.dir))
 	local instdir = mod.path.install.dir
 	lfs.mkdir(instdir)
 	local prefix = mod.api.makepath(instdir, name)
