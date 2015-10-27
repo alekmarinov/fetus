@@ -38,7 +38,11 @@ end
 
 function install()
 	if not isinstalled() then
-		build()
-		assert(isinstalled(), "something wrong after unzip install")
+		if conf["build.system"] == "mingw" then
+			log.e("unzip install is not supported under mingw")
+		else
+			build()
+			assert(isinstalled(), "something wrong after unzip install")
+		end
 	end
 end
