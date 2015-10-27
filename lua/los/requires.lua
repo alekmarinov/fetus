@@ -47,9 +47,11 @@ function requires(depstring)
 	_G._log:info(_NAME..": loading "..lospecfile)
 
 	-- avoid require loop
+	local loopout = {}
 	for _, pck in ipairs(requirestack) do
+		table.insert(loopout, pck.name)
 		if pck.name == dep.name then
-			error(_NAME..": ".."Requires loop error on `"..pck.name.."'")
+			error(_NAME..": ".."Requires loop error on `"..pck.name.."': stack = "..table.concat(loopout, ","))
 		end
 	end
 	table.insert(requirestack, dep)
