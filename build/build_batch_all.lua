@@ -1,17 +1,12 @@
 loader = require "los.lospec.loader"
-events = require "los.events"
 require "los.requires"
-
-events.register("requires", function(mod)
-	-- clean source directory of required dependency
-	mod.lfs.delete(mod.path.src.dir)
-end)
 
 exitcode = 0
 for _, name in ipairs(los.lospec.loader.list()) do
 	local mod = assert(los.requires(name))
 	print(string.format("install %s...", name))
 	io.stdout:flush()
+	lfs.remove(lfs.dirname(mod.path.src.dir))
 	local instdir = mod.path.install.dir
 	lfs.mkdir(instdir)
 	local prefix = mod.api.makepath(instdir, name)
