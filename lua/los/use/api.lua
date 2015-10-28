@@ -80,14 +80,14 @@ function api.patch()
 	log.i("patch "..path.src.dir)
 	local patch = package.patch
 	if type(patch) == "table" then
-		patch = patch[conf["host.system"]] or patch[1]
+		patch = patch[conf["build.system"]] or patch[1]
 	end
 	if patch then
 		local patchfile = api.makepath(lfs.dirname(lospecfile), patch)
-		lfs.executein(path.src.dir, "patch", "-p0", "-i", patchfile)
+		lfs.executein(path.src.dir, "patch", "-Np1", "-i", patchfile)
 	else
 		if not patch then
-			log.i("no patch for host system "..conf["host.system"])
+			log.i("no patch for build system "..conf["build.system"])
 		end
 	end
 end
@@ -175,7 +175,9 @@ function api.executein(dir, filename, env, ...)
 	if env then
 		local envlog = {}
 		for i, v in pairs(env) do
-			table.insert(envlog, i.."="..v)
+			if table.indexof({"PKG_CONFIG_PATH","LD_LIBRARY_PATH","PATH"}, i) then
+				table.insert(envlog, i.."="..v)
+			end
 		end
 		cmd = table.concat(envlog, " ").." "..cmd
 	end

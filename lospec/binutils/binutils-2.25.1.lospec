@@ -14,15 +14,39 @@ end
 function build()
 	prepare()
 	autotools.configure({
-		["--prefix"] = api.makepath(path.install.dir, "tools"),
+		["--prefix"] = path.install.dir,
 		["--with-sysroot"] = path.install.dir,
-		["--with-lib-path"]= api.makepath(path.install.dir, "/tools/lib"),
-		["--target"]= conf["host.arch"].."-los-"..conf["host.system"]
+		["--with-lib-path"]= path.install.dir,
+		["--target"]= conf["cross.prefix"]
 	}, "--disable-nls", "--disable-werror")
 	autotools.make()
 end
 
 function isinstalled()
+	local execs = {}
+	local execprefix = conf["cross.prefix"]
+	for _, ex in ipairs{
+		"addr2line",
+		"elfedit",
+		"nm",
+		"readelf",
+		"ar",
+		"gprof",
+		"objcopy",
+		"size",
+		"as",
+		"ld",
+		"objdump",
+		"strings",
+		"c++filt",
+		"ld.bfd",
+		"ranlib",
+		"strip"} do
+		table.insert(execs, execprefix.."-"..ex)
+	end
+	return api.isinstalled{
+		exec = execs
+	}
 end
 
 function install()

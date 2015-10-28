@@ -1,24 +1,35 @@
+m4 = assert(requires("m4 == 1.4.17"))
 
 package = {
 	name     = "gmp",
 	version  = "6.0.0a",
-	source   = "$(repo.opensource)/gmp-6.0.0a.tar.xz"
+	source   = "$(repo.opensource)/gmp-6.0.0a.tar.xz",
+	archdir  = "gmp-6.0.0"
 }
 
 use "autotools"
 
 function prepare()
+	m4:install()
 	api.download()
 	api.unarch()
 end
 
 function build()
 	prepare()
-	autotools.configure()
+	local abi = 64
+	if api.isarch32(conf["host.arch"]) then
+		abi = 32
+	end
+	autotools.configure({ ABI=abi }, "--enable-cxx", "--disable-static")
 	autotools.make()
 end
 
 function isinstalled()
+	return api.isinstalled{
+		h = "gmp.h",
+		dynamic = { "gmp", "gmpxx" }
+	}
 end
 
 function install()

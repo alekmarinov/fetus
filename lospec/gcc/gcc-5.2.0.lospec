@@ -1,3 +1,7 @@
+binutils = assert(requires("binutils == 2.25.1"))
+mpfr = assert(requires("mpfr == 3.1.3"))
+gmp = assert(requires("gmp == 6.0.0a"))
+mpc = assert(requires("mpc == 1.0.3"))
 
 package = {
 	name     = "gcc",
@@ -8,13 +12,35 @@ package = {
 use "autotools"
 
 function prepare()
+	binutils:install()
+
 	api.download()
 	api.unarch()
+
+	mpfr:prepare()
+	lfs.delete(api.makepath(path.src.dir, "mpfr"))
+	lfs.move(mpfr.path.src.dir, api.makepath(path.src.dir, "mpfr"))
+
+	gmp:prepare()
+	lfs.delete(api.makepath(path.src.dir, "gmp"))
+	lfs.move(gmp.path.src.dir, api.makepath(path.src.dir, "gmp"))
+
+	mpc:prepare()
+	lfs.delete(api.makepath(path.src.dir, "mpc"))
+	lfs.move(mpc.path.src.dir, api.makepath(path.src.dir, "mpc"))
 end
 
 function build()
 	prepare()
-	autotools.configure()
+	autotools.configure({
+		["--target"] = conf["cross.prefix"],
+		["--prefix"] = path.install.dir,
+		["--with-glibc-version"] = "2.11",
+		["--with-sysroot"] = path.install.dir,
+		["--with-local-prefix"] = path.install.dir,
+		["--with-native-system-header-dir"] = path.install.inc,
+		["--enable-languages"] = "c,c++"
+	}, "--with-newlib", "-without-headers", "--disable-nls", "--disable-multilib", "--disable-decimal-float", "--disable-threads", "--disable-libatomic", "--disable-libgomp", "--disable-libquadmath", "--disable-libssp", "--disable-libvtv", "--disable-libstdcxx")
 	autotools.make()
 end
 

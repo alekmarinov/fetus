@@ -2,7 +2,8 @@
 package = {
 	name     = "mpfr",
 	version  = "3.1.3",
-	source   = "$(repo.opensource)/mpfr-3.1.3.tar.xz"
+	source   = "$(repo.opensource)/mpfr-3.1.3.tar.xz",
+	patch = "mpfr-3.1.3-upstream_fixes-1.patch"
 }
 
 use "autotools"
@@ -14,11 +15,16 @@ end
 
 function build()
 	prepare()
-	autotools.configure()
+	api.patch()
+	autotools.configure("--enable-thread-safe", "--disable-static")
 	autotools.make()
 end
 
 function isinstalled()
+	return api.isinstalled{
+		h = "mpfr.h",
+		dynamic = "mpfr"
+	}
 end
 
 function install()
