@@ -1,0 +1,36 @@
+perl = requires "perl"
+
+package = {
+	name     = "texinfo",
+	version  = "6.0",
+	source   = "$(repo.opensource)/texinfo-6.0.tar.xz"
+}
+
+use "autotools"
+
+function prepare()
+	perl:install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end 
+
+function isinstalled()
+	return api.isinstalled{
+		h = "texinfo.h",
+		static = "texinfo"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.install()
+		assert(isinstalled(), "something wrong after texinfo install")
+	end
+end

@@ -1,0 +1,32 @@
+package = {
+	name     = "perl",
+	version  = "5.22.0",
+	source   = "$(repo.opensource)/perl-5.22.0.tar.bz2"
+}
+
+use ("autotools", {configure = "Configure"})
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure("-des", "-Duseshrplib", "-Dprefix="..path.install.dir)
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		exec = "perl"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.install()
+		assert(isinstalled(), "something wrong after perl install")
+	end
+end
