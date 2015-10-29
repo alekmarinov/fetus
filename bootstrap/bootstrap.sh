@@ -431,9 +431,8 @@ echo "dir.base=$(echo $LOS_ROOT | sed -e 's/\\/\//g')" >> $LOCAL_CONF
 echo "repo.username=$REPO_USER" >> $LOCAL_CONF
 echo "repo.password=$REPO_PASS" >> $LOCAL_CONF
 if [[ "$WINDIR" != "" ]]; then
-	# default mingw 32 bit for windows
-	echo "build.system=mingw" >> $LOCAL_CONF
-	echo "build.arch=32" >> $LOCAL_CONF
+	# default mingw i686
+	echo "build.system=mingw32" >> $LOCAL_CONF
 else
 	# default linux/macos i686
 	OSNAME=$(uname | tr '[:upper:]' '[:lower:]')
@@ -441,8 +440,8 @@ else
 		OSNAME="macos"
 	fi
 	echo "build.system=$OSNAME" >> $LOCAL_CONF
-	echo "build.arch=i686" >> $LOCAL_CONF
 fi
+echo "build.arch=i686" >> $LOCAL_CONF
 
 if [[ "$WINDIR" != "" ]]; then
 	pathmunge $(makeunixpath $LUAROCKS_BIN)

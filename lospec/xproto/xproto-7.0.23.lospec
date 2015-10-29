@@ -4,7 +4,7 @@ package = {
 	source   = "$(repo.opensource)/xproto-7.0.23.tar.bz2"
 }
 
-use "autotools"
+use ("autotools", {build_out_src = true})
 
 function prepare()
 	api.download()
@@ -26,6 +26,7 @@ end
 function install()
 	if not isinstalled() then
 		build()
-		autotools.make("install")
+		autotools.install()
+		assert(isinstalled(), "something wrong after xproto install")
 	end
 end

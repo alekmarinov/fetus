@@ -12,6 +12,14 @@
 
 local autotools = {}
 
+local function builddir()
+	local dir = path.src.dir
+	if autotools.opts.build_out_src then
+		dir = api.makepath(lfs.dirname(conf["dir.src"]), "build", lfs.basename(path.src.dir))
+	end
+	return dir
+end
+
 function autotools.make(...)
 	local args = {...}
 	local env
@@ -19,7 +27,7 @@ function autotools.make(...)
 		env = api.mkenv(args[1])
 		table.remove(args, 1)
 	end
-	return api.executein(path.src.dir, conf["build.make"], env, unpack(args))
+	return api.executein(builddir(), conf["build.make"], env, unpack(args))
 end
 
 function autotools.configure(...)
@@ -31,6 +39,8 @@ function autotools.configure(...)
 		LDFLAGS = "-L"..path.install.lib.." "..conf["gcc.ldflags"]
 	}
 	local extra = args[1]
+	local configurename = autotools.opts.configure or "configure"
+
 	if type(extra) == "table" then
 		for i, v in pairs(extra) do
 			if opts[i] then
@@ -62,24 +72,40 @@ function autotools.configure(...)
 	else
 		assert(type(args[1]) == "string")
 	end
-	return api.executein(path.src.dir, "sh", env, "configure", unpack(args))
+
+	local srcdir = path.src.dir
+	local blddir = builddir()
+	assert(string.sub(srcdir, 1, 1) == string.sub(blddir, 1, 1), "Build directory at "..blddir.." must be at the same drive as source directory at "..srcdir)
+	assert(lfs.mkdir(blddir))
+
+	-- finds relative path from build dir to source
+	local relpath = {}
+	while srcdir ~= blddir do
+		srcdir = lfs.dirname(srcdir)
+		blddir = lfs.dirname(blddir)
+		table.insert(relpath, "..")
+	end
+	local configurepath = api.makepath(table.concat(relpath, "/"), string.sub(path.src.dir, 1 + string.len(srcdir)))
+	return api.executein(builddir(), "sh", env, api.makepath(configurepath, configurename), unpack(args))
 end
 
-local installdirs = {"bin", "lib", "include", "man/man1"}
+local installdirs = {"bin", "lib", "include", "man", "man/man1"}
 
 local function createinstalldirs()
 	for _, dir in ipairs(installdirs) do
 		local directory = lfs.concatfilenames(path.install.dir, dir)
-		log.d("deleteifempty", directory)
+		log.d("mkdir", directory)
 		local ok, err = lfs.mkdir(directory)
 		if not ok then
 			return nil, err
 		end
 	end
+	return true
 end
 
 local function deleteinstalldirsifempty()
-	for _, dir in ipairs(installdirs) do
+	for i = #installdirs, 1, -1 do
+		local dir = installdirs[i]
 		local directory = lfs.concatfilenames(path.install.dir, dir)
 		log.d("deleteifempty", directory)
 		lfs.deleteifempty(lfs.concatfilenames(path.install.dir, dir))
@@ -87,21 +113,10 @@ local function deleteinstalldirsifempty()
 	return true
 end
 
-function autotools.install()
-	log.i("install")
-	local ok, err = build()
-	if not ok then
-		return nil, err
-	end
+function autotools.install(...)
 	rollback.push("deleteinstalldirsifempty", deleteinstalldirsifempty)
-	local ok, err = createinstalldirs()
-	if not ok then
-		return nil, err
-	end
-	ok, err = make("install")
-	if not ok then
-		return nil, err
-	end
+	assert(createinstalldirs())
+	assert(autotools.make("install", ...))
 	rollback.pop()
 end
 

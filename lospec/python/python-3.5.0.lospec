@@ -30,7 +30,8 @@ function install()
 			log.e("python install is not supported under mingw")
 		else
 			build()
-			autotools.make("install")
+			autotools.install()
+			assert(isinstalled(), "something wrong after python install")
 		end
 	end
 end

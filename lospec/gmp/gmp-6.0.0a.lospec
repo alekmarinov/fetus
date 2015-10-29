@@ -35,7 +35,7 @@ end
 function install()
 	if not isinstalled() then
 		build()
-		autotools.make("install")
+		autotools.install()
 		assert(isinstalled(), "something wrong after gmp install") 
 	end
 end

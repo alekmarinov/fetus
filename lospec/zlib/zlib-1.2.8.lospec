@@ -43,9 +43,10 @@ function install()
 	if not isinstalled() then
 		build()
 		if conf["host.system"] == "mingw" then
-			api.executein(path.src.dir, conf["build.make"], nil, "install", "BINARY_PATH="..path.install.bin, "LIBRARY_PATH="..path.install.lib, "INCLUDE_PATH="..path.install.inc, "SHARED_MODE=1", "-fwin32/Makefile.gcc")
+			api.executein(path.build, conf["build.make"], nil, "install", "BINARY_PATH="..path.install.bin, "LIBRARY_PATH="..path.install.lib, "INCLUDE_PATH="..path.install.inc, "SHARED_MODE=1", "-fwin32/Makefile.gcc")
 		else
-			autotools.make("install")
+			autotools.install()
 		end
+		assert(isinstalled(), "something wrong after zlib install")
 	end
 end

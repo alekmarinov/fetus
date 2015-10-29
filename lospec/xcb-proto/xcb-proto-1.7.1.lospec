@@ -32,6 +32,7 @@ function install()
 		if conf["build.system"] == "mingw" then
 			api.gsubfile(api.makepath(path.src.dir, "xcbgen/Makefile"), "\\Lib\\", "/lib/")
 		end
-		autotools.make("install")
+		autotools.install()
+		assert(isinstalled(), "something wrong after xcb-proto install")
 	end
 end

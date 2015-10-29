@@ -18,7 +18,19 @@ function build()
 	cmake.build()
 end
 
+function isinstalled()
+	-- FIXME: not tested
+	local files = {
+		h = "ia/ia.h",
+		static = "ia"
+	}
+	return api.isinstalled(files)
+end
+
 function install()
-	build()
-	cmake.install()
+	if not isinstalled() then
+		build()
+		cmake.install()
+		assert(isinstalled(), "something wrong after libia install")
+	end
 end

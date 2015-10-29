@@ -42,7 +42,7 @@ end
 function install()
 	if not isinstalled() then
 		build()
-		autotools.make("install")
+		autotools.install()
 		if conf["build.system"] == "mingw" then
 			-- iconf.h is not installed under mingw
 			api.copy(api.makepath(path.src.dir, "include/iconv.h"), path.install.inc)

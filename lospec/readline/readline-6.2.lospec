@@ -38,7 +38,7 @@ end
 function install()
 	if not isinstalled() then
 		build()
-		autotools.make("install", "\"INSTALL=install -c\"")
+		autotools.install("INSTALL=install -c")
 		assert(isinstalled(), "something wrong after readline install")
 	end
 end

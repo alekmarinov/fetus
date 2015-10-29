@@ -147,10 +147,11 @@ local importapi =
 -- extend lospec api
 local extapi =
 {
-	use = function (usable)
+	use = function (usable, opts)
 		-- load usable module
 		local lomod = getfenv(2) -- parent env
 		lomod[usable] = requirein ("los.use."..usable, lomod)
+		lomod[usable].opts = opts or {}
 		return lomod[usable]
 	end
 }
