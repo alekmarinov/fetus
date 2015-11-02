@@ -23,6 +23,7 @@ end
 function autotools.make(...)
 	local args = {...}
 	local env = api.mkenv{
+		PATH = os.getenv("PATH")..conf["build.pathsep"]..path.install.bin,
 		LD_LIBRARY_PATH = path.install.lib
 	}
 	if type(args[1]) == "table" then
