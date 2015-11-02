@@ -73,12 +73,20 @@ function api.unarch()
 	log.i("unarch "..path.src.file)
 	rollback.push("delete "..path.src.dir, lfs.delete, path.src.dir)
 	-- delete any existing directory for clean extraction
+	log.d("delete "..path.src.dir)
 	lfs.delete(path.src.dir)
-	assert(extract.unarch(path.src.file, conf["dir.src"]))
+	local srcdir = conf["dir.src"]
+	if package.archdir == "" then
+		srcdir = path.src.dir
+		lfs.mkdir(srcdir)
+	end
+	log.d("unarch "..path.src.file.." in "..srcdir)
+	assert(extract.unarch(path.src.file, srcdir))
 	rollback.pop()
 end
 
-function api.patch()
+function api.patch(level)
+	level = level or 1
 	log.i("patch "..path.src.dir)
 	local patch = package.patch
 	if type(patch) == "table" then
@@ -86,7 +94,7 @@ function api.patch()
 	end
 	if patch then
 		local patchfile = api.makepath(lfs.dirname(lospecfile), patch)
-		lfs.executein(path.src.dir, "patch", "-Np1", "-i", patchfile)
+		api.executein(path.src.dir, "patch", nil, "-Np"..level, "-i", patchfile)
 	else
 		if not patch then
 			log.i("no patch for build system "..conf["build.system"])

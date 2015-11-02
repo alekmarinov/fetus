@@ -13,7 +13,7 @@ function prepare()
 	termcap:install()
 	api.download()
 	api.unarch()
-	api.patch()
+	api.patch(0)
 end
 
 function build()

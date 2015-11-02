@@ -22,9 +22,9 @@ end
 
 function autotools.make(...)
 	local args = {...}
-	local env
+	local env = api.mkenv()
 	if type(args[1]) == "table" then
-		env = api.mkenv(args[1])
+		table.fastcopy(args[1], env)
 		table.remove(args, 1)
 	end
 	return api.executein(builddir(), conf["build.make"], env, unpack(args))

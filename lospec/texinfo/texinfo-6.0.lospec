@@ -1,4 +1,5 @@
-perl = requires "perl"
+ncurses = requires "ncurses == 6.0"
+perl    = requires "perl"
 
 package = {
 	name     = "texinfo",
@@ -9,6 +10,7 @@ package = {
 use "autotools"
 
 function prepare()
+	ncurses:install()
 	perl:install()
 	api.download()
 	api.unarch()

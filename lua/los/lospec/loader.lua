@@ -78,7 +78,12 @@ local lomod_mt =
 					end
 					local basename = lfs.basename(src.url)
 					local srcdir = lfs.path(t.conf["dir.src"])
-					src.dir = assert(extract.unarchdir(basename, srcdir, t.package.archdir))
+					local archdir = t.package.archdir
+					if archdir == "" then
+						-- archive have no subdir
+						archdir = nil
+					end
+					src.dir = assert(extract.unarchdir(basename, srcdir, archdir))
 					src.file = lfs.concatfilenames(srcdir, lfs.basename(src.url))
 					
 					return src
