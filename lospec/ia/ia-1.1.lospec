@@ -22,7 +22,7 @@ function isinstalled()
 	-- FIXME: not tested
 	local files = {
 		h = "ia/ia.h",
-		static = "ia"
+		dynamic = "ia"
 	}
 	return api.isinstalled(files)
 end

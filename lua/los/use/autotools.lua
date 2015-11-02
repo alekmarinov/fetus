@@ -22,7 +22,9 @@ end
 
 function autotools.make(...)
 	local args = {...}
-	local env = api.mkenv()
+	local env = api.mkenv{
+		LD_LIBRARY_PATH = path.install.lib
+	}
 	if type(args[1]) == "table" then
 		table.fastcopy(args[1], env)
 		table.remove(args, 1)
@@ -62,7 +64,8 @@ function autotools.configure(...)
 
 	local env = api.mkenv{
 		PATH = os.getenv("PATH")..conf["build.pathsep"]..path.install.bin,
-		PKG_CONFIG_PATH = api.makepath(path.install.lib, "pkgconfig")..":"..api.makepath(path.install.dir, "share/pkgconfig")
+		PKG_CONFIG_PATH = api.makepath(path.install.lib, "pkgconfig")..":"..api.makepath(path.install.dir, "share/pkgconfig"),
+		LD_LIBRARY_PATH = path.install.lib
 	}
 	if type(args[1]) == "table" then
 		table.fastcopy(args[1], env)
