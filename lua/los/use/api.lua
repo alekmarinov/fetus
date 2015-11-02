@@ -72,6 +72,8 @@ end
 function api.unarch()
 	log.i("unarch "..path.src.file)
 	rollback.push("delete "..path.src.dir, lfs.delete, path.src.dir)
+	-- delete any existing directory for clean extraction
+	lfs.delete(path.src.dir)
 	assert(extract.unarch(path.src.file, conf["dir.src"]))
 	rollback.pop()
 end
