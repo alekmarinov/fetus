@@ -2,9 +2,9 @@ jpeg = assert(requires("libjpeg ~> 8a"))
 
 use "cmake"
 package = {
-	name = "libia",
+	name = "ia",
 	version = "1.1",
-	source  = "$(repo.opensource)/libia-1.1.zip"
+	source  = "$(repo.opensource)/ia-1.1.zip"
 }
 
 function prepare()
@@ -31,6 +31,6 @@ function install()
 	if not isinstalled() then
 		build()
 		cmake.install()
-		assert(isinstalled(), "something wrong after libia install")
+		assert(isinstalled(), "something wrong after ia install")
 	end
 end
