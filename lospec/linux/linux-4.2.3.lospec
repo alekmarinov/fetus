@@ -10,6 +10,6 @@ function prepare()
 end
 
 function install()
-	log.i(TAG, "install linux is not supported yet")
+	log.i("install linux is not supported yet")
 	return true
 end
