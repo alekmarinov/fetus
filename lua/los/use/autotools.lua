@@ -37,6 +37,7 @@ function autotools.configure(...)
 	local args = {...}
 	local opts =
 	{
+		ASFLAGS = conf["gcc.asflags"],
 		CFLAGS = "-I"..path.install.inc.." "..conf["gcc.cflags"],
 		CXXFLAGS = "-I"..path.install.inc.." "..conf["gcc.ccflags"],
 		LDFLAGS = "-L"..path.install.lib.." "..conf["gcc.ldflags"]
@@ -45,11 +46,17 @@ function autotools.configure(...)
 	local configurename = autotools.opts.configure or "configure"
 
 	if type(extra) == "table" then
+		-- process name=value args options
 		for i, v in pairs(extra) do
-			if opts[i] then
-				opts[i] = opts[i].." "..v
+			if type(i) == "string" then
+				if opts[i] then
+					opts[i] = opts[i].." "..v
+				else
+					opts[i] = v
+				end
 			else
-				opts[i] = v
+				assert(type(i) == "number")
+				table.insert(args, v)
 			end
 		end
 		table.remove(args, 1)

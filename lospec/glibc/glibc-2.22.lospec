@@ -1,0 +1,57 @@
+binutils = assert(requires("binutils == 2.25.1"))
+linux = requires "linux"
+
+package = {
+	name     = "glibc",
+	version  = "2.22",
+	source   = "$(repo.opensource)/glibc-2.22.tar.bz2",
+	patch    = {"glibc-2.22-fhs-1.patch", "glibc-2.22-upstream_i386_fix-1.patch"}
+}
+
+use ("autotools", {build_out_src = true})
+
+function prepare()
+	binutils:install()
+
+	linux.prepare()
+	api.executein(linux.path.src.dir, "make", nil, "INSTALL_HDR_PATH=dest", "headers_install")
+	api.executein(linux.path.src.dir, "find", nil, "dest/include", "\(", "-name", ".install", "-o", "-name", "..install.cmd", "\)", "-delete")
+	lfs.copy(api.makepath(linux.path.src.dir, "dest/include"), path.install.dir)
+
+	api.download()
+	api.unarch()
+	api.patch(1)
+end
+
+function build()
+	prepare()
+	local cc = "gcc -O"
+	if api.isarch32(conf["host.arch"]) then
+		cc = cc.." -m32 -D_GNU_SOURCE -march="..conf["host.arch"]
+	end
+	autotools.configure{
+		CC = cc,
+		["--enable-kernel"] = "2.6.32",
+		"--disable-profile",
+		"--enable-obsolete-rpc",
+		["--host"] = conf["cross.prefix"]
+	}
+
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		h = {"stdio.h", "stdlib.h", "elf.h"},
+		exec = "ldd",
+		dynamic = "c"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.install()
+		assert(isinstalled(), "something wrong after glibc install") 
+	end
+end

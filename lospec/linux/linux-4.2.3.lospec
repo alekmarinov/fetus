@@ -1,0 +1,15 @@
+package = {
+	name    = "linux",
+	version = "4.2.3",
+	source  = "$(repo.opensource)/linux-4.2.3.tar.xz"
+}
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function install()
+	log.i(TAG, "install linux is not supported yet")
+	return true
+end

@@ -89,15 +89,26 @@ function api.patch(level)
 	level = level or 1
 	log.i("patch "..path.src.dir)
 	local patch = package.patch
-	if type(patch) == "table" then
-		patch = patch[conf["build.system"]] or patch[1]
-	end
-	if patch then
-		local patchfile = api.makepath(lfs.dirname(lospecfile), patch)
-		api.executein(path.src.dir, "patch", nil, "-Np"..level, "-i", patchfile)
+	if type(patch) == "string" then
+		patch = {patch}
+	elseif type(patch) == "table" then
+		if patch[conf["build.system"]] then
+			patch = {patch}
+		end
 	else
-		if not patch then
-			log.i("no patch for build system "..conf["build.system"])
+		assert(nil, "Invalid package.patch value, expected string or table, got "..type(patch))
+	end
+	for _, p in ipairs(patch) do
+		if type(p) == "table" then
+			p = p[conf["build.system"]] or p[1]
+		end
+		if p then
+			local patchfile = api.makepath(lfs.dirname(lospecfile), p)
+			api.executein(path.src.dir, "patch", nil, "-Np"..level, "-i", patchfile)
+		else
+			if not p then
+				log.i("no patch for build system "..conf["build.system"])
+			end
 		end
 	end
 end

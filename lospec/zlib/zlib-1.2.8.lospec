@@ -16,7 +16,7 @@ function build()
 	prepare()
 	api.copy(api.makepath(path.src.dir, "contrib/asm686/match.S"), path.src.dir)
 	if conf["build.system"] == "mingw" then
-		if conf["host.arch"] == 32 then
+		if api.isarch32(conf["host.arch"]) then
 			api.executein(path.src.dir, conf["build.make"], nil, "all", "RCFLAGS=--define GCC_WINDRES --target=pe-i386", "ASFLAGS=-m32", "CFLAGS=-m32", "LDFLAGS=-m32", "LOC=-DASMV", "OBJA=match.o", "-fwin32/Makefile.gcc")
 		else
 			api.executein(path.src.dir, conf["build.make"], nil, "all", "RCFLAGS=--define GCC_WINDRES", "LOC=-DASMV", "OBJA=match.o", "-fwin32/Makefile.gcc")
