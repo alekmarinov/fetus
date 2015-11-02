@@ -22,8 +22,7 @@ end
 
 function isinstalled()
 	return api.isinstalled{
-		h = "texinfo.h",
-		static = "texinfo"
+		exec = {"texi2pdf", "texi2dvi", "texindex" }
 	}
 end
 
