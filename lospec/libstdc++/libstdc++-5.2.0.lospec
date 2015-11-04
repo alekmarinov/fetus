@@ -1,0 +1,49 @@
+glibc = assert(requires("glibc == 2.22"))
+
+package = {
+	name     = "libstdc++",
+	version  = "5.2.0",
+	source   = "$(repo.opensource)/gcc-5.2.0.tar.bz2"
+}
+
+use ("autotools", {build_outside = true, configure = "libstdc++-v3/configure"})
+
+function prepare()
+	glibc.install()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	local confargs
+	if conf["build.stage"] == 0 then
+		confargs = {
+			["--host"] = conf["cross.prefix"],
+			["--prefix"] = path.install.dir,
+			"--disable-multilib",
+			"--disable-nls",
+			"--disable-libstdcxx-threads",
+			"--disable-libstdcxx-pch",
+			["--with-gxx-include-dir"] = api.makepath(path.install.dir, conf["cross.prefix"], "include/c++", package.version.string)
+		}
+	else
+		error("Only stage 0 is currently supported")
+	end
+	autotools.configure(confargs)
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		dynamic = "stdc++"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.install()
+		assert(isinstalled(), "something wrong after gcc install") 
+	end
+end

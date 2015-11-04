@@ -5,13 +5,13 @@ package = {
 	name     = "glibc",
 	version  = "2.22",
 	source   = "$(repo.opensource)/glibc-2.22.tar.bz2",
-	patch    = {"glibc-2.22-fhs-1.patch", "glibc-2.22-upstream_i386_fix-1.patch"}
+	patch    = {"glibc-2.22-upstream_i386_fix-1.patch"}
 }
 
-use ("autotools", {build_out_src = true})
+use ("autotools", {build_outside = true})
 
 function prepare()
-	binutils:install()
+	assert(binutils.isinstalled("--pass1") or binutils.isinstalled("--pass2"), "binutils must be installed before glibc")
 
 	linux.prepare()
 	api.executein(linux.path.src.dir, "make", nil, "INSTALL_HDR_PATH=dest", "headers_install")
@@ -25,18 +25,24 @@ end
 
 function build()
 	prepare()
-	local cc = "gcc -O"
-	if api.isarch32(conf["host.arch"]) then
-		cc = cc.." -m32 -D_GNU_SOURCE -march="..conf["host.arch"]
-	end
-	autotools.configure{
-		CC = cc,
-		["--enable-kernel"] = "2.6.32",
+	local confargs = {
+		["--prefix"] = path.install.dir,
+		["--host"] = conf["cross.prefix"],
+		["--build"] = api.readexecout(api.makepath(path.src.dir, "scripts/config.guess")),
 		"--disable-profile",
+		["--enable-kernel"] = "2.6.32",
 		"--enable-obsolete-rpc",
-		["--host"] = conf["cross.prefix"]
+		["--with-headers"] = path.install.inc,
+		libc_cv_forced_unwind = "yes",
+		libc_cv_ctors_header = "yes",
+		libc_cv_c_cleanup = "yes",
+		CFLAGS = "-O -Wno-error=maybe-uninitialized"
 	}
 
+	if api.isarch32(conf["host.arch"]) then
+		confargs.CC = "gcc -m32 -D_GNU_SOURCE -march="..conf["host.arch"]
+	end
+	autotools.configure(confargs)
 	autotools.make()
 end
 
@@ -52,6 +58,18 @@ function install()
 	if not isinstalled() then
 		build()
 		autotools.install()
+
+		if conf["build.stage"] == 0 then
+			-- copy crt1.o, crti.o and crtn.o in ld search path 
+			local lddir = lfs.dirname(api.readexecout(api.makepath(path.install.bin, conf["cross.prefix"].."-gcc"), "-print-libgcc-file-name"))
+			local diriter = lfs.dir(lddir)
+			local dirname = diriter()
+			lddir = api.makepath(lddir, dirname)
+			for _, file in ipairs{"crt1.o", "crti.o", "crtn.o"} do
+				api.copy(api.makepath(path.install.lib, file), lddir)
+			end
+		end
+
 		assert(isinstalled(), "something wrong after glibc install") 
 	end
 end

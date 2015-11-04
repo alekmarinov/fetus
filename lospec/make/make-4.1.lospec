@@ -1,10 +1,10 @@
 package = {
-	name     = "xproto",
-	version  = "7.0.23",
-	source   = "$(repo.opensource)/xproto-7.0.23.tar.bz2"
+	name     = "make",
+	version  = "4.1",
+	source   = "$(repo.opensource)/make-4.1.tar.bz2"
 }
 
-use ("autotools", {build_outside = true})
+use "autotools"
 
 function prepare()
 	api.download()
@@ -19,7 +19,7 @@ end
 
 function isinstalled()
 	return api.isinstalled{
-		pc = "xproto"
+		exec = "make"
 	}
 end
 
@@ -27,6 +27,6 @@ function install()
 	if not isinstalled() then
 		build()
 		autotools.install()
-		assert(isinstalled(), "something wrong after xproto install")
+		assert(isinstalled(), "something wrong after "..package.name.." install") 
 	end
 end

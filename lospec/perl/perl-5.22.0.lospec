@@ -4,7 +4,7 @@ package = {
 	source   = "$(repo.opensource)/perl-5.22.0.tar.bz2"
 }
 
-use ("autotools", {configure = "Configure"})
+use ("autotools", {configure = "Configure", noprefix = true})
 
 function prepare()
 	api.download()
@@ -13,7 +13,7 @@ end
 
 function build()
 	prepare()
-	autotools.configure("-des", "-Duseshrplib", "-Dprefix="..path.install.dir)
+	autotools.configure{"-des", "-Duseshrplib", ["-Dprefix"] = path.install.dir, ["-Dlibs"] = "-lm"}
 	autotools.make()
 end
 
@@ -27,6 +27,6 @@ function install()
 	if not isinstalled() then
 		build()
 		autotools.install()
-		assert(isinstalled(), "something wrong after perl install")
+		assert(isinstalled(), "something wrong after "..package.name.." install")
 	end
 end

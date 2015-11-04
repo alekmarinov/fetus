@@ -1,0 +1,36 @@
+package = {
+	name     = "tcl-core",
+	version  = "8.6.4",
+	source   = "$(repo.opensource)/tcl-core8.6.4-src.tar.gz",
+	archdir = "tcl8.6.4"
+}
+
+use ("autotools", {build_outside = true, configure = "unix/configure"})
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		exec = "tclsh8.6"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.install()
+		assert(isinstalled(), "something wrong after "..package.name.." install")
+		api.executein(path.install.lib, "chmod", "-v", "u+w", "libtcl8.6.so")
+		autotools.make("install-private-headers")
+		lfs.execute("ln", "-sv", "tclsh8.6", api.makepath(path.install.bin, "tclsh"))
+	end
+end

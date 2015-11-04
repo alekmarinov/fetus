@@ -30,9 +30,11 @@ local usagetext = "%s\n\nUsage: "..los._NAME.." [OPTION]... COMMAND [ARGS]..."
 local usagetexthelp = "Try "..los._NAME.." --help' for more options."
 local errortext = "Error: %s"
 local helptext = [[
--c   --config CONFIG  config file path (default ]]..defaultconf..[[)
-     --config-dump    dumps all configuration
+-c   --config CONFIG    config file path (default ]]..defaultconf..[[)
+     --config-dump      dumps all configuration
+     --config-get name  prints the value of specified configuration name
 -Dname1=value1,name2=value2,...    overwrites config definition for name
+-e   --execute        executes lua file or script in los context
 -q   --quiet          no output messages
 -v   --verbose        verbose messages
 -h,  --help           print this help.
@@ -184,6 +186,8 @@ function los.main(losdir, ...)
 			print(name)
 		end
 		os.exit(0)
+	elseif command == "chroot" then
+		
 	end
 
 	_log:info(los._NAME.." started with `"..command.." "..table.concat(args, " ").."'")
@@ -192,7 +196,7 @@ function los.main(losdir, ...)
 		exiterror("package [version] argument is missing")
 	end
 
-	local lomod, err = los.requires(unpack(args))
+	local lomod, err = los.requires(args[1])
 	if not lomod then
 		exiterror(err)
 	end
@@ -202,7 +206,7 @@ function los.main(losdir, ...)
 	end
 
 	_, ok, err = xpcall(function()
-		lomod[command](lomod)
+		lomod[command](select(2, unpack(args)))
 	end, function(err) exiterror(debug.traceback(err, 2)) end)
 
 	if not ok and err then

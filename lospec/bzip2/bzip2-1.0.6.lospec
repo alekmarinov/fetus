@@ -1,0 +1,40 @@
+package = {
+	name     = "bzip2",
+	version  = "1.0.6",
+	source   = "$(repo.opensource)/bzip2-1.0.6.tar.gz"
+}
+
+local function make(...)
+	local args = {}
+	for _, v in ipairs{"VERBOSE=1", ...} do
+		table.insert(args, "\""..v.."\"")
+	end
+
+	local cmd = conf["build.make"].." "..table.concat(args, " ")
+	log.i(cmd)
+	return assert(lfs.executein(path.src.dir, cmd))
+end
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		exec = "bzip2"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		make("PREFIX="..path.install.dir, "install")
+		assert(isinstalled(), "something wrong after "..package.name.." install")
+	end
+end

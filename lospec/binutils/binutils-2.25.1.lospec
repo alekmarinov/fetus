@@ -4,27 +4,59 @@ package = {
 	source   = "$(repo.opensource)/binutils-2.25.1.tar.bz2"
 }
 
-use "autotools"
+use ("autotools", {build_outside = true})
+
+local function getoptpass(...)
+	local pass = ...
+	assert(type(pass) == "string" and (pass == "--pass1" or pass == "--pass2"), "Expects argument 1 string --pass1 or --pass2, got "..tostring(pass))
+	return pass == "--pass1" and 1 or 2
+end
 
 function prepare()
 	api.download()
 	api.unarch()
 end
 
-function build()
+function build(...)
+	local pass = getoptpass(...)
 	prepare()
-	autotools.configure({
-		["--prefix"] = path.install.dir,
-		["--with-sysroot"] = path.install.dir,
-		["--with-lib-path"]= path.install.dir,
-		["--target"]= conf["cross.prefix"]
-	}, "--disable-nls", "--disable-werror")
+	local confargs, env
+	if conf["build.stage"] == 0 then
+		if pass == 1 then
+			confargs = {
+				["--prefix"] = path.install.dir,
+				-- ["--with-sysroot"] = conf["dir.sysroot"],
+				["--with-lib-path"]= path.install.lib,
+				["--target"]= conf["cross.prefix"],
+				"--disable-nls",
+				"--disable-werror"
+			}
+		else
+			env = {
+				-- overwriting CC requires to add include path
+				CC = conf["cross.prefix"].."-gcc -DSTDC_HEADERS -I"..path.install.inc,
+				AR = conf["cross.prefix"].."-ar",
+				RANLIB = conf["cross.prefix"].."-ranlib"
+			}
+			confargs = {
+				["--prefix"] = path.install.dir,
+				"--disable-nls",
+				"--disable-werror",
+				["--with-lib-path"]= path.install.lib,
+				-- "--with-sysroot"
+			}
+		end
+	else
+		error("Only stage 0 is currently supported")
+	end
+	autotools.configure(confargs, env)
 	autotools.make()
 end
 
-function isinstalled()
+function isinstalled(...)
+	local pass = getoptpass(...)
 	local execs = {}
-	local execprefix = conf["cross.prefix"]
+	local execprefix = pass == 1 and conf["cross.prefix"].."-" or ""
 	for _, ex in ipairs{
 		"addr2line",
 		"elfedit",
@@ -42,17 +74,29 @@ function isinstalled()
 		"ld.bfd",
 		"ranlib",
 		"strip"} do
-		table.insert(execs, execprefix.."-"..ex)
+		table.insert(execs, execprefix..ex)
 	end
 	return api.isinstalled{
 		exec = execs
 	}
 end
 
-function install()
-	if not isinstalled() then
-		build()
+function install(...)
+	if not isinstalled(...) then
+		local pass = getoptpass(...)
+		log.i(string.format("Installing %s stage %d pass %d", package.name, conf["build.stage"], pass))
+		build(...)
+		if not api.isarch32(conf["build.arch"]) then
+			lfs.mkdir(path.install.lib)
+			lfs.link(lfs.basename(path.install.lib), path.install.lib.."64")
+		end
 		autotools.install()
-		assert(isinstalled(), "something wrong after binutils install") 
+		assert(isinstalled(...), "something wrong after binutils install") 
+
+		-- Prepare the linker for the “Re-adjusting” phase
+		local lddir = api.makepath(autotools.builddir(), "ld")
+		api.executein(lddir, "make", "clean")
+		api.executein(lddir, "make", "LIB_PATH=/usr/lib:/lib")
+		api.copy(api.makepath(lddir, "ld-new"), path.install.bin)
 	end
 end

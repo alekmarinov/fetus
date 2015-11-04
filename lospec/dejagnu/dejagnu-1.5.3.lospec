@@ -1,17 +1,16 @@
-ncurses = requires "ncurses == 6.0"
-perl    = requires "perl"
+expect = requires "expect"
 
 package = {
-	name     = "texinfo",
-	version  = "6.0",
-	source   = "$(repo.opensource)/texinfo-6.0.tar.xz"
+	name     = "dejagnu",
+	version  = "1.5.3",
+	source   = "$(repo.opensource)/dejagnu-1.5.3.tar.gz"
 }
 
 use "autotools"
 
 function prepare()
-	ncurses:install()
-	perl:install()
+	expect.install()
+
 	api.download()
 	api.unarch()
 end
@@ -20,11 +19,11 @@ function build()
 	prepare()
 	autotools.configure()
 	autotools.make()
-end 
+end
 
 function isinstalled()
 	return api.isinstalled{
-		exec = {"texi2pdf", "texi2dvi", "texindex" }
+		exec = "runtest"
 	}
 end
 

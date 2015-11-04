@@ -141,16 +141,7 @@ function api.catfile(file, text, opentype)
 end
 
 function api.appendfile(file, text)
-	assert(type(file) == "string")
-	assert(type(text) == "string")
-
-	local fd, err = io.open(file, "a+")
-	if not fd then
-		return nil, err
-	end
-	local ok, err = fd:write(text)
-	fd:close()
-	return ok, err
+	return api.catfile(file, text, "a")
 end
 
 function api.readfile(file)
@@ -175,16 +166,22 @@ function api.copy(src, dst)
 		lfs.mkdir(dst)
 	end
 
-	log.i("copy ", src, dst)
+	log.i("copy", src, dst)
 	assert(lfs.copy(src, dst))
 end
 
 function api.executein(dir, filename, env, ...)
 	assert(not dir or type(dir) == "string", "expected string for argument 1, got "..type(dir))
 	assert(type(filename) == "string", "expected string for argument 2, got "..type(filename))
-	assert(not env or type(env) == "table", "expected table for argument 3, got "..type(env))
-	for i, v in ipairs{...} do
+	local args = {...}
+	for i, v in ipairs(args) do
 		assert(type(v) == "string", "expected string for argument "..(i + 3)..", got "..type(v))
+	end
+	if type(env) == "string" then
+		table.insert(args, 1, env)
+		env = nil
+	else
+		assert(not env or type(env) == "table", "expected string or table for argument 3, got "..type(env))
 	end
 
 	local cdir = lfs.currentdir()
@@ -192,8 +189,9 @@ function api.executein(dir, filename, env, ...)
 		lfs.chdir(dir)
 	end
 	local cmd = table.concat({filename, api.map(function(v) return lfs.Q(v) end, ...)}, " ")
+
 	-- log environment
-	if env then
+	if type(env) == "table" then
 		local envlog = {}
 		for i, v in pairs(env) do
 			if table.indexof({"PKG_CONFIG_PATH","LD_LIBRARY_PATH","PATH"}, i) then
@@ -204,7 +202,7 @@ function api.executein(dir, filename, env, ...)
 	end
 
 	log.i(dir..":", cmd)
-	local pid = assert(os.spawn(filename, {args={...}, env=env}))
+	local pid = assert(os.spawn(filename, {args = args, env = env}))
 	lfs.chdir(cdir)
 	local exitcode = pid:wait(pid)
 	if exitcode ~= 0 then
@@ -330,6 +328,12 @@ function api.gsubfile(filename, ...)
 	tmp:close()
 	lfs.delete(filename)
 	lfs.move(tmpname, filename)
+end
+
+function api.readexecout(command, ...)
+	local buffer = {}
+	lfs.execout(command, function(chunk) table.insert(buffer, chunk) end, ...)
+	return table.concat(buffer)
 end
 
 function api.isarch32(arch)

@@ -10,24 +10,23 @@ use "autotools"
 function prepare()
 	api.download()
 	api.unarch()
-	api.patch()
 end
 
 function build()
 	prepare()
-	autotools.configure("--enable-term-driver", "--enable-sp-funcs", "--with-shared")
+	autotools.configure("--enable-term-driver", "--enable-sp-funcs", "--with-shared", "--without-debug", "--without-ada", "--enable-widec", "--enable-overwrite")
 	autotools.make()
 end
 
 function isinstalled()
 	local files = {
-		h = {"ncurses/ncurses.h"},
-		static = "ncurses"
+		h = {"ncurses.h"},
+		static = "ncursesw"
 	}
 	if conf["host.system"] == "mingw" then
-		files.dynamic = "libncurses6"
+		files.dynamic = "libncursesw6"
 	else
-		files.dynamic = "ncurses"
+		files.dynamic = "ncursesw"
 	end
 	return api.isinstalled(files)
 end

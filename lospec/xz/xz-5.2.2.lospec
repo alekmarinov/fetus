@@ -1,17 +1,12 @@
-ncurses = requires "ncurses == 6.0"
-perl    = requires "perl"
-
 package = {
-	name     = "texinfo",
-	version  = "6.0",
-	source   = "$(repo.opensource)/texinfo-6.0.tar.xz"
+	name     = "xz",
+	version  = "5.2.2",
+	source   = "$(repo.opensource)/xz-5.2.2.tar.xz"
 }
 
 use "autotools"
 
 function prepare()
-	ncurses:install()
-	perl:install()
 	api.download()
 	api.unarch()
 end
@@ -20,11 +15,11 @@ function build()
 	prepare()
 	autotools.configure()
 	autotools.make()
-end 
+end
 
 function isinstalled()
 	return api.isinstalled{
-		exec = {"texi2pdf", "texi2dvi", "texindex" }
+		exec = "xz"
 	}
 end
 

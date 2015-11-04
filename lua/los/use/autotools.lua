@@ -12,9 +12,9 @@
 
 local autotools = {}
 
-local function builddir()
+function autotools.builddir()
 	local dir = path.src.dir
-	if autotools.opts.build_out_src then
+	if autotools.opts.build_outside then
 		dir = api.makepath(lfs.dirname(conf["dir.src"]), "build", lfs.basename(path.src.dir))
 	end
 	return dir
@@ -23,14 +23,14 @@ end
 function autotools.make(...)
 	local args = {...}
 	local env = api.mkenv{
-		PATH = os.getenv("PATH")..conf["build.pathsep"]..path.install.bin,
-		LD_LIBRARY_PATH = path.install.lib
+		PATH = path.install.bin..conf["build.pathsep"].."/bin"..conf["build.pathsep"].."/usr/bin",
+		-- LD_LIBRARY_PATH = path.install.lib
 	}
 	if type(args[1]) == "table" then
 		table.fastcopy(args[1], env)
 		table.remove(args, 1)
 	end
-	return api.executein(builddir(), conf["build.make"], env, unpack(args))
+	return api.executein(autotools.builddir(), conf["build.make"], env, unpack(args))
 end
 
 function autotools.configure(...)
@@ -65,15 +65,17 @@ function autotools.configure(...)
 	else
 		assert(type(extra) == "string")
 	end
-	opts["--prefix"] = opts["--prefix"] or path.install.dir
+	if not autotools.opts.noprefix then
+		opts["--prefix"] = opts["--prefix"] or path.install.dir
+	end
 	for i, v in pairs(opts) do
 		table.insert(args, i.."="..v)
 	end
 
 	local env = api.mkenv{
-		PATH = os.getenv("PATH")..conf["build.pathsep"]..path.install.bin,
+		PATH = path.install.bin..conf["build.pathsep"].."/bin"..conf["build.pathsep"].."/usr/bin",
 		PKG_CONFIG_PATH = api.makepath(path.install.lib, "pkgconfig")..":"..api.makepath(path.install.dir, "share/pkgconfig"),
-		LD_LIBRARY_PATH = path.install.lib
+		-- LD_LIBRARY_PATH = path.install.lib
 	}
 	if type(args[1]) == "table" then
 		table.fastcopy(args[1], env)
@@ -85,8 +87,11 @@ function autotools.configure(...)
 	end
 
 	local srcdir = path.src.dir
-	local blddir = builddir()
+	local blddir = autotools.builddir()
 	assert(string.sub(srcdir, 1, 1) == string.sub(blddir, 1, 1), "Build directory at "..blddir.." must be at the same drive as source directory at "..srcdir)
+	if autotools.opts.build_outside then
+		lfs.delete(blddir)
+	end
 	assert(lfs.mkdir(blddir))
 
 	-- finds relative path from build dir to source
@@ -97,7 +102,7 @@ function autotools.configure(...)
 		table.insert(relpath, "..")
 	end
 	local configurepath = api.makepath(table.concat(relpath, "/"), string.sub(path.src.dir, 1 + string.len(srcdir)))
-	return api.executein(builddir(), "sh", env, api.makepath(configurepath, configurename), unpack(args))
+	return api.executein(autotools.builddir(), "sh", env, api.makepath(configurepath, configurename), unpack(args))
 end
 
 local installdirs = {"bin", "lib", "include", "man", "man/man1"}
@@ -114,21 +119,10 @@ local function createinstalldirs()
 	return true
 end
 
-local function deleteinstalldirsifempty()
-	for i = #installdirs, 1, -1 do
-		local dir = installdirs[i]
-		local directory = lfs.concatfilenames(path.install.dir, dir)
-		log.d("deleteifempty", directory)
-		lfs.deleteifempty(lfs.concatfilenames(path.install.dir, dir))
-	end
-	return true
-end
-
 function autotools.install(...)
-	rollback.push("deleteinstalldirsifempty", deleteinstalldirsifempty)
-	assert(createinstalldirs())
-	assert(autotools.make("install", ...))
-	rollback.pop()
+	local args = {...}
+	table.insert(args, "install")
+	assert(autotools.make(unpack(args)))
 end
 
 return autotools

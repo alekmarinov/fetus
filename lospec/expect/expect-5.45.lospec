@@ -1,0 +1,42 @@
+tclcore = requires "tcl-core"
+
+package = {
+	name     = "expect",
+	version  = "5.45",
+	source   = "$(repo.opensource)/expect5.45.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	tclcore.install()
+
+	api.download()
+	api.unarch()
+
+	--force Expect's configure script to use /bin/stty instead of a /usr/local/bin/stty
+	api.gsubfile(api.makepath(path.src.dir, "configure"), "/usr/local/bin", "/bin")
+end
+
+function build()
+	prepare()
+	autotools.configure{
+		["--with-tcl"] = path.install.lib,
+		["--with-tclinclude"] = path.install.inc
+	}
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		exec = "expect"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.install()
+		assert(isinstalled(), "something wrong after "..package.name.." install")
+	end
+end
