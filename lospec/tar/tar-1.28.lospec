@@ -13,7 +13,7 @@ end
 
 function build()
 	prepare()
-	autotools.configure()
+	autotools.configure(nil, {FORCE_UNSAFE_CONFIGURE=1})
 	autotools.make()
 end
 

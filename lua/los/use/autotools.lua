@@ -34,6 +34,27 @@ function autotools.make(...)
 end
 
 function autotools.configure(...)
+
+	if conf["build.stage"] == 0 then
+		-- ensure root permissions and install target 
+		lfs.execout("id -u", function (uid)
+			assert(uid == "0", "Root permissions required during stage 0")
+		end)
+
+		-- link install dir to location which will be available after chrooting in stage 1
+		if not lfs.isdir(path.install.dir) then
+			local installdir = path.install.dir
+			if string.sub(installdir, 1, 1) == "/" then
+				installdir = string.sub(installdir, 2)
+			end
+			local localinstalldir = api.makepath(conf["dir.sysroot"], installdir)
+			log.i("mkdir "..localinstalldir)
+			lfs.mkdir(localinstalldir)
+			log.i("link "..localinstalldir.." -> "..path.install.dir)
+			lfs.link(localinstalldir, path.install.dir)
+		end
+	end
+
 	local args = {...}
 	local opts =
 	{

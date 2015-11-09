@@ -62,9 +62,6 @@ function install()
 		if conf["build.stage"] == 0 then
 			-- copy crt1.o, crti.o and crtn.o in ld search path 
 			local lddir = lfs.dirname(api.readexecout(api.makepath(path.install.bin, conf["cross.prefix"].."-gcc"), "-print-libgcc-file-name"))
-			local diriter = lfs.dir(lddir)
-			local dirname = diriter()
-			lddir = api.makepath(lddir, dirname)
 			for _, file in ipairs{"crt1.o", "crti.o", "crtn.o"} do
 				api.copy(api.makepath(path.install.lib, file), lddir)
 			end

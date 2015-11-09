@@ -18,6 +18,8 @@ local string      = require "lrun.util.string"
 local table       = require "lrun.util.table"
 local rollback    = require "los.rollback"
 local loader      = require "los.lospec.loader"
+local chroot      = require "los.command.chroot"
+
 require "los.requires"
 
 los._NAME = "los"
@@ -33,7 +35,7 @@ local helptext = [[
 -c   --config CONFIG    config file path (default ]]..defaultconf..[[)
      --config-dump      dumps all configuration
      --config-get name  prints the value of specified configuration name
--Dname1=value1,name2=value2,...    overwrites config definition for name
+-Dname1=value1,name2=value2,...    redefine configuration definitions
 -e   --execute        executes lua file or script in los context
 -q   --quiet          no output messages
 -v   --verbose        verbose messages
@@ -41,7 +43,7 @@ local helptext = [[
 
 where COMMAND can be one below:
 
-install <project> [version]
+install { "<project1> [version_spec]" [-options] ...}
 ]]
 
 local longopts = {
@@ -65,6 +67,12 @@ local function usage(errmsg)
 	os.exit(1)
 end
 
+--- show help and exit
+local function help()
+	io.stderr:write(helptext.."\n")
+	os.exit(1)
+end
+
 --- exit with error message
 local function exiterror(errmsg)
 	assert(type(errmsg) == "string", "expected string, got "..type(errmsg))
@@ -79,6 +87,15 @@ local function exitsuccess()
 	io.stderr:write("SUCCESS!\n")
 	rollback.execute()
 	os.exit(0)
+end
+
+--- exit with specified status
+local function exitstatus(ok, err)
+	if ok then
+		exitsuccess()
+	else
+		exiterror(err)
+	end
 end
 
 function createlogger(opts)
@@ -142,6 +159,10 @@ function los.main(losdir, ...)
 		end
 	end
 
+	if opts.h then
+		help()
+	end
+
 	if opts["config-dump"] then
 		for _, key in ipairs(table.values(config.keys(_conf), true)) do
 			print(string.format("%30s= %s", key, config.get(_conf, key)))
@@ -187,7 +208,7 @@ function los.main(losdir, ...)
 		end
 		os.exit(0)
 	elseif command == "chroot" then
-		
+		exitstatus(chroot.execute())
 	end
 
 	_log:info(los._NAME.." started with `"..command.." "..table.concat(args, " ").."'")
@@ -196,21 +217,38 @@ function los.main(losdir, ...)
 		exiterror("package [version] argument is missing")
 	end
 
-	local lomod, err = los.requires(args[1])
-	if not lomod then
-		exiterror(err)
+	local lomods = {}
+	local i = 1
+	while i <= #args do
+		local dep = args[i]
+		local lomod, err = los.requires(dep)
+		if not lomod then
+			exiterror(err)
+		end
+		local lomodargs = {lomod}
+		while i + 1 <= #args and string.starts(args[i + 1], "-") do
+			table.insert(lomodargs, args[i + 1])
+			i = i + 1
+		end
+		i = i + 1
+		table.insert(lomods, lomodargs)
 	end
 
-	if type(lomod[command]) ~= "function" then
-		exiterror("command "..command.." is not supported by "..args[1])
-	end
+	for _, lomodargs in ipairs(lomods) do
+		local lomod = table.remove(lomodargs, 1)
+		if type(lomod[command]) ~= "function" then
+			exiterror("command "..command.." is not supported by "..dep)
+		end
 
-	_, ok, err = xpcall(function()
-		lomod[command](select(2, unpack(args)))
-	end, function(err) exiterror(debug.traceback(err, 2)) end)
-
-	if not ok and err then
-		exiterror(err)
+		xpcall(function()
+			ok, err = lomod[command](unpack(lomodargs))
+			if not ok and err then
+				error(err)
+			end
+		end, function(err)
+			_log:error(command.." "..lomod.package.name.." "..lomod.package.version.string.." "..table.concat(lomodargs, " ").." failed")
+			exiterror(debug.traceback(err, 2))
+		end)
 	end
 
 	exitsuccess()
