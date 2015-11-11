@@ -35,6 +35,10 @@ function isinstalled()
 	if conf["host.system"] == "mingw" then
 		files.static = {"z.dll"}
 		files.dynamic = "zlib1.dll"
+	else
+		if conf["build.stage"] == 1 then
+			files.static = "../../lib64/libz.a"
+		end
 	end
 	return api.isinstalled(files)
 end
@@ -46,7 +50,15 @@ function install()
 			api.executein(path.build, conf["build.make"], nil, "install", "BINARY_PATH="..path.install.bin, "LIBRARY_PATH="..path.install.lib, "INCLUDE_PATH="..path.install.inc, "SHARED_MODE=1", "-fwin32/Makefile.gcc")
 		else
 			autotools.install()
+			assert(isinstalled(), "something wrong after zlib install")
+			if conf["build.stage"] == 1 then
+				local lib = "lib"
+				if not api.isarch32() then
+					lib = lib.."64"
+				end
+				lfs.execute("mv "..api.makepath(path.install.lib, "libz.*"), api.makepath(path.install.dir, "..", lib))
+				lfs.link(api.makepath("../..", lib, "libz.so"), api.makepath(path.install.lib, "libz.so"))
+			end
 		end
-		assert(isinstalled(), "something wrong after zlib install")
 	end
 end

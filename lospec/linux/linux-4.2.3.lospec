@@ -10,6 +10,13 @@ function prepare()
 end
 
 function install()
-	log.i("install linux is not supported yet")
+	if conf["build.system"] == "mingw" then
+		log.e("linux install is not supported under mingw")
+	else
+		prepare()
+		api.executein(path.src.dir, "make", nil, "INSTALL_HDR_PATH=dest", "headers_install")
+		api.executein(path.src.dir, "find", nil, "dest/include", "\(", "-name", ".install", "-o", "-name", "..install.cmd", "\)", "-delete")
+		lfs.copy(api.makepath(path.src.dir, "dest/include"), path.install.dir)
+	end
 	return true
 end

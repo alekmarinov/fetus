@@ -5,14 +5,9 @@ package = {
 }
 
 local function make(...)
-	local args = {}
-	for _, v in ipairs{"VERBOSE=1", ...} do
-		table.insert(args, "\""..v.."\"")
-	end
-
-	local cmd = conf["build.make"].." "..table.concat(args, " ")
-	log.i(cmd)
-	return assert(lfs.executein(path.src.dir, cmd))
+	return assert(api.executein(path.src.dir, conf["build.make"], {
+		PATH = path.install.bin..conf["build.pathsep"].."/bin"..conf["build.pathsep"].."/usr/bin"
+	}, ...))
 end
 
 function prepare()
@@ -26,8 +21,7 @@ function build()
 	if api.isarch32(conf["host.arch"]) then
 		table.insert(makeargs, "CC=gcc -m32")
 	end
-	api.executein(path.src.dir, conf["build.make"], nil, unpack(makeargs))
-	api.executein(path.src.dir, conf["build.make"], nil, "prefix="..path.install.dir, "-f", "unix/Makefile", "install")
+	make(unpack(makeargs))
 end
 
 function isinstalled()
@@ -42,7 +36,8 @@ function install()
 			log.e("unzip install is not supported under mingw")
 		else
 			build()
-			assert(isinstalled(), "something wrong after unzip install")
+			make("-f", "unix/Makefile", "install", "prefix="..path.install.dir)
+			assert(isinstalled(), "something wrong after "..package.name.." install")
 		end
 	end
 end

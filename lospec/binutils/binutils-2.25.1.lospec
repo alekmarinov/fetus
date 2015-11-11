@@ -25,7 +25,6 @@ function build(...)
 		if pass == 1 then
 			confargs = {
 				["--prefix"] = path.install.dir,
-				-- ["--with-sysroot"] = conf["dir.sysroot"],
 				["--with-lib-path"]= path.install.lib,
 				["--target"]= conf["cross.prefix"],
 				"--disable-nls",
@@ -43,7 +42,6 @@ function build(...)
 				"--disable-nls",
 				"--disable-werror",
 				["--with-lib-path"]= path.install.lib,
-				-- "--with-sysroot"
 			}
 		end
 	else
@@ -94,9 +92,11 @@ function install(...)
 		assert(isinstalled(...), "something wrong after binutils install") 
 
 		-- Prepare the linker for the “Re-adjusting” phase
-		local lddir = api.makepath(autotools.builddir(), "ld")
-		api.executein(lddir, "make", "clean")
-		api.executein(lddir, "make", "LIB_PATH=/usr/lib:/lib")
-		api.copy(api.makepath(lddir, "ld-new"), path.install.bin)
+		if pass == 2 and conf["build.stage"] == 0 then
+			local lddir = api.makepath(autotools.builddir(), "ld")
+			api.executein(lddir, "make", "clean")
+			api.executein(lddir, "make", "LIB_PATH=/usr/lib:/lib")
+			api.copy(api.makepath(lddir, "ld-new"), path.install.bin)
+		end
 	end
 end

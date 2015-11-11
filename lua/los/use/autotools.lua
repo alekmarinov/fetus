@@ -22,12 +22,9 @@ end
 
 function autotools.make(...)
 	local args = {...}
-	local env = api.mkenv{
-		PATH = path.install.bin..conf["build.pathsep"].."/bin"..conf["build.pathsep"].."/usr/bin",
-		-- LD_LIBRARY_PATH = path.install.lib
-	}
+	local env
 	if type(args[1]) == "table" then
-		table.fastcopy(args[1], env)
+		env = api.mkenv(args[1])
 		table.remove(args, 1)
 	end
 	return api.executein(autotools.builddir(), conf["build.make"], env, unpack(args))
@@ -94,9 +91,7 @@ function autotools.configure(...)
 	end
 
 	local env = api.mkenv{
-		PATH = path.install.bin..conf["build.pathsep"].."/bin"..conf["build.pathsep"].."/usr/bin",
-		PKG_CONFIG_PATH = api.makepath(path.install.lib, "pkgconfig")..":"..api.makepath(path.install.dir, "share/pkgconfig"),
-		-- LD_LIBRARY_PATH = path.install.lib
+		PKG_CONFIG_PATH = api.makepath(path.install.lib, "pkgconfig")..":"..api.makepath(path.install.dir, "share/pkgconfig")
 	}
 	if type(args[1]) == "table" then
 		table.fastcopy(args[1], env)
@@ -123,6 +118,7 @@ function autotools.configure(...)
 		table.insert(relpath, "..")
 	end
 	local configurepath = api.makepath(table.concat(relpath, "/"), string.sub(path.src.dir, 1 + string.len(srcdir)))
+	assert(not env.PATH, "PATH can't be defined in autotools")
 	return api.executein(autotools.builddir(), "sh", env, api.makepath(configurepath, configurename), unpack(args))
 end
 

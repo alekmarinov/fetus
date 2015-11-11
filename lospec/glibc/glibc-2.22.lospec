@@ -5,18 +5,21 @@ package = {
 	name     = "glibc",
 	version  = "2.22",
 	source   = "$(repo.opensource)/glibc-2.22.tar.bz2",
-	patch    = {"glibc-2.22-upstream_i386_fix-1.patch"}
+	patch    = {
+		"glibc-2.22-upstream_i386_fix-1.patch",
+		"glibc-2.22-fhs-1.patch",
+		"glibc-2.22-largefile-1.patch"
+	}
 }
 
 use ("autotools", {build_outside = true})
 
 function prepare()
-	assert(binutils.isinstalled("--pass1") or binutils.isinstalled("--pass2"), "binutils must be installed before glibc")
+	if conf["build.stage"] == 0 then
+		assert(binutils.isinstalled("--pass1") or binutils.isinstalled("--pass2"), "binutils must be installed before glibc")
+	end
 
-	linux.prepare()
-	api.executein(linux.path.src.dir, "make", nil, "INSTALL_HDR_PATH=dest", "headers_install")
-	api.executein(linux.path.src.dir, "find", nil, "dest/include", "\(", "-name", ".install", "-o", "-name", "..install.cmd", "\)", "-delete")
-	lfs.copy(api.makepath(linux.path.src.dir, "dest/include"), path.install.dir)
+	linux.install()
 
 	api.download()
 	api.unarch()
@@ -25,19 +28,29 @@ end
 
 function build()
 	prepare()
-	local confargs = {
-		["--prefix"] = path.install.dir,
-		["--host"] = conf["cross.prefix"],
-		["--build"] = api.readexecout(api.makepath(path.src.dir, "scripts/config.guess")),
-		"--disable-profile",
-		["--enable-kernel"] = "2.6.32",
-		"--enable-obsolete-rpc",
-		["--with-headers"] = path.install.inc,
-		libc_cv_forced_unwind = "yes",
-		libc_cv_ctors_header = "yes",
-		libc_cv_c_cleanup = "yes",
-		CFLAGS = "-O -Wno-error=maybe-uninitialized"
-	}
+	local confargs
+
+	if conf["build.stage"] == 0 then
+		confargs = {
+			["--host"] = conf["cross.prefix"],
+			["--build"] = api.readexecout(api.makepath(path.src.dir, "scripts/config.guess")),
+			"--disable-profile",
+			["--enable-kernel"] = "2.6.32",
+			"--enable-obsolete-rpc",
+			["--with-headers"] = path.install.inc,
+			libc_cv_forced_unwind = "yes",
+			libc_cv_ctors_header = "yes",
+			libc_cv_c_cleanup = "yes",
+			CFLAGS = "-O -Wno-error=maybe-uninitialized"
+		}
+	else
+		confargs = {
+			"--disable-profile",
+			["--enable-kernel"] = "2.6.32",
+			"--enable-obsolete-rpc",
+			CFLAGS = "-O -Wno-error=maybe-uninitialized"
+		}
+	end
 
 	if api.isarch32(conf["host.arch"]) then
 		confargs.CC = "gcc -m32 -D_GNU_SOURCE -march="..conf["host.arch"]
@@ -47,15 +60,25 @@ function build()
 end
 
 function isinstalled()
+	local dynamic = "c"
+	if conf["build.stage"] > 0 then
+		if api.isarch32() then
+			dynamic = "../lib/libc.so"
+		else
+			dynamic = "../lib64/libc.so"
+		end
+	end
+
 	return api.isinstalled{
 		h = {"stdio.h", "stdlib.h", "elf.h"},
 		exec = "ldd",
-		dynamic = "c"
+		dynamic = dynamic
 	}
 end
 
 function install()
 	if not isinstalled() then
+		log.i(string.format("Installing %s stage %d", package.name, conf["build.stage"]))
 		build()
 		autotools.install()
 
@@ -65,8 +88,44 @@ function install()
 			for _, file in ipairs{"crt1.o", "crti.o", "crtn.o"} do
 				api.copy(api.makepath(path.install.lib, file), lddir)
 			end
+		elseif conf["build.stage"] == 1 then
+			lfs.mkdir(api.makepath(conf["dir.sysroot"], "etc"))
+			api.copy(api.makepath(path.src.dir, "nscd/nscd.conf"), api.makepath(conf["dir.sysroot"], "etc"))
+			lfs.mkdir(api.makepath(conf["dir.sysroot"], "var/cache/nscd"))
+
+			api.catfile(api.makepath(conf["dir.sysroot"], "etc/nsswitch.conf"), [[
+# Begin /etc/nsswitch.conf
+
+passwd: files
+group: files
+shadow: files
+
+hosts: files dns
+networks: files
+
+protocols: files
+services: files
+ethers: files
+rpc: files
+
+# End /etc/nsswitch.conf
+]])
 		end
 
-		assert(isinstalled(), "something wrong after glibc install") 
+		-- Adjusting the toolchain
+		if not lfs.isfile(gccld1.."-new") then
+			log.e("File "..gccld1.."-new is missing but expected from installing binutils at stage 0 pass 2. Skip toolchain adjustment.")
+		else
+			local gccld1 = api.makepath(conf["dir.stage0.install"], "bin/ld")
+			local gccld2 = api.makepath(conf["dir.stage0.install"], api.readexecout("gcc", "-dumpmachine"), "bin/ld")
+
+			lfs.move(gccld1, gccld1.."-old")
+			lfs.move(gccld2, gccld2.."-old")
+			lfs.move(gccld1.."-new", gccld1)
+			lfs.link(gccld1, gccld2)
+
+			assert(lfs.execute("gcc -dumpspecs | sed -e 's@/tools@@g' -e '/\\*startfile_prefix_spec:/{n;s@.*@/usr/lib/ @}' -e '/\\*cpp:/{n;s@$@ -isystem /usr/include@}' > `dirname $(gcc --print-libgcc-file-name)`/specs"))
+		end
+		assert(isinstalled(), "something wrong after "..package.name.." install")
 	end
 end

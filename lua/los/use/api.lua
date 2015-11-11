@@ -191,17 +191,18 @@ function api.executein(dir, filename, env, ...)
 	local cmd = table.concat({filename, api.map(function(v) return lfs.Q(v) end, ...)}, " ")
 
 	-- log environment
-	if type(env) == "table" then
-		local envlog = {}
-		for i, v in pairs(env) do
-			if table.indexof({"PKG_CONFIG_PATH","LD_LIBRARY_PATH","PATH"}, i) then
-				table.insert(envlog, i.."="..v)
-			end
-		end
-		cmd = table.concat(envlog, " ").." "..cmd
-	end
+	env = env or {}
+	env.PATH = table.concat({path.install.bin, "/bin", "/usr/bin", os.getenv("PATH")}, conf["build.pathsep"])
 
-	log.i(dir..":", cmd)
+	local envlog = {}
+	for i, v in pairs(env) do
+		if table.indexof({"PKG_CONFIG_PATH", "LD_LIBRARY_PATH", "PATH"}, i) then
+			table.insert(envlog, i.."="..v)
+		end
+	end
+	cmd = table.concat(envlog, " ").." "..cmd
+
+	log.i(dir and (dir..":"..cmd) or cmd)
 	local pid = assert(os.spawn(filename, {args = args, env = env}))
 	lfs.chdir(cdir)
 	local exitcode = pid:wait(pid)
@@ -247,7 +248,6 @@ function api.isinstalled(files)
 					instdir = path.install.bin
 					filex = string.format(conf["host.exec.format"], file)
 				end
-
 				if instdir then
 					if type(instdir) == "string" then
 						instdir = {instdir}
@@ -260,13 +260,21 @@ function api.isinstalled(files)
 						if filex then
 							instfilex = lfs.concatfilenames(instdir, filex)
 						end
-						if not (lfs.isfile(file) or lfs.isfile(instfile) or (instfilex and lfs.isfile(instfilex))) then
+						local filepath = lfs.isfile(file) and file
+						if not filepath then
+							filepath = lfs.isfile(instfile) and instfile
+							if not filepath then
+								filepath = instfilex and lfs.isfile(instfilex) and instfilex
+							end
+						end
+						if not filepath then
 							if instfilex then
 								instfile = instfile.." or "..instfilex
 							end
 							table.insert(missing, filetype.." file "..file.." or "..instfile.." is not installed")
 						else
 							any = true
+							log.d("already installed "..filepath)
 						end
 					end
 					if not any then
@@ -276,6 +284,8 @@ function api.isinstalled(files)
 				else
 					log.w("Unknown file type "..filetype.." for file "..file)
 				end
+			else
+				log.d("already installed "..file)
 			end
 		end
 	end
@@ -351,6 +361,7 @@ function api.mkenv(env)
 			env[n] = v
 		end
 	end
+	env.PATH = nil
 	return env
 end
 

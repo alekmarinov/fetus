@@ -72,11 +72,12 @@ function execute(...)
 	lfs.mkdir(localpath("etc"))
 	assert(createfile(localpath("etc/passwd"), "root:x:0:0:root:/root:/bin/bash"))
 	assert(createfile(localpath("etc/group"), "root:x:0:"))
+	lfs.copy("/etc/resolv.conf", localpath("etc"))
 
 	local rootdir = config.get(_G._conf, "dir.stage0.install")
 
 	lfs.mkdir(localpath("bin"))
-	for _, exec in ipairs{"bash","cat","echo","pwd","stty"} do
+	for _, exec in ipairs{"cp", "bash","cat","echo","pwd","stty"} do
 		lfs.link(lfs.concatfilenames(rootdir, "bin", exec), localpath("bin"))
 	end
 
@@ -93,7 +94,6 @@ function execute(...)
 	if string.sub(rootdir2, 1, 1) == "/" then
 		rootdir2 = string.sub(rootdir2, 2)
 	end
-	print(rootdir2, lfs.concatfilenames(rootdir, "lib/libstdc++.la"), localpath("usr/lib/libstdc++.la"))
 	lfs.execute("/bin/sed 's/"..rootdir2.."/usr/g' "..lfs.concatfilenames(rootdir, "lib/libstdc++.la").." > "..localpath("usr/lib/libstdc++.la"))
 	lfs.link("bash", localpath("/bin/sh"))
 

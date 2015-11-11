@@ -8,14 +8,9 @@ package = {
 }
 
 local function make(dir, ...)
-	local args = {}
-	for _, v in ipairs{"VERBOSE=1", ...} do
-		table.insert(args, "\""..v.."\"")
-	end
-
-	local cmd = conf["build.make"].." "..table.concat(args, " ")
-	log.i(cmd)
-	return assert(lfs.executein(dir, cmd))
+	return assert(api.executein(dir, conf["build.make"], {
+		PATH = path.install.bin..conf["build.pathsep"].."/bin"..conf["build.pathsep"].."/usr/bin"
+	}, ...))
 end
 
 function prepare()
@@ -43,8 +38,8 @@ function build()
 		ar = "$(CC) -shared -Wl,--out-implib,lua51.dll.a -o"
 	else
 		-- unlike mingw where readline is linked to termcap, in linux lua will link with ncurses
-		ldlibs = ldlibs.." -lncurses"
-		ccflags = "-DLUA_USE_LINUX -I"..path.install.inc
+		ldlibs = ldlibs.." -lncursesw"
+		ccflags = "-fPIC -DLUA_USE_LINUX -I"..path.install.inc
 		local V = package.version[1].."."..package.version[2]
 		local R = V.."."..package.version[3]
 		lua_a = "liblua.so."..R
@@ -113,6 +108,6 @@ function install()
 			lfs.link(dynamic, api.makepath(path.install.lib, dynamicname(2)))
 			lfs.link(dynamic, api.makepath(path.install.lib, dynamicname(0)))
 		end
-		assert(isinstalled(), "something wrong after lua install")
+		assert(isinstalled(), "something wrong after "..package.name.." install")
 	end
 end
