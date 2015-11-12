@@ -37,6 +37,8 @@ pacman -S git unzip tar patch make mingw-w64-i686-toolchain mingw-w64-x86_64-too
 
 -- Install for Linux
 
+vagrant up serveit/centos-7 [--provider hyperv]
+
 Prepare the following requsites:
 curl, which, sh, readlink, unzip, bzip2, xz, tar, patch, dos2unix, gcc, gcc-c++, libgcc.i686, glibc-devel.i686, cmake, lua-5.1
 

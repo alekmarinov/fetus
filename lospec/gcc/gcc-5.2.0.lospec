@@ -170,7 +170,7 @@ function install(...)
 		autotools.install()
 		lfs.execute("ln", "-sv", "gcc", api.makepath(path.install.bin, "cc"))
 		local lib = "lib"
-		if api.isarch32() then
+		if not api.isarch32() then
 			lib = lib.."64"
 		end
 		lfs.execute("ln", "-sv", api.makepath("..", api.makepath(path.install.bin, "cpp")), api.makepath(path.install.dir, "..", lib))
