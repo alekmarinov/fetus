@@ -7,9 +7,14 @@ package = {
 use ("autotools", {build_outside = true})
 
 local function getoptpass(...)
-	local pass = ...
-	assert(type(pass) == "string" and (pass == "--pass1" or pass == "--pass2"), "Expects argument 1 string --pass1 or --pass2, got "..tostring(pass))
-	return pass == "--pass1" and 1 or 2
+	if conf["build.stage"] == 0 then
+		local pass = ...
+		assert(type(pass) == "string" and (pass == "--pass1" or pass == "--pass2"), "Expects argument 1 string --pass1 or --pass2, got "..tostring(pass))
+		return pass == "--pass1" and 1 or 2
+	else
+		-- no passes in stage > 0
+		return 0
+	end
 end
 
 function prepare()
@@ -44,11 +49,12 @@ function build(...)
 				["--with-lib-path"]= path.install.lib,
 			}
 		end
+		autotools.configure(confargs, env)
+		autotools.make()
 	else
-		error("Only stage 0 is currently supported")
+		autotools.configure("--enable-shared", "--disable-werror")
+		autotools.make("tooldir="..path.install.dir)
 	end
-	autotools.configure(confargs, env)
-	autotools.make()
 end
 
 function isinstalled(...)
@@ -88,8 +94,12 @@ function install(...)
 			lfs.mkdir(path.install.lib)
 			lfs.link(lfs.basename(path.install.lib), path.install.lib.."64")
 		end
-		autotools.install()
-		assert(isinstalled(...), "something wrong after binutils install") 
+		if conf["build.stage"] == 0 then
+			autotools.install()
+		else
+			autotools.install("tooldir="..path.install.dir)
+		end
+		assert(isinstalled(...), "something wrong after "..package.name.." install") 
 
 		-- Prepare the linker for the “Re-adjusting” phase
 		if pass == 2 and conf["build.stage"] == 0 then

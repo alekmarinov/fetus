@@ -27,6 +27,6 @@ function install()
 	if not isinstalled() then
 		build()
 		autotools.install()
-		assert(isinstalled(), "something wrong after m4 install") 
+		assert(isinstalled(), "something wrong after "..package.name.." install") 
 	end
 end

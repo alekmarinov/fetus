@@ -1,0 +1,43 @@
+zlib = assert(requires("zlib == 1.2.8"))
+
+package = {
+	name     = "cmake",
+	version  = "3.3.1",
+	source   = "$(repo.opensource)/cmake-3.3.1.tar.gz"
+}
+
+local function make(...)
+	return assert(api.executein(path.src.dir, conf["build.make"], {
+		PATH = path.install.bin..conf["build.pathsep"].."/bin"..conf["build.pathsep"].."/usr/bin"
+	}, ...))
+end
+
+function prepare()
+	zlib.install() 
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	api.executein(path.src.dir, "./bootstrap", "--prefix="..path.install.dir, "--system-libs", "--no-system-jsoncpp")
+	make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		exec = "cmake"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		if conf["build.system"] == "mingw" then
+			log.e("unzip install is not supported under mingw")
+		else
+			build()
+			make("install")
+			assert(isinstalled(), "something wrong after "..package.name.." install")
+		end
+	end
+end

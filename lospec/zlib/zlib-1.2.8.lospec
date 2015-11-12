@@ -50,7 +50,7 @@ function install()
 			api.executein(path.build, conf["build.make"], nil, "install", "BINARY_PATH="..path.install.bin, "LIBRARY_PATH="..path.install.lib, "INCLUDE_PATH="..path.install.inc, "SHARED_MODE=1", "-fwin32/Makefile.gcc")
 		else
 			autotools.install()
-			assert(isinstalled(), "something wrong after zlib install")
+			assert(isinstalled(), "something wrong after "..package.name.." install")
 			if conf["build.stage"] == 1 then
 				local lib = "lib"
 				if not api.isarch32() then
