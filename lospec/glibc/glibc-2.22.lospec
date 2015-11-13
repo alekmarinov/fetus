@@ -113,11 +113,11 @@ rpc: files
 		end
 
 		-- Adjusting the toolchain
+		local gccld1 = api.makepath(conf["dir.stage0.install"], "bin/ld")
+		local gccld2 = api.makepath(conf["dir.stage0.install"], api.readexecout("gcc", "-dumpmachine"), "bin/ld")
 		if not lfs.isfile(gccld1.."-new") then
 			log.e("File "..gccld1.."-new is missing but expected from installing binutils at stage 0 pass 2. Skip toolchain adjustment.")
 		else
-			local gccld1 = api.makepath(conf["dir.stage0.install"], "bin/ld")
-			local gccld2 = api.makepath(conf["dir.stage0.install"], api.readexecout("gcc", "-dumpmachine"), "bin/ld")
 
 			lfs.move(gccld1, gccld1.."-old")
 			lfs.move(gccld2, gccld2.."-old")
