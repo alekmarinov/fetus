@@ -375,7 +375,7 @@ expect_file $LUAROCKS_CONFIG_LUA
 
 # configure luarocks repository
 info "set luarocks server to $URL_REPO_ROCKS"
-echo "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
+echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
 check_status "Editing $LUAROCKS_CONFIG_LUA"
 
 sed -i "s/https/http/" $LUAROCKS_CONFIG_LUA
