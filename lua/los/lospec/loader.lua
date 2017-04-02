@@ -18,6 +18,8 @@ local rollback   = require "los.rollback"
 local version    = require "los.lospec.version"
 local package    = require "los.lospec.package"
 local md5        = require "md5"
+local lustache    = require "lustache"
+
 require "ex"
 
 local _G, assert, setfenv, ipairs, pairs, unpack, type, pcall, string, tostring, getfenv, setmetatable, rawset, rawget, io, os =
@@ -112,7 +114,7 @@ function requirein(modname, env)
 			setfenv(func, oenv)
 			return res
 		else
-			table.insert(err, res)
+			error("Function expected, got "..type(func))
 		end
 	end
 	return nil, table.concat(err, "\n")
@@ -128,8 +130,10 @@ local importapi =
 	"pcall",
 	["md5"] = md5,
 	["requirein"] = requirein,
+	["lustache"] = lustache,
 	["loaders"] = loaders,
 	["rollback"] = rollback,
+	["loader"] = _M,
 	"pairs",
 	"ipairs",
 	["string"] = string,
@@ -149,6 +153,18 @@ local importapi =
 	"error"
 }
 
+-- return all file content
+function readfile(file)
+	assert(type(file) == "string")
+	local fd, err = io.open(file, "rb")
+	if not fd then
+		return nil, err
+	end
+	local ok, err = fd:read("*a")
+	fd:close()
+	return ok, err
+end
+
 -- extend lospec api
 local extapi =
 {
@@ -158,6 +174,28 @@ local extapi =
 		lomod[usable] = requirein ("los.use."..usable, lomod)
 		lomod[usable].opts = opts or {}
 		return lomod[usable]
+	end,
+
+	template = function(data)
+		local lustachefile = assert(loader.findtemplate(data.name, data.name..".lustache"))
+		_G._log:info(_NAME..": .template: "..lustachefile)
+		local templatestring = loader.readfile(lustachefile)
+		local lospecstring = lustache:render(templatestring, data)
+		local template = loader.loadstring(lospecstring)
+
+		-- register requires function to los module environment
+		local lomod = getfenv(2) -- parent env
+		template.requires = lomod.requires
+
+		-- executes los module
+		setfenv(template._init, lomod)
+		local ok, err = loader.exec(template)
+		if not ok then
+			_G._log:error(_NAME..": "..err)
+			return nil, err
+		end
+
+		return true
 	end
 }
 
@@ -186,27 +224,38 @@ function list(pattern)
 	return lospecfiles
 end
 
+-- locates template file corresponding to specified parsed dependency
+-- returns the full file path to the template file
+-- @param dep: table representing parsed dependency description
+function findtemplate(modname, templatefile)
+	local lospecfile = lfs.concatfilenames(config.get(_G._conf, "dir.lospec"), modname, templatefile)
+	if not lfs.isfile(lospecfile) then
+		return nil, lospecfile.." doesn't exists"
+	end
+	return lospecfile
+end
+
 -- locates lospec file corresponding to specified parsed dependency
 -- returns the full file path to lospec file
 -- @param dep: table representing parsed dependency description
-function findfile(dep)
+function findspec(dep)
 	local lospecdir = lfs.concatfilenames(config.get(_G._conf, "dir.lospec"), dep.name)
 	if not lfs.isdir(lospecdir) then
 		return nil, lospecdir.." doesn't exists"
 	end
-	local lospecfiles = {}
+	local files = {}
 	for file in lfs.dir(lospecdir) do
 		if lfs.ext(file) == ".lospec" and string.starts(file, dep.name.."-", 1) then
-			table.insert(lospecfiles, file)
+			table.insert(files, file)
 		end
 	end
-	if #lospecfiles == 0 then
+	if #files == 0 then
 		return nil, "No .lospecs found for `"..pckname.."'"
 	end
 
 	local lospecvers = {}
 	local lospecmap = {}
-	for _, lospecfile in ipairs(lospecfiles) do
+	for _, lospecfile in ipairs(files) do
 		local ver = assert(version.parsefromlospecfile(lospecfile))
 		if ver then
 			table.insert(lospecvers, ver)
@@ -227,13 +276,17 @@ end
 
 -- loads lospec file
 function loadfile(lospecfile)
+	_G._log:info(_NAME..": .loadfile: "..lospecfile)
+	local loadspecstring = readfile(lospecfile)
+	return loadstring(loadspecstring)
+end
+
+-- loads lospec string
+function loadstring(lospec)
 	-- prepare environment
 	local lomod = {
-		lospecfile = lospecfile
+		-- lospecfile = lospecfile
 	}
-
-	_G._log:info(_NAME..": .loadfile: "..lospecfile)
-
 	local function importfunc(name, func)
 		lomod[name] = func
 		setfenv(func, lomod)
@@ -254,7 +307,7 @@ function loadfile(lospecfile)
 	end
 
 	local err
-	lomod._init, err = _G.loadfile(lospecfile)
+	lomod._init, err = _G.loadstring(lospec)
 	if not lomod._init then
 		return nil, err
 	end
@@ -277,7 +330,7 @@ function load(depstring)
 		return nil, err
 	end
 
-	local file, err = findfile(dep)
+	local file, err = findspec(dep)
 	if not file then
 		return nil, err
 	end

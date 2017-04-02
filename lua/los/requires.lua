@@ -30,7 +30,7 @@ local requirestack = {}
 -- returns the loaded module as a table and its environment
 -- @param depstring: string representation of dependency, e.g. "foo >= 1.2, foo < 2"
 function requires(depstring)
-	_G._log:info(_NAME..": "..depstring)
+	_G._log:info(_NAME..": required "..depstring)
 	local dep, err = version.parsedep(depstring)
 	if not dep then
 		_G._log:error(_NAME..": "..(err or "can't parse "..depstring))
@@ -38,7 +38,7 @@ function requires(depstring)
 	end
 
 	-- locates lospec file definition by required dependency description
-	local lospecfile, versionorerr = loader.findfile(dep)
+	local lospecfile, versionorerr = loader.findspec(dep)
 	if not lospecfile then
 		_G._log:error(_NAME..": "..(err or "can't find lospec for "..depstring))
 		return nil, versionorerr

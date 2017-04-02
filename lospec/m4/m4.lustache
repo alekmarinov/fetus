@@ -1,0 +1,32 @@
+package = {
+	name     = "m4",
+	version  = "{{version}}",
+	source   = "$(repo.opensource)/m4-{{version}}.tar.bz2"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	autotools.configure()
+	autotools.make()
+end
+
+function isinstalled()
+	return api.isinstalled{
+		exec = "m4"
+	}
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.install()
+		assert(isinstalled(), "something wrong after "..package.name.." install") 
+	end
+end

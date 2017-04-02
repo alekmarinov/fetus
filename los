@@ -25,5 +25,5 @@ echo $OUTDIR
 export OPATH=$PATH
 export PATH=$PATH:$OUTDIR/bin:$OUTDIR/var/lib/rocks/bin
 export LUA_PATH="$OUTDIR/share/lua/5.1/?.lua;$LOS_HOME/lua/?/init.lua;$LOS_HOME/lua/?.lua"
-lua -lluarocks.require $LOS_HOME/bin/los -Dhost.system=linux,repo.username=alek,repo.password=aviqa2,dir.out=$OUTDIR $*
+lua -lluarocks.require $LOS_HOME/bin/los -Dhost.system=linux,repo.username=guest,repo.password=guest,dir.out=$OUTDIR $*
 export PATH=$OPATH

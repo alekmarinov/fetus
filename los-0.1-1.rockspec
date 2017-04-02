@@ -18,7 +18,8 @@ dependencies = {
    "luasocket ~> 3",
    "lualogging ~> 1.3",
    "alt-getopt ~> 0.7",
-   "md5 ~> 1.2"
+   "md5 ~> 1.2",
+   "lustache ~> 1.3"
 }
 build = {
    type = "builtin",

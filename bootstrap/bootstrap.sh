@@ -398,13 +398,13 @@ echo "POSIX_SPAWN=-DMISSING_POSIX_SPAWN" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
 echo "EXTRA=posix_spawn.o" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
 cd $LOS_ROOT/$LUA_EX_API_NAME
 mkdir -p "$LUAROCKS_TREE_DIR/lib/lua/5.1"
-if [ -n "$WINDIR" ]]; then
+if [ -n "$WINDIR" ]; then
 	sed -i "s/TARGET_ARCH=.*/TARGET_ARCH=-m32/g" $LOS_ROOT/$LUA_EX_API_NAME/w32api/Makefile
 	CC=gcc make mingw
 	[ -f $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll ] || die "Failed compiling ex.dll"
 	cp $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll $LUAROCKS_TREE_DIR/lib/lua/5.1
 else
-	CC="gcc" make linux "CFLAGS=-fpic -I/include" "LDFLAGS=-L/lib"
+	CC="gcc" make linux "CFLAGS=-fpic -I/usr/include/lua5.1" "LDFLAGS=-L/lib"
 	[ -f $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so ] || die "Failed compiling ex.so"
 	cp $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so $LUAROCKS_TREE_DIR/lib/lua/5.1
 fi

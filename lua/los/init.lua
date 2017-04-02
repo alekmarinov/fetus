@@ -221,11 +221,12 @@ function los.main(losdir, ...)
 	local i = 1
 	while i <= #args do
 		local dep = args[i]
+		local lomodargs = {dep}
 		local lomod, err = los.requires(dep)
 		if not lomod then
 			exiterror(err)
 		end
-		local lomodargs = {lomod}
+		table.insert(lomodargs, lomod)
 		while i + 1 <= #args and string.starts(args[i + 1], "-") do
 			table.insert(lomodargs, args[i + 1])
 			i = i + 1
@@ -235,9 +236,11 @@ function los.main(losdir, ...)
 	end
 
 	for _, lomodargs in ipairs(lomods) do
+		local lomodname = table.remove(lomodargs, 1)
 		local lomod = table.remove(lomodargs, 1)
+
 		if type(lomod[command]) ~= "function" then
-			exiterror("command "..command.." is not supported by "..dep)
+			exiterror("command "..command.." is not supported by "..lomodname)
 		end
 
 		xpcall(function()
