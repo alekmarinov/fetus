@@ -24,10 +24,10 @@ this_script=$(makeunixpath $(readlink -f $0))
 
 makepath()
 {
-	if [[ "$WINDIR" != "" ]]; then
-		makewinpath $1
-	else
+	if [ -z "$WINDIR" ]; then
 		makeunixpath $1
+	else
+		makewinpath $1
 	fi
 }
 
@@ -75,7 +75,7 @@ execute_silent()
 # checks last command status and exits on failure with error
 check_status()
 {
-	if [[ $? != 0 ]]; then
+	if [ $? -ne 0 ]; then
 		die "$1 failed"
 	fi
 }
@@ -102,11 +102,11 @@ download_file()
 	info "download $url to $file"
 
 	which curl 2> /dev/null > /dev/null
-	if [[ $? == 0 ]]; then
+	if [ $? -eq 0 ]; then
 		curl -f -s $url > $file
 	else
 		which wget 2> /dev/null > /dev/null
-		if [ $? == 0 ]; then
+		if [ $? -eq 0 ]; then
 			wget -q -O $file $url
 		else
 			die "Can't locate wget or curl to download files"
@@ -236,7 +236,7 @@ echo "CMAKE_PACKAGE=$CMAKE_PACKAGE"
 echo "LUA_EX_API_NAME=$LUA_EX_API_NAME"
 echo "LUA_EX_API_PACKAGE=$LUA_EX_API_PACKAGE"
 
-if [[ "$WINDIR" != "" ]]; then
+if [ -n "$WINDIR" ]; then
 	LUAROCKS_BIN=$LUAROCKS_ROOT/2.2
 	LUAROCKS_LUA=$LUAROCKS_ROOT/2.2/lua
 else
@@ -249,7 +249,7 @@ echo "Prepare bootstrap in $LOS_ROOT"
 # make sure we bootstrap los in existing directory
 mkdir -p $LOS_ROOT
 
-if [[ "$WINDIR" != "" ]]; then
+if [ -n "$WINDIR" ]; then
 	LUAROCKS_NAME="luarocks-$LUAROCKS_VERSION-win32"
 	LUAROCKS_PACKAGE="$LUAROCKS_NAME.zip"
 else
@@ -257,7 +257,7 @@ else
 	LUAROCKS_PACKAGE="$LUAROCKS_NAME.tar.gz"
 fi
 
-if [[ "$WINDIR" != "" ]]; then
+if [ -n "$WINDIR" ]; then
 	LUAROCKS_CONFIG_LUA="$LUAROCKS_ROOT/config.lua"
 else
 	LUAROCKS_CONFIG_LUA="$LUAROCKS_ROOT/etc/luarocks/config-5.1.lua"
@@ -267,7 +267,7 @@ fi
 check_program lua
 EXPECTED="hi"
 ACTUAL=$(lua -e "print \"$EXPECTED\"")
-if [[ $ACTUAL == $EXPECTED ]]; then
+if [ "$ACTUAL" = "$EXPECTED" ]; then
 	info "lua interpreting test passed"
 else
 	die "lua interpreting test failed"
@@ -293,7 +293,7 @@ check_status "downloading $URL_REPO_OPENSOURCE/$LUAROCKS_PACKAGE"
 # extract luarocks
 info "extract $LOS_ROOT/$LUAROCKS_PACKAGE"
 
-if [[ "$WINDIR" != "" ]]; then
+if [ -n "$WINDIR" ]; then
 	unzip -q $LOS_ROOT/$LUAROCKS_PACKAGE -d $LOS_ROOT
 	check_status "unzip $LOS_ROOT/$LUAROCKS_PACKAGE"
 else
@@ -302,7 +302,7 @@ else
 
 	# fix luarocks configure issue in case LUA_DIR is found in / which makes invaild paths like $LUA_DIR/include -> //include
 	echo "317a318,320"                                   > "$LOS_ROOT/$LUAROCKS_NAME/configure.diff"
-	echo ">       if [[ \"$LUA_DIR\" == \"/\" ]]; then" >> "$LOS_ROOT/$LUAROCKS_NAME/configure.diff"
+	echo ">       if [ \"$LUA_DIR\" = \"/\" ]; then" >> "$LOS_ROOT/$LUAROCKS_NAME/configure.diff"
 	echo ">          LUA_DIR=\"\""                      >> "$LOS_ROOT/$LUAROCKS_NAME/configure.diff"
 	echo ">       fi"                                   >> "$LOS_ROOT/$LUAROCKS_NAME/configure.diff"
 
@@ -317,7 +317,7 @@ cd $LOS_ROOT/$LUAROCKS_NAME
 rm -f $LUAROCKS_ROOT/config.lua
 
 # install luarocks
-if [[ "$WINDIR" == "" ]]; then
+if [ -z "$WINDIR" ]; then
 	# configure luarocks
 	info "configure $LOS_ROOT/$LUAROCKS_NAME"
 	./configure --prefix=$LUAROCKS_ROOT --rocks-tree=$LUAROCKS_TREE_DIR
@@ -375,13 +375,13 @@ expect_file $LUAROCKS_CONFIG_LUA
 
 # configure luarocks repository
 info "set luarocks server to $URL_REPO_ROCKS"
-echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
+echo "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
 check_status "Editing $LUAROCKS_CONFIG_LUA"
 
 sed -i "s/https/http/" $LUAROCKS_CONFIG_LUA
 check_status "Patching $LUAROCKS_CONFIG_LUA"
 
-echo -e "luarocks installation finished."
+echo "luarocks installation finished."
 
 # installing lua-ex-api
 
@@ -398,7 +398,7 @@ echo "POSIX_SPAWN=-DMISSING_POSIX_SPAWN" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
 echo "EXTRA=posix_spawn.o" >> $LOS_ROOT/$LUA_EX_API_NAME/conf
 cd $LOS_ROOT/$LUA_EX_API_NAME
 mkdir -p "$LUAROCKS_TREE_DIR/lib/lua/5.1"
-if [[ "$WINDIR" != "" ]]; then
+if [ -n "$WINDIR" ]]; then
 	sed -i "s/TARGET_ARCH=.*/TARGET_ARCH=-m32/g" $LOS_ROOT/$LUA_EX_API_NAME/w32api/Makefile
 	CC=gcc make mingw
 	[ -f $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll ] || die "Failed compiling ex.dll"
@@ -430,29 +430,29 @@ echo ""  >> $LOCAL_CONF
 echo "dir.base=$(echo $LOS_ROOT | sed -e 's/\\/\//g')" >> $LOCAL_CONF
 echo "repo.username=$REPO_USER" >> $LOCAL_CONF
 echo "repo.password=$REPO_PASS" >> $LOCAL_CONF
-if [[ "$WINDIR" != "" ]]; then
+if [ -n "$WINDIR" ]]; then
 	# default mingw
 	echo "build.system=mingw" >> $LOCAL_CONF
 else
 	# default linux/macos
 	OSNAME=$(uname | tr '[:upper:]' '[:lower:]')
-	if [[ $OSNAME == "darwin" ]]; then
+	if [ $OSNAME = "darwin" ]; then
 		OSNAME="macos"
 	fi
 	echo "build.system=$OSNAME" >> $LOCAL_CONF
 fi
 echo "build.arch=$(uname -m)" >> $LOCAL_CONF
 
-if [[ "$WINDIR" != "" ]]; then
+if [ -n "$WINDIR" ]; then
 	pathmunge $(makeunixpath $LUAROCKS_BIN)
 	pathmunge $(makeunixpath $LUAROCKS_TREE_DIR/bin)
 
 	IFS=:
 	for dir in $PATH; do
-		if [[ $dir == "/usr/bin" ]]; then
+		if [ "$dir" = "/usr/bin" ]; then
 			dir="$EXT_DIR/msys/1.0/bin"
 		fi
-		if [[ "$winpath" != "" ]]; then
+		if [ -n "$winpath" ]; then
 			 winpath="$winpath;"
 		fi
 		 winpath="$winpath$(makewinpath "$dir")"
@@ -472,3 +472,4 @@ fi
 info "and then you can type luarocks install los"
 
 echo "Bootstrap SUCCESS!"
+

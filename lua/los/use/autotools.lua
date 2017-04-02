@@ -33,10 +33,12 @@ end
 function autotools.configure(...)
 
 	if conf["build.stage"] == 0 then
-		-- ensure root permissions and install target 
+
+		--[[ ensure root permissions and install target 
 		lfs.execout("id -u", function (uid)
 			assert(uid == "0", "Root permissions required during stage 0")
 		end)
+		]]
 
 		-- link install dir to location which will be available after chrooting in stage 1
 		if not lfs.isdir(path.install.dir) then
