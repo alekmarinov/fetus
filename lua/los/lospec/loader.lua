@@ -114,7 +114,7 @@ function requirein(modname, env)
 			setfenv(func, oenv)
 			return res
 		else
-			error("Function expected, got "..type(func))
+			_G._log:error(_NAME..": Function expected, got "..type(func))
 		end
 	end
 	return nil, table.concat(err, "\n")
