@@ -1,0 +1,4 @@
+template{
+	name     = "binutils_pass2",
+	version  = "2.25.1"
+}

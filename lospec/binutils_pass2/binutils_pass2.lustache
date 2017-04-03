@@ -1,0 +1,74 @@
+package = {
+	name     = "binutils",
+	version  = "{{version}}",
+	source   = "$(repo.opensource)/binutils-{{version}}.tar.bz2"
+}
+
+use ("autotools", {build_outside = true})
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build(...)
+	prepare()
+	local env = {
+		-- overwriting CC requires to add include path
+		CC = conf["cross.prefix"].."-gcc -DSTDC_HEADERS -I"..path.install.inc,
+		AR = conf["cross.prefix"].."-ar",
+		RANLIB = conf["cross.prefix"].."-ranlib"
+	}
+	local confargs = {
+		["--prefix"] = path.install.dir,
+		"--disable-nls",
+		"--disable-werror",
+		["--with-lib-path"]= path.install.lib,
+	}
+	autotools.configure(confargs, env)
+	autotools.make()
+end
+
+function isinstalled(...)
+	local execs = {}
+	for _, ex in ipairs{
+		"addr2line",
+		"elfedit",
+		"nm",
+		"readelf",
+		"ar",
+		"gprof",
+		"objcopy",
+		"size",
+		"as",
+		"ld",
+		"objdump",
+		"strings",
+		"c++filt",
+		"ld.bfd",
+		"ranlib",
+		"strip"} do
+		table.insert(execs, ex)
+	end
+	return api.isinstalled{
+		exec = execs
+	}
+end
+
+function install(...)
+	if not isinstalled(...) then
+		build(...)
+		if not api.isarch32(conf["build.arch"]) then
+			lfs.mkdir(path.install.lib)
+			lfs.link(lfs.basename(path.install.lib), path.install.lib.."64")
+		end
+		autotools.install()
+		assert(isinstalled(...), "something wrong after "..package.name.." install") 
+
+		-- Prepare the linker for the “Re-adjusting” phase
+		local lddir = api.makepath(autotools.builddir(), "ld")
+		api.executein(lddir, "make", "clean")
+		api.executein(lddir, "make", "LIB_PATH=/usr/lib:/lib")
+		api.copy(api.makepath(lddir, "ld-new"), path.install.bin)
+	end
+end

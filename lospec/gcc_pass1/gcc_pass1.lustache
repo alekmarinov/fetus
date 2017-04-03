@@ -1,0 +1,111 @@
+zlib = assert(requires("zlib == {{requires.zlib}}"))
+gmp = assert(requires("gmp == {{requires.gmp}}"))
+mpfr = assert(requires("mpfr == {{requires.mpfr}}"))
+mpc = assert(requires("mpc == {{requires.mpc}}"))
+
+package = {
+	name     = "gcc",
+	version  = "{{version}}",
+	source   = "$(repo.opensource)/gcc-{{version}}.tar.bz2"
+}
+
+use ("autotools", {build_outside = true})
+
+function prepare()
+	api.download()
+	api.unarch()
+
+	mpfr.api.download()
+	mpfr.api.unarch()
+	lfs.delete(api.makepath(path.src.dir, "mpfr"))
+	lfs.move(mpfr.path.src.dir, api.makepath(path.src.dir, "mpfr"))
+
+	gmp.api.download()
+	gmp.api.unarch()
+	lfs.delete(api.makepath(path.src.dir, "gmp"))
+	lfs.move(gmp.path.src.dir, api.makepath(path.src.dir, "gmp"))
+
+	mpc.api.download()
+	mpc.api.unarch()
+	lfs.delete(api.makepath(path.src.dir, "mpc"))
+	lfs.move(mpc.path.src.dir, api.makepath(path.src.dir, "mpc"))
+
+	for filename in lfs.dirtree(api.makepath(path.src.dir, "gcc/config")) do
+		local basename = lfs.basename(filename)
+		if basename == "linux64.h" or basename == "linux.h" or basename == "sysv4.h" then
+			if not lfs.isfile(filename..".orig") then
+				log.i("Patching file "..filename)
+				lfs.execute("cp", "-uv", filename, filename..".orig")
+
+				api.gsubfile(filename, 
+					{"/lib/ld", path.install.dir.."/lib/ld"},
+					{"/lib32/ld", path.install.dir.."/lib32/ld"},
+					{"/lib64/ld", path.install.dir.."/lib64/ld"},
+					{"/usr", path.install.dir})
+				api.catfile(filename, [[
+#undef STANDARD_STARTFILE_PREFIX_1
+#undef STANDARD_STARTFILE_PREFIX_2
+#define STANDARD_STARTFILE_PREFIX_1 "]]..lfs.addpathsep(path.install.lib)..[["
+#define STANDARD_STARTFILE_PREFIX_2 ""
+]], "a")
+				lfs.execute("touch", filename..".orig")
+			end
+		end
+	end
+end
+
+function build(...)
+	prepare()
+	local confargs, env
+	confargs = {
+		["--target"] = conf["cross.prefix"],
+		["--with-glibc-version"] = "2.11",
+		-- ["--with-sysroot"] = conf["dir.sysroot"],
+		"--with-newlib",
+		"--without-headers",
+		["--with-local-prefix"] = path.install.dir,
+		["--with-native-system-header-dir"] = path.install.inc,
+		"--disable-nls",
+		"--disable-shared",
+		"--disable-multilib",
+		"--disable-decimal-float",
+		"--disable-threads",
+		"--disable-libatomic",
+		"--disable-libgomp",
+		"--disable-libquadmath",
+		"--disable-libssp",
+		"--disable-libvtv",
+		"--disable-libstdcxx",
+		["--enable-languages"] = "c,c++"
+	}
+	autotools.configure(confargs)
+	autotools.make()
+end
+
+function isinstalled(...)
+	local execs = {}
+	for _, ex in ipairs{
+		"c++",
+		"cpp",
+		"g++",
+		"gcc"} do
+		table.insert(execs, conf["cross.prefix"].."-"..ex)
+	end
+	return api.isinstalled{
+		exec = execs
+	}
+end
+
+function install(...)
+	if not isinstalled(...) then
+		build(...)
+		autotools.install()
+		lfs.execute("ln", "-sv", "gcc", api.makepath(path.install.bin, "cc"))
+		local lib = "lib"
+		if not api.isarch32() then
+			lib = lib.."64"
+		end
+		lfs.execute("ln", "-sv", api.makepath("..", api.makepath(path.install.bin, "cpp")), api.makepath(path.install.dir, "..", lib))
+		assert(isinstalled(...), "something wrong after gcc install") 
+	end
+end

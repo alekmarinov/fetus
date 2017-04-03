@@ -1,3 +1,5 @@
+assert(requires("gawk")):install()
+
 binutils = assert(requires("binutils == 2.25.1"))
 linux = requires "linux"
 
@@ -15,10 +17,6 @@ package = {
 use ("autotools", {build_outside = true})
 
 function prepare()
-	if conf["build.stage"] == 0 then
-		assert(binutils.isinstalled("--pass1") or binutils.isinstalled("--pass2"), "binutils must be installed before glibc")
-	end
-
 	linux.install()
 
 	api.download()

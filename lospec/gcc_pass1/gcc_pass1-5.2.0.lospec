@@ -1,0 +1,10 @@
+template{
+	name = "gcc_pass1",
+	version = "5.2.0",
+	requires = {
+		zlib = "1.2.8",
+		gmp = "6.0.0a",
+		mpfr = "3.1.3",
+		mpc = "1.0.3"
+	}
+}

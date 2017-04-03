@@ -1,0 +1,55 @@
+package = {
+	name     = "binutils",
+	version  = "{{version}}",
+	source   = "$(repo.opensource)/binutils-{{version}}.tar.bz2"
+}
+
+use ("autotools", {build_outside = true})
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build(...)
+	prepare()
+	autotools.configure("--enable-shared", "--disable-werror")
+	autotools.make("tooldir="..path.install.dir)
+end
+
+function isinstalled(...)
+	for _, ex in ipairs{
+		"addr2line",
+		"elfedit",
+		"nm",
+		"readelf",
+		"ar",
+		"gprof",
+		"objcopy",
+		"size",
+		"as",
+		"ld",
+		"objdump",
+		"strings",
+		"c++filt",
+		"ld.bfd",
+		"ranlib",
+		"strip"} do
+		table.insert(execs, ex)
+	end
+	return api.isinstalled{
+		exec = execs
+	}
+end
+
+function install(...)
+	if not isinstalled(...) then
+		build(...)
+		if not api.isarch32(conf["build.arch"]) then
+			lfs.mkdir(path.install.lib)
+			lfs.link(lfs.basename(path.install.lib), path.install.lib.."64")
+		end
+		autotools.install("tooldir="..path.install.dir)
+		assert(isinstalled(...), "something wrong after "..package.name.." install") 
+	end
+end

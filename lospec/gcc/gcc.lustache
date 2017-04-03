@@ -11,152 +11,37 @@ package = {
 
 use ("autotools", {build_outside = true})
 
-local function getoptpass(...)
-	if conf["build.stage"] == 0 then
-		local pass = ...
-		assert(type(pass) == "string" and (pass == "--pass1" or pass == "--pass2"), "Expects argument 1 string --pass1 or --pass2, got "..tostring(pass))
-		return pass == "--pass1" and 1 or 2
-	else
-		-- no passes in stage > 0
-		return 0
-	end
-end
-
 function prepare()
 	api.download()
 	api.unarch()
-
-	if conf["build.stage"] == 0 then
-		mpfr.api.download()
-		mpfr.api.unarch()
-		lfs.delete(api.makepath(path.src.dir, "mpfr"))
-		lfs.move(mpfr.path.src.dir, api.makepath(path.src.dir, "mpfr"))
-
-		gmp.api.download()
-		gmp.api.unarch()
-		lfs.delete(api.makepath(path.src.dir, "gmp"))
-		lfs.move(gmp.path.src.dir, api.makepath(path.src.dir, "gmp"))
-
-		mpc.api.download()
-		mpc.api.unarch()
-		lfs.delete(api.makepath(path.src.dir, "mpc"))
-		lfs.move(mpc.path.src.dir, api.makepath(path.src.dir, "mpc"))
-
-		for filename in lfs.dirtree(api.makepath(path.src.dir, "gcc/config")) do
-			local basename = lfs.basename(filename)
-			if basename == "linux64.h" or basename == "linux.h" or basename == "sysv4.h" then
-				if not lfs.isfile(filename..".orig") then
-					log.i("Patching file "..filename)
-					lfs.execute("cp", "-uv", filename, filename..".orig")
-
-					api.gsubfile(filename, 
-						{"/lib/ld", path.install.dir.."/lib/ld"},
-						{"/lib32/ld", path.install.dir.."/lib32/ld"},
-						{"/lib64/ld", path.install.dir.."/lib64/ld"},
-						{"/usr", path.install.dir})
-					api.catfile(filename, [[
-#undef STANDARD_STARTFILE_PREFIX_1
-#undef STANDARD_STARTFILE_PREFIX_2
-#define STANDARD_STARTFILE_PREFIX_1 "]]..lfs.addpathsep(path.install.lib)..[["
-#define STANDARD_STARTFILE_PREFIX_2 ""
-]], "a")
-					lfs.execute("touch", filename..".orig")
-				end
-			end
-		end
-	else
-		zlib.install()
-		gmp.install()
-		mpfr.install()
-		mpc.install()
-		lfs.execute("ldconfig")
-	end
+	zlib.install()
+	gmp.install()
+	mpfr.install()
+	mpc.install()
 end
 
 function build(...)
-	local pass = getoptpass(...)
-
 	prepare()
-	local confargs, env
-	if conf["build.stage"] == 0 then
-		if pass == 1 then
-			confargs = {
-				["--target"] = conf["cross.prefix"],
-				["--with-glibc-version"] = "2.11",
-				-- ["--with-sysroot"] = conf["dir.sysroot"],
-				"--with-newlib",
-				"--without-headers",
-				["--with-local-prefix"] = path.install.dir,
-				["--with-native-system-header-dir"] = path.install.inc,
-				"--disable-nls",
-				"--disable-shared",
-				"--disable-multilib",
-				"--disable-decimal-float",
-				"--disable-threads",
-				"--disable-libatomic",
-				"--disable-libgomp",
-				"--disable-libquadmath",
-				"--disable-libssp",
-				"--disable-libvtv",
-				"--disable-libstdcxx",
-				["--enable-languages"] = "c,c++"
-			}
-		else
-			-- fix limits.h file
-			local limitfile = api.makepath(lfs.dirname(api.readexecout(api.makepath(path.install.bin, conf["cross.prefix"].."-gcc"), "-print-libgcc-file-name")), "include-fixed/limits.h")
-			lfs.delete(limitfile)
-			for _, filename in ipairs{"limitx.h", "glimits.h", "limity.h"} do
-				local content = api.readfile(api.makepath(path.src.dir, "gcc", filename))
-				api.appendfile(limitfile, content)
-			end
-
-			env = {
-				-- overwriting CC/CXX requires explicitly adding the default include path
-				CC = conf["cross.prefix"].."-gcc -I"..path.install.inc,
-				-- -fno-rtti -fno-exceptions prevents from error: declaration of 'int asprintf(char**, const char*, ...)' has a different exception specifier
-				CXX = conf["cross.prefix"].."-g++ -fno-rtti -fno-exceptions -I"..path.install.inc,
-				AR = conf["cross.prefix"].."-ar",
-				RANLIB = conf["cross.prefix"].."-ranlib"
-			}
-
-			confargs = {
-				["--with-local-prefix"] = path.install.dir,
-				["--with-native-system-header-dir"] = path.install.inc,
-				["--enable-languages"] = "c,c++",
-				"--disable-libstdcxx-pch",
-				"--disable-multilib",
-				"--disable-bootstrap",
-				"--disable-libgomp"
-			}
-		end
-	else
-		env = { SED = "sed" }
-		confargs = {
-			["--enable-languages"] = "c,c++",
-			"--disable-multilib",
-			"--disable-bootstrap",
-			"--with-system-zlib"
-		}
-	end
+	local env = { SED = "sed" }
+	local confargs = {
+		["--enable-languages"] = "c,c++",
+		"--disable-multilib",
+		"--disable-bootstrap",
+		"--with-system-zlib"
+	}
 	autotools.configure(confargs, env)
 	autotools.make()
 end
 
 function isinstalled(...)
-	local pass = getoptpass(...)
 	local execs = {}
-	local execprefix = pass == 1 and conf["cross.prefix"].."-" or ""
 	for _, ex in ipairs{
 		"c++",
 		"cpp",
 		"g++",
 		"gcc"} do
-		table.insert(execs, execprefix..ex)
+		table.insert(execs, ex)
 	end
-	if pass == 2 then
-		table.insert(execs, "cc")
-	end
-
 	return api.isinstalled{
 		exec = execs
 	}
@@ -164,8 +49,6 @@ end
 
 function install(...)
 	if not isinstalled(...) then
-		local pass = getoptpass(...)
-		log.i(string.format("Installing %s stage %d pass %d", package.name, conf["build.stage"], pass))
 		build(...)
 		autotools.install()
 		lfs.execute("ln", "-sv", "gcc", api.makepath(path.install.bin, "cc"))
@@ -175,11 +58,9 @@ function install(...)
 		end
 		lfs.execute("ln", "-sv", api.makepath("..", api.makepath(path.install.bin, "cpp")), api.makepath(path.install.dir, "..", lib))
 		
-		if conf["build.stage"] > 0 then
-			-- Add a compatibility symlink to enable building programs with Link Time Optimization (LTO)
-			lfs.execute("install", "-v", "-dm755", api.makepath(path.install.lib, "bfd-plugins"))
-			lfs.execute("ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/{{version}}/liblto_plugin.so "..api.makepath(path.install.lib, "bfd-plugins"))
-		end
+		-- Add a compatibility symlink to enable building programs with Link Time Optimization (LTO)
+		lfs.execute("install", "-v", "-dm755", api.makepath(path.install.lib, "bfd-plugins"))
+		lfs.execute("ln -sfv ../../libexec/gcc/$(gcc -dumpmachine)/{{version}}/liblto_plugin.so "..api.makepath(path.install.lib, "bfd-plugins"))
 		assert(isinstalled(...), "something wrong after gcc install") 
 	end
 end
