@@ -181,10 +181,8 @@ local extapi =
 		_G._log:info(_NAME..": .template: "..lustachefile)
 		local templatestring = loader.readfile(lustachefile)
 		local lospecstring = lustache:render(templatestring, data)
-		local template = loader.loadstring(lospecstring)
-
-		-- register requires function to los module environment
 		local lomod = getfenv(2) -- parent env
+		local template = loader.loadstring(lospecstring, lomod.lospecfile)
 		template.requires = lomod.requires
 
 		-- executes los module
@@ -278,14 +276,14 @@ end
 function loadfile(lospecfile)
 	_G._log:info(_NAME..": .loadfile: "..lospecfile)
 	local loadspecstring = readfile(lospecfile)
-	return loadstring(loadspecstring)
+	return loadstring(loadspecstring, lospecfile)
 end
 
 -- loads lospec string
-function loadstring(lospec)
+function loadstring(lospec, lospecfile)
 	-- prepare environment
 	local lomod = {
-		-- lospecfile = lospecfile
+		lospecfile = lospecfile
 	}
 	local function importfunc(name, func)
 		lomod[name] = func
