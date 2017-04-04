@@ -1,13 +1,13 @@
 #!/bin/sh
-##################################################################
-##																##
-## Copyright (C) 2003-2015, Intelibo Ltd						##
-##																##
-## Project:       los											##
-## Filename:      bootstrap.sh									##
-## Description:   los bootstrap script							##
-##																##
-##################################################################
+##
+##
+## Copyright (C) 2003-2015, Intelibo Ltd
+##
+## Project:       los
+## Filename:      bootstrap.sh
+## Description:   los bootstrap script
+##
+##
 
 # make windows path
 makewinpath()
@@ -376,6 +376,7 @@ expect_file $LUAROCKS_CONFIG_LUA
 # configure luarocks repository
 info "set luarocks server to $URL_REPO_ROCKS"
 echo -e "rocks_servers = \n{\n\t\"https://luarocks.org/\",\n\t\"$URL_REPO_ROCKS\"\n}" >> $LUAROCKS_CONFIG_LUA
+sed -i "s/^-e//" $LUAROCKS_CONFIG_LUA
 check_status "Editing $LUAROCKS_CONFIG_LUA"
 
 sed -i "s/https/http/" $LUAROCKS_CONFIG_LUA
@@ -404,7 +405,7 @@ if [ -n "$WINDIR" ]; then
 	[ -f $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll ] || die "Failed compiling ex.dll"
 	cp $LOS_ROOT/$LUA_EX_API_NAME/w32api/ex.dll $LUAROCKS_TREE_DIR/lib/lua/5.1
 else
-	CC="gcc" make linux "CFLAGS=-fpic -I/usr/include/lua5.1" "LDFLAGS=-L/lib"
+	CC="gcc" make linux "CFLAGS=-fpic -I/usr/include/lua5.1" "LDFLAGS=-L/usr/lib"
 	[ -f $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so ] || die "Failed compiling ex.so"
 	cp $LOS_ROOT/$LUA_EX_API_NAME/posix/ex.so $LUAROCKS_TREE_DIR/lib/lua/5.1
 fi
