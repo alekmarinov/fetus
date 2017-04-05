@@ -1,7 +1,7 @@
 #!/bin/sh
 ##
 ##
-## Copyright (C) 2003-2015, Intelibo Ltd
+## Copyright (C) 2003-2017, Intelibo Ltd
 ##
 ## Project:       los
 ## Filename:      bootstrap.sh
