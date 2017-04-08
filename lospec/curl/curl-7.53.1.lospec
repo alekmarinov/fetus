@@ -1,7 +1,7 @@
 package = {
 	name     = "curl",
-	version  = "7.44.0",
-	source   = "$(repo.opensource)/curl-7.44.0.tar.lzma"
+	version  = "7.53.1",
+	source   = "https://curl.haxx.se/download/curl-7.53.1.tar.gz"
 }
 
 use "autotools"
@@ -13,7 +13,7 @@ end
 
 function build()
 	prepare()
-	autotools.configure("--disable-static", "--enable-threaded-resolver")
+	autotools.configure("--disable-static", "--enable-threaded-resolver", "--with-ssl="..path.install.dir)
 	autotools.make()
 end
 

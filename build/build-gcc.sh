@@ -9,4 +9,24 @@
 ##																##
 ##################################################################
 
-los -v install binutils_pass1 gcc_pass1 linux glibc libstdc++ binutils_pass2 gcc_pass2 coreutils bash
+los -v install \
+ binutils_pass1 \
+ gcc_pass1 linux \
+ glibc libstdc++ \
+ binutils_pass2 \
+ gcc_pass2 \
+ coreutils \
+ bash \
+ lua \
+ tar \
+ curl \
+ sed \
+ which \
+ patch \
+ gzip \
+ make \
+ unzip \
+ grep
+
+
+

@@ -206,6 +206,16 @@ for i in "$@"; do
 	esac
 done
 
+# check utilities availability
+check_program which
+check_program tar
+check_program patch
+check_program sed
+check_program gzip
+check_program make
+check_program unzip
+check_program grep
+
 ## configure variables
 
 REPO_USER=${REPO_USER:-"guest"}
@@ -273,12 +283,6 @@ else
 	die "lua interpreting test failed"
 fi
 
-# locate and test tar
-check_program tar
-
-# locate and test patch
-check_program patch
-
 # cleanup installation dir
 mkdir -p $LOS_ROOT
 check_status "creating directory $LOS_ROOT"
@@ -336,6 +340,11 @@ if [ -z "$WINDIR" ]; then
 	# remove --tries=1 from wget params to satisfy wget from busybox
 	sed -i "s/\.\.\" --tries=1 \"//" $LUAROCKS_LUA/luarocks/fs/unix/tools.lua
 	sed -i "s/ok = fs\.execute_quiet(wget_cmd\.\.\" --timestamping \", url)/fs\.delete(filename) ok = fs\.execute_quiet(wget_cmd, url)/" $LUAROCKS_LUA/luarocks/fs/unix/tools.lua
+
+	ENV_PATH=$(which env)
+	ENV_PATH=${ENV_PATH//\//\\/}
+	info "patching $LUAROCKS_BIN/luarocks with env path $ENV_PATH"
+	sed -i "s/\/usr\/bin\/env/$ENV_PATH/" $LUAROCKS_BIN/luarocks
 else
 	# start luarocks installer with the installed lua
 	LUA_DIR=$(dirname $(dirname $($COMSPEC /c "which lua")))
@@ -431,7 +440,7 @@ echo ""  >> $LOCAL_CONF
 echo "dir.base=$(echo $LOS_ROOT | sed -e 's/\\/\//g')" >> $LOCAL_CONF
 echo "repo.username=$REPO_USER" >> $LOCAL_CONF
 echo "repo.password=$REPO_PASS" >> $LOCAL_CONF
-if [ -n "$WINDIR" ]]; then
+if [ -n "$WINDIR" ]; then
 	# default mingw
 	echo "build.system=mingw" >> $LOCAL_CONF
 else

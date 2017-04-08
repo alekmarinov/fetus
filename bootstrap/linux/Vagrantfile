@@ -12,12 +12,32 @@ Vagrant.configure("2") do |config|
   config.vm.provision "file", source: "../bootstrap.sh", destination: "~/losboot/bootstrap.sh"
 
   config.vm.provision "shell", inline: <<-SHELL
-  	apt-get -y update
-	apt-get -y install lua5.1 liblua5.1-0-dev patch build-essential unzip
-	cd /usr/lib/x86_64-linux-gnu && ln -s liblua5.1.so liblua.so
+    apt-get -y update
+    apt-get -y install lua5.1 liblua5.1-0-dev patch build-essential unzip
+    cd /usr/lib/x86_64-linux-gnu && ln -s liblua5.1.so liblua.so
     sh /home/vagrant/losboot/bootstrap.sh
     source /root/los/losvars.sh
     luarocks install los
-    los install binutils_pass1 gcc_pass1 linux glibc libstdc++ binutils_pass2 gcc_pass2 coreutils bash
+    los -v install \
+     binutils_pass1 \
+     gcc_pass1 \
+     linux \
+     glibc \
+     libstdc++ \
+     binutils_pass2 \
+     gcc_pass2 \
+     coreutils \
+     bash \
+     lua \
+     tar \
+     curl \
+     sed \
+     which \
+     patch \
+     gzip \
+     make \
+     unzip \
+     grep
+
   SHELL
 end

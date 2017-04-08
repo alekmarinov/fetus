@@ -1,0 +1,30 @@
+package = {
+	name     = "openssl",
+	version  = "1.1.0",
+	source   = "https://www.openssl.org/source/openssl-1.1.0e.tar.gz"
+}
+
+use "autotools"
+
+function prepare()
+	api.download()
+	api.unarch()
+end
+
+function build()
+	prepare()
+	-- autotools.configure()
+	-- ./Configure linux-x86_64 --prefix=/tools --openssldir=/tools shared
+	autotools.make()
+end
+
+function isinstalled()
+end
+
+function install()
+	if not isinstalled() then
+		build()
+		autotools.install()
+		-- assert(isinstalled(), "something wrong after "..package.name.." install")
+	end
+end
