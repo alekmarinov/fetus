@@ -342,7 +342,7 @@ if [ -z "$WINDIR" ]; then
 	sed -i "s/ok = fs\.execute_quiet(wget_cmd\.\.\" --timestamping \", url)/fs\.delete(filename) ok = fs\.execute_quiet(wget_cmd, url)/" $LUAROCKS_LUA/luarocks/fs/unix/tools.lua
 
 	ENV_PATH=$(which env)
-	ENV_PATH=${ENV_PATH//\//\\/}
+	ENV_PATH=${ENV_PATH//\//\\\/}
 	info "patching $LUAROCKS_BIN/luarocks with env path $ENV_PATH"
 	sed -i "s/\/usr\/bin\/env/$ENV_PATH/" $LUAROCKS_BIN/luarocks
 else
