@@ -15,7 +15,7 @@ end
 function build()
 	prepare()
 	autotools.configure("--enable-term-driver", "--enable-sp-funcs", "--with-shared", "--without-debug", "--without-ada", "--enable-widec", "--enable-overwrite")
-	os.execute("cd "..api.path.install.src.." && make")
+	os.execute("cd "..path.install.src.." && make")
 end
 
 function isinstalled()
