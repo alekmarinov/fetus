@@ -17,10 +17,10 @@ makewinpath()
 
 makeunixpath()
 {
-	echo "/$1" | sed -e 's/\\/\//g' -e 's/://' -e 's/\/\//\//'
+	echo $(readlink -f $1)
 }
 
-this_script=$(makeunixpath $(readlink -f $0))
+this_script=$(makeunixpath $0)
 
 makepath()
 {
@@ -341,10 +341,10 @@ if [ -z "$WINDIR" ]; then
 	sed -i "s/\.\.\" --tries=1 \"//" $LUAROCKS_LUA/luarocks/fs/unix/tools.lua
 	sed -i "s/ok = fs\.execute_quiet(wget_cmd\.\.\" --timestamping \", url)/fs\.delete(filename) ok = fs\.execute_quiet(wget_cmd, url)/" $LUAROCKS_LUA/luarocks/fs/unix/tools.lua
 
-	ENV_PATH=$(which env)
-	ENV_PATH=${ENV_PATH//\//\\\/}
-	info "patching $LUAROCKS_BIN/luarocks with env path $ENV_PATH"
-	sed -i "s/\/usr\/bin\/env/$ENV_PATH/" $LUAROCKS_BIN/luarocks
+	#ENV_PATH=$(which env)
+	#ENV_PATH=${ENV_PATH//\//\\\/}
+	#info "patching $LUAROCKS_BIN/luarocks with env path $ENV_PATH"
+	#sed -i "s/\/usr\/bin\/env/$ENV_PATH/" $LUAROCKS_BIN/luarocks
 else
 	# start luarocks installer with the installed lua
 	LUA_DIR=$(dirname $(dirname $($COMSPEC /c "which lua")))
@@ -479,7 +479,7 @@ else
 	echo "export LUA_PATH=$LUAROCKS_LUA/?.lua" >> $LOS_ROOT/losvars.sh
 	info "source $LOS_ROOT/losvars.sh to set your environment"
 fi
-info "and then you can type luarocks install los"
+info "and then luarocks install los"
 
 echo "Bootstrap SUCCESS!"
 
