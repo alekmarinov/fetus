@@ -1,7 +1,7 @@
-los
-===
+fetus
+=====
 
-_los_ is a package management system operating in dependency _clean_ development and runtime environment emphasized on Lua development.
+_fetus_ is a package management system operating in dependency _clean_ development and runtime environment emphasized on Lua development.
 
 Installing
 ----------
