@@ -27,27 +27,38 @@ Installation is composed by the following steps:
 
   * bootstraping
 
-   Edit run-bootstrap.sh and configure variables:
+   Edit run-bootstrap.sh and configure 
+   
+```
+TARGET_DIR=<location where to install luarocks and los packages>
+```
 
-    ``TARGET_DIR=location where to install luarocks and los packages``
+```
+LOS_REPO_USER=<username to los repository>
+```
 
-    ``LOS_REPO_USER=username to los repository``
-
-    ``LOS_REPO_PASS=password to los repository``
+```
+LOS_REPO_PASS=<password to los repository>
+```
 
    $sh run-bootstrap.sh
 
    Add the following vars to your environment
 
-    ``PATH=$PATH:$TARGET_DIR/bin``
+```
+PATH=$PATH:$TARGET_DIR/bin
+```
 
-    ``LUA_PATH=$TARGET_DIR/share/lua/5.1/?.lua``
+```
+LUA_PATH=$TARGET_DIR/share/lua/5.1/?.lua
+```
 
-   $luarocks install los
+```
+$luarocks install los
+```
 
 License
 -------
 
 Copyright (c) 2015 Intelibo Ltd.
-
 MIT licensed. See LICENSE for details.
