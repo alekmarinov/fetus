@@ -1,7 +1,7 @@
 fetus
 =====
 
-*fetus* is a package management system building libraries from scratch including building the compiler twice, as the compiler have to be built with clean compiler as well.
+*fetus* is a package management system building libraries and all its dependencies from scratch. That includes also building the used compiler twice, as the compiler have to be built with clean compiler as well (God bless http://www.linuxfromscratch.org/ for the know how)
 
 Installing
 ----------
