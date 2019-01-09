@@ -1,7 +1,7 @@
 fetus
 =====
 
-_fetus_ is a package management system operating in dependency _clean_ development and runtime environment emphasized on Lua development.
+*fetus* is a package management system building libraries from scratch including building the compiler twice, as the compiler have to be built with clean compiler as well.
 
 Installing
 ----------
